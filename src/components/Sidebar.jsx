@@ -7,12 +7,17 @@ export default function Sidebar({ open, setOpen }) {
         { label: 'Dashboard', icon: '📊', path: '/' },
         { label: 'Orders', icon: '📦', path: '/orders' },
         { label: 'Customers', icon: '👥', path: '/customers' },
+        { label: 'Arus Kas', icon: '💰', path: '/finance/cash-flow' },
+        { label: 'Tagihan', icon: '📋', path: '/finance/billing' },
         { label: 'Employees', icon: '👨‍💼', path: '/employees' },
         { label: 'Reports', icon: '📈', path: '/reports' },
         { label: 'Settings', icon: '⚙️', path: '/settings' }
     ];
 
-    const isActive = (path) => location.pathname === path;
+    const isActive = (path) => {
+        if (path === '/') return location.pathname === path;
+        return location.pathname.startsWith(path);
+    };
 
     return (
         <>

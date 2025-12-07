@@ -225,3 +225,11 @@ export const dashboardStats = {
     { month: "Dec", income: 10000000, expense: 4000000 }
   ]
 };
+
+export const dummyData = {
+  customers,
+  orders,
+  inventory,
+  employees,
+  dashboardStats
+};

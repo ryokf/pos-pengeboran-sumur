@@ -12,6 +12,9 @@ import CustomerDetail from './pages/CustomerDetail';
 import Employees from './pages/Employees';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import CashFlow from './pages/CashFlow';
+import ReceiptPrint from './pages/ReceiptPrint';
+import Billing from './pages/Billing';
 
 const router = createBrowserRouter([
   {
@@ -49,6 +52,18 @@ const router = createBrowserRouter([
       {
         path: 'settings',
         element: <Settings />
+      },
+      {
+        path: 'finance/cash-flow',
+        element: <CashFlow />
+      },
+      {
+        path: 'finance/receipt/:transactionId/print',
+        element: <ReceiptPrint />
+      },
+      {
+        path: 'finance/billing',
+        element: <Billing />
       }
     ]
   }
