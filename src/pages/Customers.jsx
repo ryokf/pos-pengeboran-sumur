@@ -1,9 +1,11 @@
 import { customers } from '../data/dummyData';
 import { useDataFilter } from '../hooks';
+import { useNavigate } from 'react-router-dom';
 import { FilterBar, PageHeader, StatusBadge, EmptyState } from '../components';
 import { FILTER_OPTIONS, getStatusColor, matchesSearch, formatCurrency } from '../utils';
 
 export default function Customers() {
+  const navigate = useNavigate();
   const { searchTerm, setSearchTerm, filterValue, setFilterValue, filteredData: filteredCustomers } = useDataFilter(
     customers,
     {
@@ -90,10 +92,16 @@ export default function Customers() {
                       {balanceSign}{formatCurrency(Math.abs(balance))}
                     </td>
                     <td className="py-4 px-6 text-center">
-                      <button className="text-blue-600 hover:text-blue-800 font-medium text-sm mr-3">
+                      <button
+                        onClick={() => navigate(`/customers/${customer.id}`)}
+                        className="text-blue-600 hover:text-blue-800 font-medium text-sm mr-3"
+                      >
                         Edit
                       </button>
-                      <button className="text-gray-600 hover:text-gray-800 font-medium text-sm">
+                      <button
+                        onClick={() => navigate(`/customers/${customer.id}`)}
+                        className="text-gray-600 hover:text-gray-800 font-medium text-sm"
+                      >
                         Detail
                       </button>
                     </td>

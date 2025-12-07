@@ -1,9 +1,11 @@
 import { orders } from '../data/dummyData';
 import { useDataFilter } from '../hooks';
+import { useNavigate } from 'react-router-dom';
 import { FilterBar, PageHeader, StatusBadge, EmptyState } from '../components';
 import { FILTER_OPTIONS, getStatusColor, formatCurrency, matchesSearch } from '../utils';
 
 export default function Orders() {
+    const navigate = useNavigate();
     const { searchTerm, setSearchTerm, filterValue, setFilterValue, filteredData: filteredOrders } = useDataFilter(
         orders,
         {
@@ -79,7 +81,10 @@ export default function Orders() {
                                         {formatCurrency(order.amount)}
                                     </td>
                                     <td className="py-4 px-6 text-center">
-                                        <button className="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                                        <button
+                                            onClick={() => navigate(`/orders/${order.id}`)}
+                                            className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                                        >
                                             View
                                         </button>
                                     </td>
