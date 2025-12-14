@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 
-export default function Sidebar({ open, setOpen }) {
+export default function Sidebar({ open }) {
     const location = useLocation();
 
     const menuItems = [
@@ -21,9 +21,9 @@ export default function Sidebar({ open, setOpen }) {
 
     return (
         <>
-            {/* Sidebar */}
+            {/* Sidebar - Hidden on mobile, visible on desktop */}
             <div
-                className={`${ open ? 'w-64' : 'w-20'
+                className={`hidden md:block ${ open ? 'w-64' : 'w-20'
                     } bg-gray-900 text-white transition-all duration-300 ease-in-out shadow-lg overflow-y-auto`}
             >
                 {/* Logo */}
@@ -41,8 +41,8 @@ export default function Sidebar({ open, setOpen }) {
                             key={item.path}
                             to={item.path}
                             className={`flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-colors ${ isActive(item.path)
-                                    ? 'bg-blue-600 text-white'
-                                    : 'text-gray-300 hover:bg-gray-800'
+                                ? 'bg-blue-600 text-white'
+                                : 'text-gray-300 hover:bg-gray-800'
                                 }`}
                             title={!open ? item.label : ''}
                         >
@@ -52,14 +52,6 @@ export default function Sidebar({ open, setOpen }) {
                     ))}
                 </nav>
             </div>
-
-            {/* Mobile Overlay */}
-            {open && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-50 lg:hidden"
-                    onClick={() => setOpen(false)}
-                />
-            )}
         </>
     );
 }
