@@ -13,12 +13,12 @@ export default function OrderDetail() {
   if (!order) {
     return (
       <div className="p-8">
-        <PageHeader title="Order Not Found" />
+        <PageHeader title="Pesanan Tidak Ditemukan" />
         <button
           onClick={() => navigate('/orders')}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
-          Back to Orders
+          Kembali ke Pesanan
         </button>
       </div>
     );
@@ -35,7 +35,7 @@ export default function OrderDetail() {
 
       <PageHeader
         title={order.projectName}
-        description={`Order: ${order.id}`}
+        description={`Pesanan: ${order.id}`}
       />
 
       {/* Status Bar */}
@@ -78,7 +78,7 @@ export default function OrderDetail() {
                   : 'text-gray-600 hover:text-gray-800'
               }`}
             >
-              📋 Info Project
+              📋 Info Proyek
             </button>
             <button
               onClick={() => setActiveTab('logs')}
@@ -88,7 +88,7 @@ export default function OrderDetail() {
                   : 'text-gray-600 hover:text-gray-800'
               }`}
             >
-              📊 Daily Logs
+              📊 Log Harian
             </button>
           </div>
         </div>
@@ -103,7 +103,7 @@ export default function OrderDetail() {
                   <p className="text-lg font-semibold text-gray-800">{order.projectName}</p>
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">ID Order</h3>
+                  <h3 className="text-sm font-medium text-gray-500 mb-2">ID Pesanan</h3>
                   <p className="text-lg font-semibold text-gray-800">{order.id}</p>
                 </div>
                 <div>
@@ -147,7 +147,7 @@ export default function OrderDetail() {
                   <tbody>
                     <tr className="border-b border-gray-100 hover:bg-gray-50">
                       <td colSpan="4" className="py-8 px-4 text-center text-gray-500">
-                        Belum ada data daily logs. Data akan ditambahkan saat pelaksanaan proyek dimulai.
+                        Belum ada data log harian. Data akan ditambahkan saat pelaksanaan proyek dimulai.
                       </td>
                     </tr>
                   </tbody>
@@ -156,7 +156,7 @@ export default function OrderDetail() {
 
               {/* Add Log Form Placeholder */}
               <div className="mt-6 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                <h4 className="font-medium text-gray-800 mb-4">Tambah Daily Log</h4>
+                <h4 className="font-medium text-gray-800 mb-4">Tambah Log Harian</h4>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <input
                     type="date"

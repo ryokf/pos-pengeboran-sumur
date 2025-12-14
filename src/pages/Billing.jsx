@@ -1,29 +1,37 @@
 import { useState } from 'react';
 import { dummyData } from '../data/dummyData';
+import { calculateMonthlyBilling, PRICING_TIERS } from '../utils/constants';
 
 export default function Billing() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  // Count active customers (assuming all customers with deposit > 0 are active subscribers)
-  const activeCustomers = dummyData.customers.filter(c => c.totalDeposit > 0).length;
-  const totalBillingPotential = dummyData.customers.reduce((sum, c) => sum + c.totalDebt, 0);
+  // Count active customers (customers with positive balance)
+  const activeCustomers = dummyData.customers.filter(c => c.saldo > 0).length;
+
+  // Calculate total billing potential using tiered pricing
+  const totalBillingPotential = dummyData.customers.reduce((sum, c) => {
+    if (c.saldo > 0) {
+      return sum + calculateMonthlyBilling(c.wellSize);
+    }
+    return sum;
+  }, 0);
 
   const handleProcessBilling = async () => {
     setIsProcessing(true);
-    
+
     // Simulate API call to backend
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     setSuccessMessage(
-      `✓ Proses tagihan berhasil! ${activeCustomers} pelanggan telah ditagih sebesar ${new Intl.NumberFormat('id-ID', {
+      `✓ Proses tagihan berhasil! ${ activeCustomers } pelanggan telah ditagih sebesar ${ new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
         minimumFractionDigits: 0
-      }).format(totalBillingPotential)}`
+      }).format(totalBillingPotential) }`
     );
     setIsProcessing(false);
-    
+
     // Clear success message after 5 seconds
     setTimeout(() => setSuccessMessage(''), 5000);
   };
@@ -77,7 +85,7 @@ export default function Billing() {
             <div className="text-6xl mb-4">📋</div>
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Proses Tagihan</h2>
             <p className="text-gray-600">
-              Klik tombol di bawah untuk memproses tagihan bulanan kepada semua pelanggan aktif. 
+              Klik tombol di bawah untuk memproses tagihan bulanan kepada semua pelanggan aktif.
               Sistem akan secara otomatis membuat mutasi 'Debit' untuk setiap pelanggan.
             </p>
           </div>
@@ -88,7 +96,7 @@ export default function Billing() {
             disabled={isProcessing}
             className={`
               text-lg font-bold py-4 px-12 rounded-lg transition-all duration-300
-              ${isProcessing
+              ${ isProcessing
                 ? 'bg-gray-400 text-white cursor-not-allowed'
                 : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:scale-105'
               }
@@ -120,18 +128,22 @@ export default function Billing() {
             <ul className="space-y-2 text-sm text-blue-800">
               <li className="flex items-start">
                 <span className="font-bold mr-2">1.</span>
-                <span>Sistem akan membaca data piutang (hutang) dari setiap pelanggan aktif</span>
+                <span>Sistem menghitung biaya bulanan berdasarkan ukuran sumur dengan tarif berjenjang</span>
               </li>
               <li className="flex items-start">
                 <span className="font-bold mr-2">2.</span>
-                <span>Membuat transaksi 'Debit' otomatis untuk setiap pelanggan</span>
+                <span>Sumur &lt; 5 m³: Rp {PRICING_TIERS.SMALL_WELL_PRICE.toLocaleString('id-ID')}/m³</span>
               </li>
               <li className="flex items-start">
                 <span className="font-bold mr-2">3.</span>
-                <span>Pencatatan di sistem akuntansi dilakukan secara real-time</span>
+                <span>Sumur ≥ 5 m³: Rp {PRICING_TIERS.LARGE_WELL_PRICE.toLocaleString('id-ID')}/m³</span>
               </li>
               <li className="flex items-start">
                 <span className="font-bold mr-2">4.</span>
+                <span>Membuat transaksi 'Debit' otomatis untuk setiap pelanggan aktif</span>
+              </li>
+              <li className="flex items-start">
+                <span className="font-bold mr-2">5.</span>
                 <span>Notifikasi akan dikirim kepada pelanggan tentang tagihan baru</span>
               </li>
             </ul>
@@ -142,26 +154,35 @@ export default function Billing() {
             <h3 className="text-lg font-bold text-gray-900 mb-4">👥 Pelanggan yang Akan Ditagih</h3>
             <div className="space-y-2">
               {dummyData.customers
-                .filter(c => c.totalDeposit > 0)
-                .map(customer => (
-                  <div key={customer.id} className="flex justify-between items-center py-2 border-b border-gray-200 last:border-b-0">
-                    <div>
-                      <p className="font-medium text-gray-900">{customer.name}</p>
-                      <p className="text-xs text-gray-500">{customer.type}</p>
+                .filter(c => c.saldo > 0)
+                .map(customer => {
+                  const monthlyCharge = calculateMonthlyBilling(customer.wellSize);
+                  const pricePerM3 = customer.wellSize < PRICING_TIERS.SMALL_WELL_THRESHOLD
+                    ? PRICING_TIERS.SMALL_WELL_PRICE
+                    : PRICING_TIERS.LARGE_WELL_PRICE;
+
+                  return (
+                    <div key={customer.id} className="flex justify-between items-center py-3 border-b border-gray-200 last:border-b-0">
+                      <div>
+                        <p className="font-medium text-gray-900">{customer.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {customer.wellSize} m³ × Rp {pricePerM3.toLocaleString('id-ID')}/m³
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-blue-600">
+                          {new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0
+                          }).format(monthlyCharge)}
+                        </p>
+                        <p className="text-xs text-gray-500">tagihan bulanan</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-red-600">
-                        {new Intl.NumberFormat('id-ID', {
-                          style: 'currency',
-                          currency: 'IDR',
-                          minimumFractionDigits: 0,
-                          maximumFractionDigits: 0
-                        }).format(customer.totalDebt)}
-                      </p>
-                      <p className="text-xs text-gray-500">piutang</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           </div>
 

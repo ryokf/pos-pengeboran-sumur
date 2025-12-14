@@ -9,8 +9,8 @@ export const customers = [
     address: "Jl. Merdeka No. 123, Jakarta",
     city: "Jakarta",
     type: "Corporate",
-    totalDeposit: 50000000,
-    totalDebt: 25000000
+    wellSize: 8.5,
+    saldo: 25000000
   },
   {
     id: 2,
@@ -20,8 +20,8 @@ export const customers = [
     address: "Jl. Gatot Subroto No. 45, Bandung",
     city: "Bandung",
     type: "Individual",
-    totalDeposit: 15000000,
-    totalDebt: 8000000
+    wellSize: 3.2,
+    saldo: 7000000
   },
   {
     id: 3,
@@ -31,8 +31,8 @@ export const customers = [
     address: "Jl. Ahmad Yani No. 78, Surabaya",
     city: "Surabaya",
     type: "Corporate",
-    totalDeposit: 80000000,
-    totalDebt: 35000000
+    wellSize: 6,
+    saldo: -120000
   },
   {
     id: 4,
@@ -42,8 +42,8 @@ export const customers = [
     address: "Jl. Diponegoro No. 56, Medan",
     city: "Medan",
     type: "Individual",
-    totalDeposit: 20000000,
-    totalDebt: 18000000
+    wellSize: 4.5,
+    saldo: 2000000
   },
   {
     id: 5,
@@ -53,8 +53,8 @@ export const customers = [
     address: "Jl. Sudirman No. 99, Makassar",
     city: "Makassar",
     type: "Corporate",
-    totalDeposit: 120000000,
-    totalDebt: 55000000
+    wellSize: 12,
+    saldo: 65000000
   }
 ];
 
@@ -213,10 +213,10 @@ export const employees = [
 ];
 
 export const dashboardStats = {
-  totalCustomerBalance: 285000000 - 141000000, // Total Deposit - Total Debt
+  totalCustomerBalance: 144000000, // Sum of all customer saldo
   cashOnHand: 45000000,
   activeProjects: 3, // Projects with 'Drilling' status
-  overdueDebts: 18000000 + 35000000 + 55000000, // Sum of debts > 30 days
+  overdueDebts: 0, // No longer tracking individual debts
   monthlyIncome: [
     { month: "Aug", income: 2500000, expense: 1200000 },
     { month: "Sep", income: 4200000, expense: 1800000 },

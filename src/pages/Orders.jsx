@@ -19,20 +19,20 @@ export default function Orders() {
     return (
         <div className="p-8">
             <PageHeader 
-                title="Orders" 
-                description="Manage and track all orders"
+                title="Pesanan" 
+                description="Kelola dan lacak semua pesanan proyek"
             />
 
             <FilterBar 
                 searchValue={searchTerm}
                 onSearchChange={setSearchTerm}
-                searchPlaceholder="Search by Order ID, Customer, or Project..."
+                searchPlaceholder="Cari berdasarkan ID Pesanan, Pelanggan, atau Proyek..."
                 filterLabel="Status"
                 filterValue={filterValue}
                 onFilterChange={setFilterValue}
                 filterOptions={FILTER_OPTIONS.orderStatus}
-                onAddNew={() => alert('New order form would open')}
-                addButtonLabel="+ New Order"
+                onAddNew={() => alert('Form pesanan baru akan dibuka')}
+                addButtonLabel="+ Pesanan Baru"
             />
 
             {/* Orders Table */}
@@ -41,13 +41,13 @@ export default function Orders() {
                     <table className="w-full">
                         <thead className="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th className="text-left py-4 px-6 font-semibold text-gray-700">Order ID</th>
-                                <th className="text-left py-4 px-6 font-semibold text-gray-700">Customer</th>
-                                <th className="text-left py-4 px-6 font-semibold text-gray-700">Project</th>
+                                <th className="text-left py-4 px-6 font-semibold text-gray-700">ID Pesanan</th>
+                                <th className="text-left py-4 px-6 font-semibold text-gray-700">Pelanggan</th>
+                                <th className="text-left py-4 px-6 font-semibold text-gray-700">Proyek</th>
                                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Status</th>
-                                <th className="text-left py-4 px-6 font-semibold text-gray-700">Payment</th>
-                                <th className="text-right py-4 px-6 font-semibold text-gray-700">Amount</th>
-                                <th className="text-center py-4 px-6 font-semibold text-gray-700">Action</th>
+                                <th className="text-left py-4 px-6 font-semibold text-gray-700">Pembayaran</th>
+                                <th className="text-right py-4 px-6 font-semibold text-gray-700">Jumlah</th>
+                                <th className="text-center py-4 px-6 font-semibold text-gray-700">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -85,7 +85,7 @@ export default function Orders() {
                                             onClick={() => navigate(`/orders/${order.id}`)}
                                             className="text-blue-600 hover:text-blue-800 font-medium text-sm"
                                         >
-                                            View
+                                            Lihat
                                         </button>
                                     </td>
                                 </tr>
@@ -96,7 +96,7 @@ export default function Orders() {
             </div>
 
             {filteredOrders.length === 0 && (
-                <EmptyState message="No orders found" />
+                <EmptyState message="Tidak ada pesanan ditemukan" />
             )}
         </div>
     );

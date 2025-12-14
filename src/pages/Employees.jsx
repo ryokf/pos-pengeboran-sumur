@@ -17,20 +17,20 @@ export default function Employees() {
   return (
     <div className="p-8">
       <PageHeader 
-        title="Employees" 
-        description="Manage team members and staff information"
+        title="Karyawan" 
+        description="Kelola anggota tim dan informasi staf"
       />
 
       <FilterBar 
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search by name, email, or position..."
+        searchPlaceholder="Cari berdasarkan nama, email, atau posisi..."
         filterLabel="Status"
         filterValue={filterValue}
         onFilterChange={setFilterValue}
         filterOptions={FILTER_OPTIONS.employeeStatus}
-        onAddNew={() => alert('New employee form would open')}
-        addButtonLabel="+ New Employee"
+        onAddNew={() => alert('Form karyawan baru akan dibuka')}
+        addButtonLabel="+ Karyawan Baru"
       />
 
       {/* Employees Table */}
@@ -39,13 +39,13 @@ export default function Employees() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Name</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Position</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Contact</th>
+                <th className="text-left py-4 px-6 font-semibold text-gray-700">Nama</th>
+                <th className="text-left py-4 px-6 font-semibold text-gray-700">Posisi</th>
+                <th className="text-left py-4 px-6 font-semibold text-gray-700">Kontak</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Email</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Join Date</th>
+                <th className="text-left py-4 px-6 font-semibold text-gray-700">Tanggal Masuk</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Status</th>
-                <th className="text-center py-4 px-6 font-semibold text-gray-700">Action</th>
+                <th className="text-center py-4 px-6 font-semibold text-gray-700">Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -98,23 +98,23 @@ export default function Employees() {
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
         <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-gray-600 text-sm font-medium">Total Employees</p>
+          <p className="text-gray-600 text-sm font-medium">Total Karyawan</p>
           <p className="text-2xl font-bold text-gray-800 mt-2">{employees.length}</p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-gray-600 text-sm font-medium">Active</p>
+          <p className="text-gray-600 text-sm font-medium">Aktif</p>
           <p className="text-2xl font-bold text-green-600 mt-2">
             {employees.filter(e => e.status === 'Active').length}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-gray-600 text-sm font-medium">On Leave</p>
+          <p className="text-gray-600 text-sm font-medium">Cuti</p>
           <p className="text-2xl font-bold text-yellow-600 mt-2">
             {employees.filter(e => e.status === 'On Leave').length}
           </p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-4">
-          <p className="text-gray-600 text-sm font-medium">Inactive</p>
+          <p className="text-gray-600 text-sm font-medium">Tidak Aktif</p>
           <p className="text-2xl font-bold text-red-600 mt-2">
             {employees.filter(e => e.status === 'Inactive').length}
           </p>

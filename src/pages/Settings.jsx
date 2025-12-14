@@ -29,18 +29,18 @@ export default function Settings() {
   return (
     <div className="p-8">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-800">Settings</h2>
-        <p className="text-gray-600 mt-2">Manage application and company settings</p>
+        <h2 className="text-3xl font-bold text-gray-800">Pengaturan</h2>
+        <p className="text-gray-600 mt-2">Kelola pengaturan aplikasi dan perusahaan</p>
       </div>
 
       <div className="max-w-2xl">
         {/* Company Information */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">🏢 Company Information</h3>
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">🏢 Informasi Perusahaan</h3>
           
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Nama Perusahaan</label>
               <input
                 type="text"
                 name="companyName"
@@ -62,7 +62,7 @@ export default function Settings() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Telepon</label>
                 <input
                   type="tel"
                   name="phone"
@@ -74,7 +74,7 @@ export default function Settings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Alamat</label>
               <textarea
                 name="address"
                 value={settings.address}
@@ -89,7 +89,7 @@ export default function Settings() {
                 type="submit"
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
               >
-                Save Company Info
+                Simpan Informasi Perusahaan
               </button>
             </div>
           </form>
@@ -97,25 +97,25 @@ export default function Settings() {
 
         {/* Preferences */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">⚙️ Preferences</h3>
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">⚙️ Preferensi</h3>
           
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Mata Uang</label>
               <select
                 name="currency"
                 value={settings.currency}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="IDR">Indonesian Rupiah (IDR)</option>
-                <option value="USD">US Dollar (USD)</option>
+                <option value="IDR">Rupiah Indonesia (IDR)</option>
+                <option value="USD">Dolar AS (USD)</option>
                 <option value="EUR">Euro (EUR)</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Date Format</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Format Tanggal</label>
               <select
                 name="dateFormat"
                 value={settings.dateFormat}
@@ -129,16 +129,16 @@ export default function Settings() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Theme</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Tema</label>
               <select
                 name="theme"
                 value={settings.theme}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="auto">Auto</option>
+                <option value="light">Terang</option>
+                <option value="dark">Gelap</option>
+                <option value="auto">Otomatis</option>
               </select>
             </div>
           </div>
@@ -146,7 +146,7 @@ export default function Settings() {
 
         {/* Notifications */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-xl font-semibold text-gray-800 mb-4">🔔 Notifications</h3>
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">🔔 Notifikasi</h3>
           
           <div className="space-y-4">
             <label className="flex items-center">
@@ -157,7 +157,7 @@ export default function Settings() {
                 onChange={handleChange}
                 className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
               />
-              <span className="ml-3 text-gray-700">Enable in-app notifications</span>
+              <span className="ml-3 text-gray-700">Aktifkan notifikasi dalam aplikasi</span>
             </label>
 
             <label className="flex items-center">
@@ -168,15 +168,15 @@ export default function Settings() {
                 onChange={handleChange}
                 className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
               />
-              <span className="ml-3 text-gray-700">Enable email notifications</span>
+              <span className="ml-3 text-gray-700">Aktifkan notifikasi email</span>
             </label>
 
             <button
               type="button"
-              onClick={() => alert('Settings saved successfully!')}
+              onClick={() => alert('Pengaturan berhasil disimpan!')}
               className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors mt-4"
             >
-              Save Preferences
+              Simpan Preferensi
             </button>
           </div>
         </div>

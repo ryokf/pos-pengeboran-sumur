@@ -1,8 +1,8 @@
 import { customers } from '../data/dummyData';
 import { useDataFilter } from '../hooks';
 import { useNavigate } from 'react-router-dom';
-import { FilterBar, PageHeader, StatusBadge, EmptyState } from '../components';
-import { FILTER_OPTIONS, getStatusColor, matchesSearch, formatCurrency } from '../utils';
+import { FilterBar, PageHeader, EmptyState } from '../components';
+import { FILTER_OPTIONS, matchesSearch, formatCurrency } from '../utils';
 
 export default function Customers() {
   const navigate = useNavigate();
@@ -16,28 +16,28 @@ export default function Customers() {
     }
   );
 
-  // Calculate customer balance (positive = surplus, negative = debt)
+  // Get customer balance
   const getCustomerBalance = (customer) => {
-    return customer.totalDeposit - customer.totalDebt;
+    return customer.saldo;
   };
 
   return (
     <div className="p-8">
-      <PageHeader 
-        title="Customers" 
-        description="Manage customer information and relationships"
+      <PageHeader
+        title="Pelanggan"
+        description="Kelola informasi dan hubungan pelanggan"
       />
 
-      <FilterBar 
+      <FilterBar
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
-        searchPlaceholder="Search by name, email, or phone..."
-        filterLabel="Type"
+        searchPlaceholder="Cari berdasarkan nama, email, atau telepon..."
+        filterLabel="Tipe"
         filterValue={filterValue}
         onFilterChange={setFilterValue}
         filterOptions={FILTER_OPTIONS.customerType}
-        onAddNew={() => alert('New customer form would open')}
-        addButtonLabel="+ New Customer"
+        onAddNew={() => alert('Form pelanggan baru akan dibuka')}
+        addButtonLabel="+ Pelanggan Baru"
       />
 
       {/* Customers Table */}
@@ -47,12 +47,13 @@ export default function Customers() {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Nama Pelanggan</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Tipe</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Email</th>
+                {/* <th className="text-left py-4 px-6 font-semibold text-gray-700">Tipe</th> */}
+                {/* <th className="text-left py-4 px-6 font-semibold text-gray-700">Email</th> */}
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Telepon</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Lokasi</th>
-                <th className="text-right py-4 px-6 font-semibold text-gray-700">Deposit</th>
-                <th className="text-right py-4 px-6 font-semibold text-gray-700">Hutang</th>
+                <th className="text-left py-4 px-6 font-semibold text-gray-700">Alamat</th>
+                <th className="text-center py-4 px-6 font-semibold text-gray-700">Ukuran Sumur</th>
+                {/* <th className="text-right py-4 px-6 font-semibold text-gray-700">Deposit</th> */}
+                {/* <th className="text-right py-4 px-6 font-semibold text-gray-700">Hutang</th> */}
                 <th className="text-right py-4 px-6 font-semibold text-gray-700">Saldo</th>
                 <th className="text-center py-4 px-6 font-semibold text-gray-700">Aksi</th>
               </tr>
@@ -61,7 +62,6 @@ export default function Customers() {
               {filteredCustomers.map((customer) => {
                 const balance = getCustomerBalance(customer);
                 const balanceColor = balance >= 0 ? 'text-green-600' : 'text-red-600';
-                const balanceSign = balance >= 0 ? '+' : '';
 
                 return (
                   <tr key={customer.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
@@ -73,36 +73,39 @@ export default function Customers() {
                         <p className="font-medium text-gray-800">{customer.name}</p>
                       </div>
                     </td>
-                    <td className="py-4 px-6">
+                    {/* <td className="py-4 px-6">
                       <StatusBadge 
                         status={customer.type}
                         colorClass={getStatusColor(customer.type)}
                       />
-                    </td>
-                    <td className="py-4 px-6 text-sm text-gray-600">{customer.email}</td>
+                    </td> */}
+                    {/* <td className="py-4 px-6 text-sm text-gray-600">{customer.email}</td> */}
                     <td className="py-4 px-6 text-sm text-gray-600">{customer.phone}</td>
-                    <td className="py-4 px-6 text-sm text-gray-600">{customer.city}</td>
-                    <td className="py-4 px-6 text-right font-semibold text-green-600">
+                    <td className="py-4 px-6 text-sm text-gray-600">{customer.address}</td>
+                    {/* <td className="py-4 px-6 text-right font-semibold text-green-600">
                       {formatCurrency(customer.totalDeposit)}
-                    </td>
-                    <td className="py-4 px-6 text-right font-semibold text-red-600">
+                    </td> */}
+                    {/* <td className="py-4 px-6 text-right font-semibold text-red-600">
                       {formatCurrency(customer.totalDebt)}
+                    </td> */}
+                    <td className="py-4 px-6 text-center text-sm text-gray-700">
+                      <span className="font-medium">{customer.wellSize}</span> m³
                     </td>
-                    <td className={`py-4 px-6 text-right font-bold text-lg ${balanceColor}`}>
-                      {balanceSign}{formatCurrency(Math.abs(balance))}
+                    <td className={`py-4 px-6 text-right font-bold text-lg ${ balanceColor }`}>
+                      {formatCurrency(Math.abs(balance))}
                     </td>
                     <td className="py-4 px-6 text-center">
                       <button
-                        onClick={() => navigate(`/customers/${customer.id}`)}
+                        onClick={() => navigate(`/customers/${ customer.id }`)}
                         className="text-blue-600 hover:text-blue-800 font-medium text-sm mr-3"
                       >
-                        Edit
+                        Ubah
                       </button>
                       <button
-                        onClick={() => navigate(`/customers/${customer.id}`)}
+                        onClick={() => navigate(`/customers/${ customer.id }`)}
                         className="text-gray-600 hover:text-gray-800 font-medium text-sm"
                       >
-                        Detail
+                        Lihat
                       </button>
                     </td>
                   </tr>
@@ -114,7 +117,7 @@ export default function Customers() {
       </div>
 
       {filteredCustomers.length === 0 && (
-        <EmptyState message="No customers found" />
+        <EmptyState message="Tidak ada pelanggan ditemukan" />
       )}
     </div>
   );

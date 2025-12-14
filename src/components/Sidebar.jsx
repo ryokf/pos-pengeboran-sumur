@@ -4,14 +4,14 @@ export default function Sidebar({ open, setOpen }) {
     const location = useLocation();
 
     const menuItems = [
-        { label: 'Dashboard', icon: '📊', path: '/' },
-        { label: 'Orders', icon: '📦', path: '/orders' },
-        { label: 'Customers', icon: '👥', path: '/customers' },
+        { label: 'Dasbor', icon: '📊', path: '/' },
+        { label: 'Pesanan', icon: '📦', path: '/orders' },
+        { label: 'Pelanggan', icon: '👥', path: '/customers' },
         { label: 'Arus Kas', icon: '💰', path: '/finance/cash-flow' },
         { label: 'Tagihan', icon: '📋', path: '/finance/billing' },
-        { label: 'Employees', icon: '👨‍💼', path: '/employees' },
-        { label: 'Reports', icon: '📈', path: '/reports' },
-        { label: 'Settings', icon: '⚙️', path: '/settings' }
+        // { label: 'Karyawan', icon: '👨‍💼', path: '/employees' },
+        // { label: 'Laporan', icon: '📈', path: '/reports' },
+        { label: 'Pengaturan', icon: '⚙️', path: '/settings' }
     ];
 
     const isActive = (path) => {

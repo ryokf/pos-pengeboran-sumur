@@ -1,8 +1,8 @@
 // Reusable search input component
-export function SearchInput({ value, onChange, placeholder = 'Search...' }) {
+export function SearchInput({ value, onChange, placeholder = 'Cari...' }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+      <label className="block text-sm font-medium text-gray-700 mb-2">Cari</label>
       <input
         type="text"
         placeholder={placeholder}
@@ -36,13 +36,13 @@ export function FilterSelect({ label, value, onChange, options }) {
 export function FilterBar({ 
   searchValue, 
   onSearchChange, 
-  searchPlaceholder = 'Search...',
+  searchPlaceholder = 'Cari...',
   filterLabel,
   filterValue,
   onFilterChange,
   filterOptions,
   onAddNew,
-  addButtonLabel = '+ New'
+  addButtonLabel = '+ Baru'
 }) {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -95,7 +95,7 @@ export function StatusBadge({ status, colorClass }) {
 }
 
 // Reusable empty state component
-export function EmptyState({ message = 'No items found' }) {
+export function EmptyState({ message = 'Tidak ada item ditemukan' }) {
   return (
     <div className="text-center py-8">
       <p className="text-gray-500">{message}</p>
