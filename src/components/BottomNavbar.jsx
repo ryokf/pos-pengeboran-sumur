@@ -5,10 +5,8 @@ export default function BottomNavbar() {
 
     const menuItems = [
         { label: 'Dasbor', icon: '📊', path: '/' },
-        // { label: 'Pesanan', icon: '📦', path: '/orders' },
         { label: 'Pelanggan', icon: '👥', path: '/customers' },
         { label: 'Arus Kas', icon: '💰', path: '/finance/cash-flow' },
-        // { label: 'Sumur', icon: '💧', path: '/wells' },
         { label: 'Tagihan', icon: '📋', path: '/finance/billing' },
         { label: 'Pengaturan', icon: '⚙️', path: '/settings' }
     ];

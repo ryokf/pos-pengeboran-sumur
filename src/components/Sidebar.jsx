@@ -5,13 +5,9 @@ export default function Sidebar({ open }) {
 
     const menuItems = [
         { label: 'Dasbor', icon: '📊', path: '/' },
-        // { label: 'Pesanan', icon: '📦', path: '/orders' },
         { label: 'Pelanggan', icon: '👥', path: '/customers' },
-        // { label: 'Sumur', icon: '💧', path: '/wells' },
         { label: 'Arus Kas', icon: '💰', path: '/finance/cash-flow' },
         { label: 'Tagihan', icon: '📋', path: '/finance/billing' },
-        // { label: 'Karyawan', icon: '👨‍💼', path: '/employees' },
-        // { label: 'Laporan', icon: '📈', path: '/reports' },
         { label: 'Pengaturan', icon: '⚙️', path: '/settings' }
     ];
 

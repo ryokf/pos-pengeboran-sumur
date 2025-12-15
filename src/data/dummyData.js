@@ -169,54 +169,6 @@ export const inventory = [
   }
 ];
 
-export const employees = [
-  {
-    id: 1,
-    name: "Ahmad Hidayat",
-    position: "Manager",
-    phone: "081234567890",
-    email: "ahmad@posbor.com",
-    status: "Active",
-    joinDate: "2023-01-15"
-  },
-  {
-    id: 2,
-    name: "Wawan Setiawan",
-    position: "Operator Bor",
-    phone: "082345678901",
-    email: "wawan@posbor.com",
-    status: "Active",
-    joinDate: "2023-03-20"
-  },
-  {
-    id: 3,
-    name: "Randi Pratama",
-    position: "Operator Bor",
-    phone: "083456789012",
-    email: "randi@posbor.com",
-    status: "Active",
-    joinDate: "2023-05-10"
-  },
-  {
-    id: 4,
-    name: "Sinta Dewi",
-    position: "Admin",
-    phone: "084567890123",
-    email: "sinta@posbor.com",
-    status: "Active",
-    joinDate: "2023-07-01"
-  },
-  {
-    id: 5,
-    name: "Bambang Suryanto",
-    position: "Teknisi",
-    phone: "085678901234",
-    email: "bambang@posbor.com",
-    status: "On Leave",
-    joinDate: "2023-08-15"
-  }
-];
-
 export const wells = [
   {
     id: 1,
@@ -286,7 +238,6 @@ export const dummyData = {
   customers,
   orders,
   inventory,
-  employees,
   wells,
   dashboardStats
 };

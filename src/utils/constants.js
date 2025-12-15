@@ -25,25 +25,10 @@ export const getStatusColor = (status) => {
   return STATUS_COLORS[status] || 'bg-gray-100 text-gray-700';
 };
 
-// Icon mappings
-export const POSITION_ICONS = {
-  'Manager': '👔',
-  'Operator Bor': '⛏️',
-  'Admin': '💼',
-  'Teknisi': '🔧',
-};
-
-export const getPositionIcon = (position) => {
-  return POSITION_ICONS[position] || '👤';
-};
-
 // Filter options
 export const FILTER_OPTIONS = {
-  orderStatus: ['All', 'Completed', 'Drilling', 'Pending'],
   paymentStatus: ['All', 'Paid', 'Partial', 'Unpaid', 'Pending'],
   customerType: ['All', 'Individual', 'Corporate'],
-  employeeStatus: ['All', 'Active', 'On Leave', 'Inactive'],
-  wellStatus: ['All', 'Active', 'Maintenance', 'Inactive'],
 };
 
 // Currency formatter

@@ -5,18 +5,12 @@ import { createBrowserRouter } from "react-router-dom";
 import { RouterProvider } from "react-router-dom";
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
-import Orders from './pages/Orders';
-import OrderDetail from './pages/OrderDetail';
 import Customers from './pages/Customers';
 import CustomerDetail from './pages/CustomerDetail';
-import Employees from './pages/Employees';
-import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import CashFlow from './pages/CashFlow';
 import ReceiptPrint from './pages/ReceiptPrint';
 import Billing from './pages/Billing';
-import Wells from './pages/Wells';
-import WellDetail from './pages/WellDetail';
 
 const router = createBrowserRouter([
   {
@@ -28,36 +22,12 @@ const router = createBrowserRouter([
         element: <Dashboard />
       },
       {
-        path: 'orders',
-        element: <Orders />
-      },
-      {
-        path: 'orders/:orderId',
-        element: <OrderDetail />
-      },
-      {
         path: 'customers',
         element: <Customers />
       },
       {
         path: 'customers/:customerId',
         element: <CustomerDetail />
-      },
-      {
-        path: 'wells',
-        element: <Wells />
-      },
-      {
-        path: 'wells/:wellId',
-        element: <WellDetail />
-      },
-      {
-        path: 'employees',
-        element: <Employees />
-      },
-      {
-        path: 'reports',
-        element: <Reports />
       },
       {
         path: 'settings',
