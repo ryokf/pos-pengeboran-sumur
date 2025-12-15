@@ -1,25 +1,14 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { MENU_ITEMS } from '../utils';
+import { useNavigation } from '../hooks/useNavigation';
 
 export default function BottomNavbar() {
-    const location = useLocation();
-
-    const menuItems = [
-        { label: 'Dasbor', icon: '📊', path: '/' },
-        { label: 'Pelanggan', icon: '👥', path: '/customers' },
-        { label: 'Arus Kas', icon: '💰', path: '/finance/cash-flow' },
-        { label: 'Tagihan', icon: '📋', path: '/finance/billing' },
-        { label: 'Pengaturan', icon: '⚙️', path: '/settings' }
-    ];
-
-    const isActive = (path) => {
-        if (path === '/') return location.pathname === path;
-        return location.pathname.startsWith(path);
-    };
+    const { isActive } = useNavigation();
 
     return (
         <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
             <div className="flex justify-around items-center h-16 px-2">
-                {menuItems.map((item) => (
+                {MENU_ITEMS.map((item) => (
                     <Link
                         key={item.path}
                         to={item.path}

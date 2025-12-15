@@ -7,5 +7,7 @@ export {
   formatCurrency,
   matchesSearch,
   PRICING_TIERS,
-  calculateMonthlyBilling
+  calculateMonthlyBilling,
+  MENU_ITEMS,
+  getInitials
 } from './constants';

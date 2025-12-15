@@ -56,3 +56,20 @@ export const calculateMonthlyBilling = (wellSize) => {
   }
   return wellSize * PRICING_TIERS.LARGE_WELL_PRICE;
 };
+
+// Navigation menu items
+export const MENU_ITEMS = [
+  { label: 'Dasbor', icon: '📊', path: '/' },
+  { label: 'Pelanggan', icon: '👥', path: '/customers' },
+  { label: 'Arus Kas', icon: '💰', path: '/finance/cash-flow' },
+  { label: 'Tagihan', icon: '📋', path: '/finance/billing' },
+  { label: 'Pengaturan', icon: '⚙️', path: '/settings' }
+];
+
+// Get initials from name
+export const getInitials = (name) => {
+  const parts = name.split(' ');
+  const first = parts[0]?.[0] || '';
+  const last = parts[1]?.[0] || '';
+  return (first + last).toUpperCase();
+};

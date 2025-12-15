@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { dummyData } from '../data/dummyData';
-import { calculateMonthlyBilling, PRICING_TIERS } from '../utils/constants';
+import { calculateMonthlyBilling, PRICING_TIERS, formatCurrency } from '../utils/constants';
 
 export default function Billing() {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -24,11 +24,7 @@ export default function Billing() {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     setSuccessMessage(
-      `✓ Proses tagihan berhasil! ${ activeCustomers } pelanggan telah ditagih sebesar ${ new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0
-      }).format(totalBillingPotential) }`
+      `✓ Proses tagihan berhasil! ${ activeCustomers } pelanggan telah ditagih sebesar ${ formatCurrency(totalBillingPotential) }`
     );
     setIsProcessing(false);
 
@@ -65,12 +61,7 @@ export default function Billing() {
               <div>
                 <p className="text-sm text-green-600 font-medium mb-1">Potensi Tagihan</p>
                 <p className="text-2xl font-bold text-green-900">
-                  {new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0
-                  }).format(totalBillingPotential)}
+                  {formatCurrency(totalBillingPotential)}
                 </p>
                 <p className="text-xs text-green-600 mt-2">bulan ini</p>
               </div>
@@ -171,12 +162,7 @@ export default function Billing() {
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-blue-600">
-                          {new Intl.NumberFormat('id-ID', {
-                            style: 'currency',
-                            currency: 'IDR',
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0
-                          }).format(monthlyCharge)}
+                          {formatCurrency(monthlyCharge)}
                         </p>
                         <p className="text-xs text-gray-500">tagihan bulanan</p>
                       </div>

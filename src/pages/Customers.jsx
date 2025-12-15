@@ -2,7 +2,7 @@ import { customers, wells } from '../data/dummyData';
 import { useDataFilter } from '../hooks';
 import { useNavigate } from 'react-router-dom';
 import { FilterBar, PageHeader, EmptyState } from '../components';
-import { FILTER_OPTIONS, matchesSearch, formatCurrency } from '../utils';
+import { FILTER_OPTIONS, matchesSearch, formatCurrency, getInitials } from '../utils';
 
 export default function Customers() {
   const navigate = useNavigate();
@@ -53,14 +53,10 @@ export default function Customers() {
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Nama Pelanggan</th>
-                {/* <th className="text-left py-4 px-6 font-semibold text-gray-700">Tipe</th> */}
-                {/* <th className="text-left py-4 px-6 font-semibold text-gray-700">Email</th> */}
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Telepon</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Alamat</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Sumur yang digunakan</th>
                 <th className="text-center py-4 px-6 font-semibold text-gray-700">Total Penggunaan Air</th>
-                {/* <th className="text-right py-4 px-6 font-semibold text-gray-700">Deposit</th> */}
-                {/* <th className="text-right py-4 px-6 font-semibold text-gray-700">Hutang</th> */}
                 <th className="text-right py-4 px-6 font-semibold text-gray-700">Saldo</th>
                 <th className="text-center py-4 px-6 font-semibold text-gray-700">Aksi</th>
               </tr>
@@ -75,27 +71,14 @@ export default function Customers() {
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                          {customer.name.split(' ')[0][0]}{customer.name.split(' ')[1]?.[0] || ''}
+                          {getInitials(customer.name)}
                         </div>
                         <p className="font-medium text-gray-800">{customer.name}</p>
                       </div>
                     </td>
-                    {/* <td className="py-4 px-6">
-                      <StatusBadge 
-                        status={customer.type}
-                        colorClass={getStatusColor(customer.type)}
-                      />
-                    </td> */}
-                    {/* <td className="py-4 px-6 text-sm text-gray-600">{customer.email}</td> */}
                     <td className="py-4 px-6 text-sm text-gray-600">{customer.phone}</td>
                     <td className="py-4 px-6 text-sm text-gray-600">{customer.address}</td>
                     <td className="py-4 px-6 text-sm text-gray-600 text-center">{getWellName(customer.wellId)}</td>
-                    {/* <td className="py-4 px-6 text-right font-semibold text-green-600">
-                      {formatCurrency(customer.totalDeposit)}
-                    </td> */}
-                    {/* <td className="py-4 px-6 text-right font-semibold text-red-600">
-                      {formatCurrency(customer.totalDebt)}
-                    </td> */}
                     <td className="py-4 px-6 text-center text-sm text-gray-700">
                       <span className="font-medium">{customer.wellSize}</span> m³
                     </td>
