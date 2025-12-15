@@ -9,12 +9,12 @@ export default function CashFlow() {
     {
       id: 1,
       date: '2025-12-07',
-      category: 'Pembayaran Proyek',
+      category: 'Pembayaran Bulanan',
       type: 'IN',
       amount: 5000000,
-      description: 'Pembayaran DP PT Maju Jaya',
+      description: 'Pembayaran oleh pelanggan 1',
       is_receipt_printed: 0,
-      customer_name: 'PT Maju Jaya'
+      customer_name: 'Pelanggan 1'
     },
     {
       id: 2,
@@ -29,42 +29,42 @@ export default function CashFlow() {
     {
       id: 3,
       date: '2025-12-05',
-      category: 'Pembayaran Proyek',
+      category: 'Pembayaran Bulanan',
       type: 'IN',
       amount: 3500000,
-      description: 'Pembayaran Siti Nurhaliza',
+      description: 'Pembayaran oleh pelanggan 2',
       is_receipt_printed: 1,
-      customer_name: 'Siti Nurhaliza'
+      customer_name: 'Pelanggan 2'
     },
     {
       id: 4,
       date: '2025-12-04',
-      category: 'Biaya Operasional',
+      category: 'Dana Hibah',
       type: 'OUT',
       amount: 2500000,
-      description: 'Biaya bahan bakar dan BBM',
+      description: 'Pembayaran dana hibah',
       is_receipt_printed: 0,
-      customer_name: 'Internal'
+      customer_name: 'Pelanggan 3'
     },
     {
       id: 5,
       date: '2025-12-03',
-      category: 'Pembayaran Proyek',
+      category: 'Pembayaran Bulanan',
       type: 'IN',
       amount: 10500000,
-      description: 'Pembayaran Lunas CV Bor Profesional',
+      description: 'Pembayaran oleh pelanggan 5',
       is_receipt_printed: 0,
-      customer_name: 'CV Bor Profesional'
+      customer_name: 'Pelanggan 5'
     },
     {
       id: 6,
       date: '2025-12-02',
-      category: 'Listrik & Utilitas',
+      category: 'Pembayaran Bulanan',
       type: 'OUT',
       amount: 1500000,
-      description: 'Pembayaran tagihan listrik bulan November',
+      description: 'Pembayaran oleh pelanggan 4',
       is_receipt_printed: 0,
-      customer_name: 'Internal'
+      customer_name: 'Pelanggan 4'
     }
   ]);
 
@@ -80,7 +80,7 @@ export default function CashFlow() {
 
   const handlePrintReceipt = (transaction) => {
     if (transaction.is_receipt_printed === 0) {
-      navigate(`/finance/receipt/${transaction.id}/print`);
+      navigate(`/finance/receipt/${ transaction.id }/print`);
     }
   };
 
@@ -101,11 +101,11 @@ export default function CashFlow() {
           <p className="text-sm font-medium text-red-700 mb-2">Total Pengeluaran</p>
           <p className="text-3xl font-bold text-red-600">{formatCurrency(totalOut)}</p>
         </div>
-        <div className={`${balance >= 0 ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200'} border rounded-lg p-6`}>
-          <p className={`text-sm font-medium ${balance >= 0 ? 'text-blue-700' : 'text-orange-700'} mb-2`}>
+        <div className={`${ balance >= 0 ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200' } border rounded-lg p-6`}>
+          <p className={`text-sm font-medium ${ balance >= 0 ? 'text-blue-700' : 'text-orange-700' } mb-2`}>
             Saldo Kas
           </p>
-          <p className={`text-3xl font-bold ${balance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+          <p className={`text-3xl font-bold ${ balance >= 0 ? 'text-blue-600' : 'text-orange-600' }`}>
             {balance >= 0 ? '+' : ''}{formatCurrency(Math.abs(balance))}
           </p>
         </div>
@@ -137,15 +137,14 @@ export default function CashFlow() {
                   </td>
                   <td className="py-4 px-6 text-sm text-gray-800 font-medium">{transaction.description}</td>
                   <td className="py-4 px-6 text-sm text-gray-600">{transaction.customer_name}</td>
-                  <td className={`py-4 px-6 text-right font-bold ${transaction.type === 'IN' ? 'text-green-600' : 'text-red-600'}`}>
+                  <td className={`py-4 px-6 text-right font-bold ${ transaction.type === 'IN' ? 'text-green-600' : 'text-red-600' }`}>
                     {transaction.type === 'IN' ? '+' : '-'}{formatCurrency(transaction.amount)}
                   </td>
                   <td className="py-4 px-6 text-center">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      transaction.type === 'IN'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
-                    }`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${ transaction.type === 'IN'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-red-100 text-red-700'
+                      }`}>
                       {transaction.type === 'IN' ? '📥 Masuk' : '📤 Keluar'}
                     </span>
                   </td>
@@ -154,11 +153,10 @@ export default function CashFlow() {
                       <button
                         onClick={() => handlePrintReceipt(transaction)}
                         disabled={transaction.is_receipt_printed === 1}
-                        className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                          transaction.is_receipt_printed === 0
-                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                            : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                        }`}
+                        className={`px-3 py-1 rounded text-xs font-medium transition-colors ${ transaction.is_receipt_printed === 0
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                          }`}
                       >
                         {transaction.is_receipt_printed === 0 ? '🖨️ Cetak' : '✓ Sudah Dicetak'}
                       </button>

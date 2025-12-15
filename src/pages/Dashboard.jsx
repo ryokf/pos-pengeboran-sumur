@@ -42,7 +42,7 @@ export default function Dashboard() {
           subtext="Real Cash"
         />
         <StatCard
-          title="Proyek Aktif"
+          title="Sumur Aktif"
           value={drillingProjects}
           icon="⛏️"
           subtext="Status Pengeboran"
@@ -115,7 +115,7 @@ export default function Dashboard() {
                 <div key={debtor.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="flex-1">
                     <p className="font-medium text-sm text-gray-800">{idx + 1}. {debtor.name}</p>
-                    <p className="text-xs text-gray-600">{debtor.type}</p>
+                    <p className="text-xs text-gray-600">Total Penggunaan Air : {debtor.wellSize} m<sup>3</sup></p>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-sm text-red-600">{formatCurrency(Math.abs(debtor.saldo))}</p>

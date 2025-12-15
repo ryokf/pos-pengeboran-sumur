@@ -15,6 +15,8 @@ import Settings from './pages/Settings';
 import CashFlow from './pages/CashFlow';
 import ReceiptPrint from './pages/ReceiptPrint';
 import Billing from './pages/Billing';
+import Wells from './pages/Wells';
+import WellDetail from './pages/WellDetail';
 
 const router = createBrowserRouter([
   {
@@ -40,6 +42,14 @@ const router = createBrowserRouter([
       {
         path: 'customers/:customerId',
         element: <CustomerDetail />
+      },
+      {
+        path: 'wells',
+        element: <Wells />
+      },
+      {
+        path: 'wells/:wellId',
+        element: <WellDetail />
       },
       {
         path: 'employees',

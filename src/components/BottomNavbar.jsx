@@ -5,10 +5,12 @@ export default function BottomNavbar() {
 
     const menuItems = [
         { label: 'Dasbor', icon: '📊', path: '/' },
-        { label: 'Pesanan', icon: '📦', path: '/orders' },
+        // { label: 'Pesanan', icon: '📦', path: '/orders' },
         { label: 'Pelanggan', icon: '👥', path: '/customers' },
         { label: 'Arus Kas', icon: '💰', path: '/finance/cash-flow' },
+        // { label: 'Sumur', icon: '💧', path: '/wells' },
         { label: 'Tagihan', icon: '📋', path: '/finance/billing' },
+        { label: 'Pengaturan', icon: '⚙️', path: '/settings' }
     ];
 
     const isActive = (path) => {
@@ -24,8 +26,8 @@ export default function BottomNavbar() {
                         key={item.path}
                         to={item.path}
                         className={`flex flex-col items-center justify-center flex-1 h-full transition-colors ${ isActive(item.path)
-                                ? 'text-blue-600'
-                                : 'text-gray-600 hover:text-blue-500'
+                            ? 'text-blue-600'
+                            : 'text-gray-600 hover:text-blue-500'
                             }`}
                     >
                         <span className="text-xl mb-1">{item.icon}</span>

@@ -3,21 +3,23 @@
 export const customers = [
   {
     id: 1,
-    name: "PT Maju Jaya",
+    name: "Pelanggan 1",
     phone: "087123456789",
     email: "contact@majujaya.com",
     address: "Jl. Merdeka No. 123, Jakarta",
+    wellId: 1,
     city: "Jakarta",
     type: "Corporate",
     wellSize: 8.5,
-    saldo: 25000000
+    saldo: -25000000
   },
   {
     id: 2,
-    name: "Budi Santoso",
+    name: "Pelanggan 2",
     phone: "081987654321",
     email: "budi@email.com",
     address: "Jl. Gatot Subroto No. 45, Bandung",
+    wellId: 1,
     city: "Bandung",
     type: "Individual",
     wellSize: 3.2,
@@ -25,10 +27,11 @@ export const customers = [
   },
   {
     id: 3,
-    name: "CV Bor Profesional",
+    name: "Pelanggan 3",
     phone: "085555555555",
     email: "info@borprofesional.com",
     address: "Jl. Ahmad Yani No. 78, Surabaya",
+    wellId: 1,
     city: "Surabaya",
     type: "Corporate",
     wellSize: 6,
@@ -36,10 +39,11 @@ export const customers = [
   },
   {
     id: 4,
-    name: "Siti Nurhaliza",
+    name: "Pelanggan 4",
     phone: "089111111111",
     email: "siti.nur@email.com",
     address: "Jl. Diponegoro No. 56, Medan",
+    wellId: 2,
     city: "Medan",
     type: "Individual",
     wellSize: 4.5,
@@ -47,10 +51,11 @@ export const customers = [
   },
   {
     id: 5,
-    name: "PT Tambang Emas",
+    name: "Pelanggan 5",
     phone: "082222222222",
     email: "hr@tambangemaspt.com",
     address: "Jl. Sudirman No. 99, Makassar",
+    wellId: 3,
     city: "Makassar",
     type: "Corporate",
     wellSize: 12,
@@ -212,6 +217,57 @@ export const employees = [
   }
 ];
 
+export const wells = [
+  {
+    id: 1,
+    name: "Sumur 1",
+    location: "Jl. Merdeka No. 50, Jakarta",
+    city: "Jakarta",
+    status: "Active",
+    installationDate: "2022-03-15",
+    capacity: 50, // m³ per day
+    monthlyProduction: 1200, // m³
+    connectedCustomers: 3,
+    description: "Sumur utama untuk area Jakarta dan Bandung"
+  },
+  {
+    id: 2,
+    name: "Sumur 2",
+    location: "Jl. Pahlawan No. 88, Medan",
+    city: "Medan",
+    status: "Active",
+    installationDate: "2022-06-20",
+    capacity: 30, // m³ per day
+    monthlyProduction: 750, // m³
+    connectedCustomers: 1,
+    description: "Sumur untuk area Medan"
+  },
+  {
+    id: 3,
+    name: "Sumur 3",
+    location: "Jl. Veteran No. 120, Makassar",
+    city: "Makassar",
+    status: "Active",
+    installationDate: "2023-01-10",
+    capacity: 80, // m³ per day
+    monthlyProduction: 2000, // m³
+    connectedCustomers: 1,
+    description: "Sumur besar untuk industri di Makassar"
+  },
+  {
+    id: 4,
+    name: "Sumur 4",
+    location: "Jl. Kemerdekaan No. 45, Surabaya",
+    city: "Surabaya",
+    status: "Maintenance",
+    installationDate: "2021-11-05",
+    capacity: 40, // m³ per day
+    monthlyProduction: 0, // Currently under maintenance
+    connectedCustomers: 0,
+    description: "Sumur sedang dalam perawatan rutin"
+  }
+];
+
 export const dashboardStats = {
   totalCustomerBalance: 144000000, // Sum of all customer saldo
   cashOnHand: 45000000,
@@ -231,5 +287,6 @@ export const dummyData = {
   orders,
   inventory,
   employees,
+  wells,
   dashboardStats
 };

@@ -43,6 +43,7 @@ export const FILTER_OPTIONS = {
   paymentStatus: ['All', 'Paid', 'Partial', 'Unpaid', 'Pending'],
   customerType: ['All', 'Individual', 'Corporate'],
   employeeStatus: ['All', 'Active', 'On Leave', 'Inactive'],
+  wellStatus: ['All', 'Active', 'Maintenance', 'Inactive'],
 };
 
 // Currency formatter
