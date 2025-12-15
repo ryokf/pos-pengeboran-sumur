@@ -1,4 +1,4 @@
-import { dashboardStats, customers, orders, inventory } from '../data/dummyData';
+import { dashboardStats, customers, orders } from '../data/dummyData';
 import { StatCard, PageHeader } from '../components';
 import { formatCurrency } from '../utils';
 
@@ -12,12 +12,6 @@ export default function Dashboard() {
   const topDebtors = [...customers]
     .filter(c => c.saldo < 0)
     .sort((a, b) => a.saldo - b.saldo)
-    .slice(0, 5);
-
-  // Get low stock items (5 items with stock below minimum)
-  const lowStockItems = [...inventory]
-    .filter(item => item.stock < item.minStock)
-    .sort((a, b) => (a.stock / a.minStock) - (b.stock / b.minStock))
     .slice(0, 5);
 
   return (
@@ -131,56 +125,6 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-
-      {/* Low Stock Items */}
-      {/* <div className="mt-6 bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">5 Stok Barang Menipis</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">Nama Barang</th>
-                <th className="text-center py-3 px-4 font-semibold text-gray-700">Stok</th>
-                <th className="text-center py-3 px-4 font-semibold text-gray-700">Min. Stok</th>
-                <th className="text-center py-3 px-4 font-semibold text-gray-700">Status</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700">Nilai Stok</th>
-              </tr>
-            </thead>
-            <tbody>
-              {lowStockItems.length > 0 ? (
-                lowStockItems.map((item) => {
-                  const stockPercentage = (item.stock / item.minStock) * 100;
-                  const badgeColor = stockPercentage < 30 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700';
-                  
-                  return (
-                    <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4 text-gray-800">{item.name}</td>
-                      <td className="text-center py-3 px-4">
-                        <span className="font-semibold">{item.stock} {item.unit}</span>
-                      </td>
-                      <td className="text-center py-3 px-4 text-gray-600">{item.minStock}</td>
-                      <td className="text-center py-3 px-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${badgeColor}`}>
-                          {stockPercentage.toFixed(0)}%
-                        </span>
-                      </td>
-                      <td className="text-right py-3 px-4 font-semibold text-gray-800">
-                        {formatCurrency(item.stock * item.price)}
-                      </td>
-                    </tr>
-                  );
-                })
-              ) : (
-                <tr>
-                  <td colSpan="5" className="text-center py-8 text-gray-500">
-                    Semua stok dalam kondisi baik ✓
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div> */}
     </div>
   );
 }

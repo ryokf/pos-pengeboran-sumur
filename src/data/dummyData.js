@@ -126,49 +126,6 @@ export const orders = [
   }
 ];
 
-export const inventory = [
-  {
-    id: 1,
-    name: "Pipa Bor 4 Inch",
-    unit: "Batang",
-    stock: 5,
-    minStock: 10,
-    price: 2500000
-  },
-  {
-    id: 2,
-    name: "Mata Bor Diamond",
-    unit: "Pcs",
-    stock: 3,
-    minStock: 8,
-    price: 5000000
-  },
-  {
-    id: 3,
-    name: "Pompa Air Submersible",
-    unit: "Unit",
-    stock: 2,
-    minStock: 5,
-    price: 8000000
-  },
-  {
-    id: 4,
-    name: "Kabel Bor Kawat",
-    unit: "Meter",
-    stock: 150,
-    minStock: 200,
-    price: 75000
-  },
-  {
-    id: 5,
-    name: "Oli Mesin Bor",
-    unit: "Liter",
-    stock: 20,
-    minStock: 50,
-    price: 150000
-  }
-];
-
 export const wells = [
   {
     id: 1,
@@ -237,7 +194,6 @@ export const dashboardStats = {
 export const dummyData = {
   customers,
   orders,
-  inventory,
   wells,
   dashboardStats
 };
