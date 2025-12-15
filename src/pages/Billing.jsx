@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { dummyData } from '../data/dummyData';
 import { calculateMonthlyBilling, PRICING_TIERS, formatCurrency } from '../utils/constants';
 
 export default function Billing() {
+  const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -30,6 +32,10 @@ export default function Billing() {
 
     // Clear success message after 5 seconds
     setTimeout(() => setSuccessMessage(''), 5000);
+  };
+
+  const handlePrintBillingList = () => {
+    navigate('/finance/billing/print');
   };
 
   return (
@@ -82,26 +88,35 @@ export default function Billing() {
           </div>
 
           {/* Process Button */}
-          <button
-            onClick={handleProcessBilling}
-            disabled={isProcessing}
-            className={`
-              text-lg font-bold py-4 px-12 rounded-lg transition-all duration-300
-              ${ isProcessing
-                ? 'bg-gray-400 text-white cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:scale-105'
-              }
-            `}
-          >
-            {isProcessing ? (
-              <>
-                <span className="inline-block animate-spin mr-2">⏳</span>
-                Sedang memproses...
-              </>
-            ) : (
-              '▶ Proses Tagihan Bulan Ini'
-            )}
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={handleProcessBilling}
+              disabled={isProcessing}
+              className={`
+                text-lg font-bold py-4 px-12 rounded-lg transition-all duration-300
+                ${ isProcessing
+                  ? 'bg-gray-400 text-white cursor-not-allowed'
+                  : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:scale-105'
+                }
+              `}
+            >
+              {isProcessing ? (
+                <>
+                  <span className="inline-block animate-spin mr-2">⏳</span>
+                  Sedang memproses...
+                </>
+              ) : (
+                '▶ Proses Tagihan Bulan Ini'
+              )}
+            </button>
+
+            <button
+              onClick={handlePrintBillingList}
+              className="text-lg font-bold py-4 px-12 rounded-lg transition-all duration-300 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              🖨️ Cetak Daftar Tagihan
+            </button>
+          </div>
 
           {/* Success Message */}
           {successMessage && (

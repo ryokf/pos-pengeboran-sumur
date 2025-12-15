@@ -1,10 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components';
 import { formatCurrency } from '../utils';
 
 export default function CashFlow() {
-  const navigate = useNavigate();
   const [transactions] = useState([
     {
       id: 1,
@@ -13,7 +11,6 @@ export default function CashFlow() {
       type: 'IN',
       amount: 5000000,
       description: 'Pembayaran oleh pelanggan 1',
-      is_receipt_printed: 0,
       customer_name: 'Pelanggan 1'
     },
     {
@@ -23,7 +20,6 @@ export default function CashFlow() {
       type: 'OUT',
       amount: 8000000,
       description: 'Pembayaran gaji bulan Desember',
-      is_receipt_printed: 0,
       customer_name: 'Internal'
     },
     {
@@ -33,7 +29,6 @@ export default function CashFlow() {
       type: 'IN',
       amount: 3500000,
       description: 'Pembayaran oleh pelanggan 2',
-      is_receipt_printed: 1,
       customer_name: 'Pelanggan 2'
     },
     {
@@ -43,7 +38,6 @@ export default function CashFlow() {
       type: 'OUT',
       amount: 2500000,
       description: 'Pembayaran dana hibah',
-      is_receipt_printed: 0,
       customer_name: 'Pelanggan 3'
     },
     {
@@ -53,7 +47,6 @@ export default function CashFlow() {
       type: 'IN',
       amount: 10500000,
       description: 'Pembayaran oleh pelanggan 5',
-      is_receipt_printed: 0,
       customer_name: 'Pelanggan 5'
     },
     {
@@ -63,7 +56,6 @@ export default function CashFlow() {
       type: 'OUT',
       amount: 1500000,
       description: 'Pembayaran oleh pelanggan 4',
-      is_receipt_printed: 0,
       customer_name: 'Pelanggan 4'
     }
   ]);
@@ -77,12 +69,6 @@ export default function CashFlow() {
     .reduce((sum, t) => sum + t.amount, 0);
 
   const balance = totalIn - totalOut;
-
-  const handlePrintReceipt = (transaction) => {
-    if (transaction.is_receipt_printed === 0) {
-      navigate(`/finance/receipt/${ transaction.id }/print`);
-    }
-  };
 
   return (
     <div className="p-8">
@@ -123,7 +109,6 @@ export default function CashFlow() {
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Sumber/Tujuan</th>
                 <th className="text-right py-4 px-6 font-semibold text-gray-700">Nominal</th>
                 <th className="text-center py-4 px-6 font-semibold text-gray-700">Tipe</th>
-                <th className="text-center py-4 px-6 font-semibold text-gray-700">Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -148,22 +133,6 @@ export default function CashFlow() {
                       {transaction.type === 'IN' ? '📥 Masuk' : '📤 Keluar'}
                     </span>
                   </td>
-                  <td className="py-4 px-6 text-center">
-                    {transaction.type === 'IN' ? (
-                      <button
-                        onClick={() => handlePrintReceipt(transaction)}
-                        disabled={transaction.is_receipt_printed === 1}
-                        className={`px-3 py-1 rounded text-xs font-medium transition-colors ${ transaction.is_receipt_printed === 0
-                          ? 'bg-blue-600 text-white hover:bg-blue-700'
-                          : 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                          }`}
-                      >
-                        {transaction.is_receipt_printed === 0 ? '🖨️ Cetak' : '✓ Sudah Dicetak'}
-                      </button>
-                    ) : (
-                      <span className="text-gray-400 text-xs">—</span>
-                    )}
-                  </td>
                 </tr>
               ))}
             </tbody>
@@ -171,24 +140,6 @@ export default function CashFlow() {
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <p className="text-sm font-medium text-gray-700 mb-3">Keterangan:</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600">
-          <div>
-            <span className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium mr-2">📥 Masuk</span>
-            Uang yang diterima dari pelanggan
-          </div>
-          <div>
-            <span className="inline-block px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium mr-2">📤 Keluar</span>
-            Uang yang dikeluarkan untuk operasional
-          </div>
-          <div>
-            <span className="inline-block px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium mr-2">🖨️ Cetak</span>
-            Tombol untuk mencetak resi pembayaran
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
