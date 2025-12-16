@@ -298,34 +298,129 @@ export default function FinancialReport() {
             {/* Print Styles */}
             <style>{`
         @media print {
+          /* Hide non-printable elements */
           .no-print {
             display: none !important;
           }
           
+          /* Show print-only elements */
           .print-only {
             display: block !important;
           }
           
+          /* Body and page setup */
           body {
             print-color-adjust: exact;
             -webkit-print-color-adjust: exact;
+            margin: 0;
+            padding: 0;
           }
           
+          /* Page configuration */
           @page {
-            margin: 1cm;
+            margin: 1.5cm;
             size: A4 landscape;
           }
           
+          /* Main container */
+          .p-8 {
+            padding: 0 !important;
+          }
+          
+          /* Summary cards - ensure they print in one row */
+          .grid {
+            page-break-inside: avoid;
+          }
+          
+          /* Table styling for print */
           table {
             page-break-inside: auto;
+            border-collapse: collapse;
+            width: 100%;
+          }
+          
+          thead {
+            display: table-header-group;
           }
           
           tr {
             page-break-inside: avoid;
             page-break-after: auto;
           }
+          
+          /* Ensure colors are visible in print */
+          .bg-green-50, .bg-green-100 {
+            background-color: #f0fdf4 !important;
+          }
+          
+          .bg-red-50, .bg-red-100 {
+            background-color: #fef2f2 !important;
+          }
+          
+          .bg-blue-50, .bg-blue-100 {
+            background-color: #eff6ff !important;
+          }
+          
+          .bg-yellow-50, .bg-yellow-100 {
+            background-color: #fefce8 !important;
+          }
+          
+          .bg-gray-50 {
+            background-color: #f9fafb !important;
+          }
+          
+          .bg-gray-800 {
+            background-color: #1f2937 !important;
+            color: white !important;
+          }
+          
+          /* Border colors */
+          .border-green-200 {
+            border-color: #bbf7d0 !important;
+          }
+          
+          .border-red-200 {
+            border-color: #fecaca !important;
+          }
+          
+          .border-blue-200 {
+            border-color: #bfdbfe !important;
+          }
+          
+          .border-yellow-200 {
+            border-color: #fef08a !important;
+          }
+          
+          /* Text colors */
+          .text-green-600, .text-green-700 {
+            color: #16a34a !important;
+          }
+          
+          .text-red-600, .text-red-700 {
+            color: #dc2626 !important;
+          }
+          
+          .text-blue-600, .text-blue-700 {
+            color: #2563eb !important;
+          }
+          
+          .text-yellow-600, .text-yellow-700 {
+            color: #ca8a04 !important;
+          }
+          
+          /* Rounded corners */
+          .rounded-lg {
+            border-radius: 0.5rem !important;
+          }
+          
+          /* Shadow removal for print */
+          .shadow-md {
+            box-shadow: none !important;
+            border: 1px solid #e5e7eb !important;
+          }
         }
         
+        /* Screen-only styles */
         @media screen {
           .print-only {
             display: none;
