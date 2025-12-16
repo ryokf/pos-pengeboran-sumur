@@ -57,10 +57,12 @@ export default function FinancialReport() {
 
     return (
         <div className="p-8">
-            <PageHeader
-                title="Laporan Keuangan"
-                description="Rekap transaksi uang keluar masuk"
-            />
+            <div className="no-print">
+                <PageHeader
+                    title="Laporan Keuangan"
+                    description="Rekap transaksi uang keluar masuk"
+                />
+            </div>
 
             {/* Filter Controls - Hidden when printing */}
             <div className="no-print bg-white rounded-lg shadow-md p-6 mb-6">
@@ -148,8 +150,8 @@ export default function FinancialReport() {
                 </p>
             </div>
 
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {/* Summary Cards - Hidden in print */}
+            <div className="no-print grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {/* Total Income */}
                 <div className="bg-green-50 border border-green-200 rounded-lg p-6">
                     <div className="flex items-center justify-between mb-2">
@@ -321,6 +323,7 @@ export default function FinancialReport() {
             -webkit-print-color-adjust: exact;
             margin: 0;
             padding: 0;
+            color: #000 !important;
           }
           
           /* Page configuration */
@@ -334,9 +337,24 @@ export default function FinancialReport() {
             padding: 0 !important;
           }
           
-          /* Summary cards - ensure they print in one row */
-          .grid {
-            page-break-inside: avoid;
+          /* Table container - remove shadows and backgrounds */
+          .bg-white {
+            background-color: white !important;
+          }
+          
+          .shadow-md {
+            box-shadow: none !important;
+            border: 2px solid #000 !important;
+          }
+          
+          .rounded-lg {
+            border-radius: 0 !important;
+          }
+          
+          /* Table header section */
+          .bg-gray-50 {
+            background-color: white !important;
+            border-bottom: 2px solid #000 !important;
           }
           
           /* Table styling for print */
@@ -344,86 +362,83 @@ export default function FinancialReport() {
             page-break-inside: auto;
             border-collapse: collapse;
             width: 100%;
+            border: none !important;
           }
           
           thead {
             display: table-header-group;
           }
           
-          tr {
+          /* Table header - clean professional style */
+          thead tr {
+            background-color: white !important;
+            border-top: 2px solid #000 !important;
+            border-bottom: 2px solid #000 !important;
+          }
+          
+          thead th {
+            background-color: white !important;
+            color: #000 !important;
+            font-weight: bold !important;
+            padding: 8px 12px !important;
+            border: none !important;
+          }
+          
+          /* Table body rows - remove zebra striping */
+          tbody tr {
             page-break-inside: avoid;
             page-break-after: auto;
+            background-color: white !important;
+            border-bottom: 1px solid #ccc !important;
           }
           
-          /* Ensure colors are visible in print */
-          .bg-green-50, .bg-green-100 {
-            background-color: #f0fdf4 !important;
+          tbody tr:hover {
+            background-color: white !important;
           }
           
-          .bg-red-50, .bg-red-100 {
-            background-color: #fef2f2 !important;
+          tbody td {
+            padding: 6px 12px !important;
+            color: #000 !important;
+            border: none !important;
           }
           
-          .bg-blue-50, .bg-blue-100 {
-            background-color: #eff6ff !important;
+          /* Remove badge styling - make them plain text */
+          .px-3.py-1.bg-blue-100,
+          .px-3.py-1.bg-green-100,
+          .px-3.py-1.bg-red-100,
+          .px-3.py-1.rounded-full {
+            background-color: transparent !important;
+            color: #000 !important;
+            padding: 0 !important;
+            border: none !important;
+            font-weight: normal !important;
           }
           
-          .bg-yellow-50, .bg-yellow-100 {
-            background-color: #fefce8 !important;
+          /* Text colors - convert to black or dark gray for formal look */
+          .text-gray-600,
+          .text-gray-700,
+          .text-gray-800,
+          .text-blue-700,
+          .text-blue-600 {
+            color: #000 !important;
           }
           
-          .bg-gray-50 {
-            background-color: #f9fafb !important;
+          /* Keep red/green for amounts but darker */
+          .text-green-600,
+          .text-green-700 {
+            color: #006400 !important;
           }
           
-          .bg-gray-800 {
-            background-color: #1f2937 !important;
-            color: white !important;
+          .text-red-600,
+          .text-red-700 {
+            color: #8B0000 !important;
           }
           
-          /* Border colors */
-          .border-green-200 {
-            border-color: #bbf7d0 !important;
-          }
-          
-          .border-red-200 {
-            border-color: #fecaca !important;
-          }
-          
-          .border-blue-200 {
-            border-color: #bfdbfe !important;
-          }
-          
-          .border-yellow-200 {
-            border-color: #fef08a !important;
-          }
-          
-          /* Text colors */
-          .text-green-600, .text-green-700 {
-            color: #16a34a !important;
-          }
-          
-          .text-red-600, .text-red-700 {
-            color: #dc2626 !important;
-          }
-          
-          .text-blue-600, .text-blue-700 {
-            color: #2563eb !important;
-          }
-          
-          .text-yellow-600, .text-yellow-700 {
-            color: #ca8a04 !important;
-          }
-          
-          /* Rounded corners */
-          .rounded-lg {
-            border-radius: 0.5rem !important;
-          }
-          
-          /* Shadow removal for print */
-          .shadow-md {
-            box-shadow: none !important;
-            border: 1px solid #e5e7eb !important;
+          /* Summary footer */
+          .bg-gray-100 {
+            background-color: white !important;
+            border-top: 2px solid #000 !important;
+            border-bottom: 2px solid #000 !important;
           }
         }
         

@@ -423,6 +423,444 @@ export const transactions = [
     description: 'Pembelian suku cadang',
     customer_name: 'Internal',
     recordedBy: 'Admin Siti'
+  },
+
+  // September 2025
+  {
+    id: 25,
+    date: '2025-09-30',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 4000000,
+    description: 'Pembayaran tagihan bulan September',
+    customer_name: 'Pelanggan 1',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 26,
+    date: '2025-09-28',
+    category: 'Gaji Karyawan',
+    type: 'OUT',
+    amount: 7500000,
+    description: 'Pembayaran gaji bulan September',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 27,
+    date: '2025-09-25',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 2900000,
+    description: 'Pembayaran tagihan bulan September',
+    customer_name: 'Pelanggan 2',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 28,
+    date: '2025-09-22',
+    category: 'Perawatan Sumur',
+    type: 'OUT',
+    amount: 1800000,
+    description: 'Biaya perawatan Sumur 3',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 29,
+    date: '2025-09-20',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 8000000,
+    description: 'Pembayaran tagihan bulan September',
+    customer_name: 'Pelanggan 5',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 30,
+    date: '2025-09-18',
+    category: 'Operasional',
+    type: 'OUT',
+    amount: 1600000,
+    description: 'Biaya operasional kantor',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 31,
+    date: '2025-09-15',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 2500000,
+    description: 'Pembayaran tagihan bulan September',
+    customer_name: 'Pelanggan 4',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 32,
+    date: '2025-09-12',
+    category: 'Pembayaran Proyek',
+    type: 'IN',
+    amount: 4500000,
+    description: 'Pembayaran cicilan proyek',
+    customer_name: 'Pelanggan 3',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 33,
+    date: '2025-09-10',
+    category: 'Peralatan',
+    type: 'OUT',
+    amount: 3000000,
+    description: 'Pembelian pompa air',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 34,
+    date: '2025-09-08',
+    category: 'Operasional',
+    type: 'OUT',
+    amount: 900000,
+    description: 'Biaya listrik',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 35,
+    date: '2025-09-05',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 3800000,
+    description: 'Pembayaran tagihan bulan September',
+    customer_name: 'Pelanggan 1',
+    recordedBy: 'Admin Budi'
+  },
+
+  // August 2025
+  {
+    id: 36,
+    date: '2025-08-30',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 3900000,
+    description: 'Pembayaran tagihan bulan Agustus',
+    customer_name: 'Pelanggan 1',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 37,
+    date: '2025-08-28',
+    category: 'Gaji Karyawan',
+    type: 'OUT',
+    amount: 7500000,
+    description: 'Pembayaran gaji bulan Agustus',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 38,
+    date: '2025-08-25',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 2800000,
+    description: 'Pembayaran tagihan bulan Agustus',
+    customer_name: 'Pelanggan 2',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 39,
+    date: '2025-08-22',
+    category: 'Perawatan Sumur',
+    type: 'OUT',
+    amount: 2200000,
+    description: 'Biaya perawatan Sumur 1',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 40,
+    date: '2025-08-20',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 7800000,
+    description: 'Pembayaran tagihan bulan Agustus',
+    customer_name: 'Pelanggan 5',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 41,
+    date: '2025-08-18',
+    category: 'Operasional',
+    type: 'OUT',
+    amount: 1400000,
+    description: 'Biaya operasional kantor',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 42,
+    date: '2025-08-15',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 2400000,
+    description: 'Pembayaran tagihan bulan Agustus',
+    customer_name: 'Pelanggan 4',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 43,
+    date: '2025-08-12',
+    category: 'Pembayaran Proyek',
+    type: 'IN',
+    amount: 5500000,
+    description: 'Pembayaran proyek pengeboran',
+    customer_name: 'Pelanggan 3',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 44,
+    date: '2025-08-10',
+    category: 'Peralatan',
+    type: 'OUT',
+    amount: 2800000,
+    description: 'Pembelian peralatan bor',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 45,
+    date: '2025-08-08',
+    category: 'Operasional',
+    type: 'OUT',
+    amount: 1100000,
+    description: 'Biaya listrik dan air',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
+  },
+
+  // July 2025
+  {
+    id: 46,
+    date: '2025-07-30',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 3700000,
+    description: 'Pembayaran tagihan bulan Juli',
+    customer_name: 'Pelanggan 1',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 47,
+    date: '2025-07-28',
+    category: 'Gaji Karyawan',
+    type: 'OUT',
+    amount: 7000000,
+    description: 'Pembayaran gaji bulan Juli',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 48,
+    date: '2025-07-25',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 2700000,
+    description: 'Pembayaran tagihan bulan Juli',
+    customer_name: 'Pelanggan 2',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 49,
+    date: '2025-07-22',
+    category: 'Perawatan Sumur',
+    type: 'OUT',
+    amount: 1900000,
+    description: 'Biaya perawatan Sumur 2',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 50,
+    date: '2025-07-20',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 7500000,
+    description: 'Pembayaran tagihan bulan Juli',
+    customer_name: 'Pelanggan 5',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 51,
+    date: '2025-07-18',
+    category: 'Operasional',
+    type: 'OUT',
+    amount: 1300000,
+    description: 'Biaya operasional kantor',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 52,
+    date: '2025-07-15',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 2300000,
+    description: 'Pembayaran tagihan bulan Juli',
+    customer_name: 'Pelanggan 4',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 53,
+    date: '2025-07-12',
+    category: 'Pembayaran Proyek',
+    type: 'IN',
+    amount: 4800000,
+    description: 'Pembayaran DP proyek',
+    customer_name: 'Pelanggan 3',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 54,
+    date: '2025-07-10',
+    category: 'Peralatan',
+    type: 'OUT',
+    amount: 3200000,
+    description: 'Pembelian suku cadang',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 55,
+    date: '2025-07-08',
+    category: 'Operasional',
+    type: 'OUT',
+    amount: 950000,
+    description: 'Biaya listrik',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 56,
+    date: '2025-07-05',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 3600000,
+    description: 'Pembayaran tagihan bulan Juli',
+    customer_name: 'Pelanggan 1',
+    recordedBy: 'Admin Siti'
+  },
+
+  // Additional December 2025 transactions
+  {
+    id: 57,
+    date: '2025-12-16',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 4200000,
+    description: 'Pembayaran tagihan bulan Desember',
+    customer_name: 'Pelanggan 3',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 58,
+    date: '2025-12-16',
+    category: 'Operasional',
+    type: 'OUT',
+    amount: 850000,
+    description: 'Biaya ATK dan perlengkapan kantor',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 59,
+    date: '2025-12-15',
+    category: 'Peralatan',
+    type: 'OUT',
+    amount: 2200000,
+    description: 'Pembelian selang dan pipa',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 60,
+    date: '2025-12-13',
+    category: 'Pembayaran Proyek',
+    type: 'IN',
+    amount: 6500000,
+    description: 'Pembayaran pelunasan proyek',
+    customer_name: 'Pelanggan 3',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 61,
+    date: '2025-12-11',
+    category: 'Operasional',
+    type: 'OUT',
+    amount: 1100000,
+    description: 'Biaya transportasi dan BBM',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 62,
+    date: '2025-12-09',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 3300000,
+    description: 'Pembayaran tagihan bulan Desember',
+    customer_name: 'Pelanggan 2',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 63,
+    date: '2025-12-07',
+    category: 'Perawatan Sumur',
+    type: 'OUT',
+    amount: 1700000,
+    description: 'Biaya perawatan Sumur 3',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 64,
+    date: '2025-12-06',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 2900000,
+    description: 'Pembayaran tagihan bulan Desember',
+    customer_name: 'Pelanggan 4',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 65,
+    date: '2025-12-04',
+    category: 'Operasional',
+    type: 'OUT',
+    amount: 950000,
+    description: 'Biaya internet dan telepon',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
+  },
+  {
+    id: 66,
+    date: '2025-12-02',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 9500000,
+    description: 'Pembayaran tagihan bulan Desember',
+    customer_name: 'Pelanggan 5',
+    recordedBy: 'Admin Siti'
+  },
+  {
+    id: 67,
+    date: '2025-12-01',
+    category: 'Peralatan',
+    type: 'OUT',
+    amount: 1800000,
+    description: 'Pembelian alat ukur meter',
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
   }
 ];
 
