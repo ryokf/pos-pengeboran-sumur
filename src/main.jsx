@@ -12,6 +12,7 @@ import CashFlow from './pages/CashFlow';
 import ReceiptPrint from './pages/ReceiptPrint';
 import Billing from './pages/Billing';
 import BillingPrint from './pages/BillingPrint';
+import FinancialReport from './pages/FinancialReport';
 
 const router = createBrowserRouter([
   {
@@ -49,6 +50,10 @@ const router = createBrowserRouter([
       {
         path: 'finance/billing/print',
         element: <BillingPrint />
+      },
+      {
+        path: 'finance/report',
+        element: <FinancialReport />
       }
     ]
   }

@@ -1,64 +1,10 @@
-import { useState } from 'react';
 import { PageHeader } from '../components';
 import { formatCurrency } from '../utils';
+import { dummyData } from '../data/dummyData';
 
 export default function CashFlow() {
-  const [transactions] = useState([
-    {
-      id: 1,
-      date: '2025-12-07',
-      category: 'Pembayaran Bulanan',
-      type: 'IN',
-      amount: 5000000,
-      description: 'Pembayaran oleh pelanggan 1',
-      customer_name: 'Pelanggan 1'
-    },
-    {
-      id: 2,
-      date: '2025-12-06',
-      category: 'Gaji Karyawan',
-      type: 'OUT',
-      amount: 8000000,
-      description: 'Pembayaran gaji bulan Desember',
-      customer_name: 'Internal'
-    },
-    {
-      id: 3,
-      date: '2025-12-05',
-      category: 'Pembayaran Bulanan',
-      type: 'IN',
-      amount: 3500000,
-      description: 'Pembayaran oleh pelanggan 2',
-      customer_name: 'Pelanggan 2'
-    },
-    {
-      id: 4,
-      date: '2025-12-04',
-      category: 'Dana Hibah',
-      type: 'OUT',
-      amount: 2500000,
-      description: 'Pembayaran dana hibah',
-      customer_name: 'Pelanggan 3'
-    },
-    {
-      id: 5,
-      date: '2025-12-03',
-      category: 'Pembayaran Bulanan',
-      type: 'IN',
-      amount: 10500000,
-      description: 'Pembayaran oleh pelanggan 5',
-      customer_name: 'Pelanggan 5'
-    },
-    {
-      id: 6,
-      date: '2025-12-02',
-      category: 'Pembayaran Bulanan',
-      type: 'OUT',
-      amount: 1500000,
-      description: 'Pembayaran oleh pelanggan 4',
-      customer_name: 'Pelanggan 4'
-    }
-  ]);
+  // Use centralized transaction data
+  const transactions = dummyData.transactions;
 
   const totalIn = transactions
     .filter(t => t.type === 'IN')

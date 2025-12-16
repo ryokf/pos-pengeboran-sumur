@@ -177,6 +177,231 @@ export const wells = [
   }
 ];
 
+// Comprehensive transaction data for financial reporting
+export const transactions = [
+  // December 2025
+  {
+    id: 1,
+    date: '2025-12-15',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 5000000,
+    description: 'Pembayaran tagihan bulan Desember',
+    customer_name: 'Pelanggan 1'
+  },
+  {
+    id: 2,
+    date: '2025-12-14',
+    category: 'Gaji Karyawan',
+    type: 'OUT',
+    amount: 8000000,
+    description: 'Pembayaran gaji bulan Desember',
+    customer_name: 'Internal'
+  },
+  {
+    id: 3,
+    date: '2025-12-12',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 3500000,
+    description: 'Pembayaran tagihan bulan Desember',
+    customer_name: 'Pelanggan 2'
+  },
+  {
+    id: 4,
+    date: '2025-12-10',
+    category: 'Perawatan Sumur',
+    type: 'OUT',
+    amount: 2500000,
+    description: 'Biaya perawatan Sumur 1',
+    customer_name: 'Internal'
+  },
+  {
+    id: 5,
+    date: '2025-12-08',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 10500000,
+    description: 'Pembayaran tagihan bulan Desember',
+    customer_name: 'Pelanggan 5'
+  },
+  {
+    id: 6,
+    date: '2025-12-05',
+    category: 'Operasional',
+    type: 'OUT',
+    amount: 1500000,
+    description: 'Biaya operasional kantor',
+    customer_name: 'Internal'
+  },
+  {
+    id: 7,
+    date: '2025-12-03',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 2800000,
+    description: 'Pembayaran tagihan bulan Desember',
+    customer_name: 'Pelanggan 4'
+  },
+
+  // November 2025
+  {
+    id: 8,
+    date: '2025-11-28',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 4500000,
+    description: 'Pembayaran tagihan bulan November',
+    customer_name: 'Pelanggan 1'
+  },
+  {
+    id: 9,
+    date: '2025-11-25',
+    category: 'Gaji Karyawan',
+    type: 'OUT',
+    amount: 8000000,
+    description: 'Pembayaran gaji bulan November',
+    customer_name: 'Internal'
+  },
+  {
+    id: 10,
+    date: '2025-11-22',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 3200000,
+    description: 'Pembayaran tagihan bulan November',
+    customer_name: 'Pelanggan 2'
+  },
+  {
+    id: 11,
+    date: '2025-11-20',
+    category: 'Peralatan',
+    type: 'OUT',
+    amount: 3500000,
+    description: 'Pembelian peralatan bor',
+    customer_name: 'Internal'
+  },
+  {
+    id: 12,
+    date: '2025-11-18',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 9000000,
+    description: 'Pembayaran tagihan bulan November',
+    customer_name: 'Pelanggan 5'
+  },
+  {
+    id: 13,
+    date: '2025-11-15',
+    category: 'Operasional',
+    type: 'OUT',
+    amount: 1200000,
+    description: 'Biaya listrik dan air',
+    customer_name: 'Internal'
+  },
+  {
+    id: 14,
+    date: '2025-11-10',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 2700000,
+    description: 'Pembayaran tagihan bulan November',
+    customer_name: 'Pelanggan 4'
+  },
+  {
+    id: 15,
+    date: '2025-11-05',
+    category: 'Pembayaran Proyek',
+    type: 'IN',
+    amount: 5000000,
+    description: 'Pembayaran proyek pengeboran',
+    customer_name: 'Pelanggan 3'
+  },
+
+  // October 2025
+  {
+    id: 16,
+    date: '2025-10-30',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 4200000,
+    description: 'Pembayaran tagihan bulan Oktober',
+    customer_name: 'Pelanggan 1'
+  },
+  {
+    id: 17,
+    date: '2025-10-28',
+    category: 'Gaji Karyawan',
+    type: 'OUT',
+    amount: 7500000,
+    description: 'Pembayaran gaji bulan Oktober',
+    customer_name: 'Internal'
+  },
+  {
+    id: 18,
+    date: '2025-10-25',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 3000000,
+    description: 'Pembayaran tagihan bulan Oktober',
+    customer_name: 'Pelanggan 2'
+  },
+  {
+    id: 19,
+    date: '2025-10-22',
+    category: 'Perawatan Sumur',
+    type: 'OUT',
+    amount: 2000000,
+    description: 'Biaya perawatan Sumur 2',
+    customer_name: 'Internal'
+  },
+  {
+    id: 20,
+    date: '2025-10-20',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 8500000,
+    description: 'Pembayaran tagihan bulan Oktober',
+    customer_name: 'Pelanggan 5'
+  },
+  {
+    id: 21,
+    date: '2025-10-15',
+    category: 'Operasional',
+    type: 'OUT',
+    amount: 1800000,
+    description: 'Biaya operasional kantor',
+    customer_name: 'Internal'
+  },
+  {
+    id: 22,
+    date: '2025-10-12',
+    category: 'Pembayaran Bulanan',
+    type: 'IN',
+    amount: 2600000,
+    description: 'Pembayaran tagihan bulan Oktober',
+    customer_name: 'Pelanggan 4'
+  },
+  {
+    id: 23,
+    date: '2025-10-08',
+    category: 'Pembayaran Proyek',
+    type: 'IN',
+    amount: 6000000,
+    description: 'Pembayaran DP proyek baru',
+    customer_name: 'Pelanggan 3'
+  },
+  {
+    id: 24,
+    date: '2025-10-05',
+    category: 'Peralatan',
+    type: 'OUT',
+    amount: 2500000,
+    description: 'Pembelian suku cadang',
+    customer_name: 'Internal'
+  }
+];
+
 export const dashboardStats = {
   totalCustomerBalance: 144000000, // Sum of all customer saldo
   cashOnHand: 45000000,
@@ -195,5 +420,7 @@ export const dummyData = {
   customers,
   orders,
   wells,
-  dashboardStats
+  dashboardStats,
+  transactions
 };
+

@@ -9,5 +9,11 @@ export {
   PRICING_TIERS,
   calculateMonthlyBilling,
   MENU_ITEMS,
-  getInitials
+  getInitials,
+  filterTransactionsByPeriod,
+  calculateFinancialSummary,
+  formatReportPeriod,
+  getAvailableYears,
+  getAvailableMonths
 } from './constants';
+
