@@ -187,7 +187,8 @@ export const transactions = [
     type: 'IN',
     amount: 5000000,
     description: 'Pembayaran tagihan bulan Desember',
-    customer_name: 'Pelanggan 1'
+    customer_name: 'Pelanggan 1',
+    recordedBy: 'Admin Budi'
   },
   {
     id: 2,
@@ -196,7 +197,8 @@ export const transactions = [
     type: 'OUT',
     amount: 8000000,
     description: 'Pembayaran gaji bulan Desember',
-    customer_name: 'Internal'
+    customer_name: 'Internal',
+    recordedBy: 'Admin Siti'
   },
   {
     id: 3,
@@ -205,7 +207,8 @@ export const transactions = [
     type: 'IN',
     amount: 3500000,
     description: 'Pembayaran tagihan bulan Desember',
-    customer_name: 'Pelanggan 2'
+    customer_name: 'Pelanggan 2',
+    recordedBy: 'Admin Budi'
   },
   {
     id: 4,
@@ -214,7 +217,8 @@ export const transactions = [
     type: 'OUT',
     amount: 2500000,
     description: 'Biaya perawatan Sumur 1',
-    customer_name: 'Internal'
+    customer_name: 'Internal',
+    recordedBy: 'Admin Siti'
   },
   {
     id: 5,
@@ -223,7 +227,8 @@ export const transactions = [
     type: 'IN',
     amount: 10500000,
     description: 'Pembayaran tagihan bulan Desember',
-    customer_name: 'Pelanggan 5'
+    customer_name: 'Pelanggan 5',
+    recordedBy: 'Admin Budi'
   },
   {
     id: 6,
@@ -232,7 +237,8 @@ export const transactions = [
     type: 'OUT',
     amount: 1500000,
     description: 'Biaya operasional kantor',
-    customer_name: 'Internal'
+    customer_name: 'Internal',
+    recordedBy: 'Admin Siti'
   },
   {
     id: 7,
@@ -241,7 +247,8 @@ export const transactions = [
     type: 'IN',
     amount: 2800000,
     description: 'Pembayaran tagihan bulan Desember',
-    customer_name: 'Pelanggan 4'
+    customer_name: 'Pelanggan 4',
+    recordedBy: 'Admin Budi'
   },
 
   // November 2025
@@ -252,7 +259,8 @@ export const transactions = [
     type: 'IN',
     amount: 4500000,
     description: 'Pembayaran tagihan bulan November',
-    customer_name: 'Pelanggan 1'
+    customer_name: 'Pelanggan 1',
+    recordedBy: 'Admin Siti'
   },
   {
     id: 9,
@@ -261,7 +269,8 @@ export const transactions = [
     type: 'OUT',
     amount: 8000000,
     description: 'Pembayaran gaji bulan November',
-    customer_name: 'Internal'
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
   },
   {
     id: 10,
@@ -270,7 +279,8 @@ export const transactions = [
     type: 'IN',
     amount: 3200000,
     description: 'Pembayaran tagihan bulan November',
-    customer_name: 'Pelanggan 2'
+    customer_name: 'Pelanggan 2',
+    recordedBy: 'Admin Siti'
   },
   {
     id: 11,
@@ -279,7 +289,8 @@ export const transactions = [
     type: 'OUT',
     amount: 3500000,
     description: 'Pembelian peralatan bor',
-    customer_name: 'Internal'
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
   },
   {
     id: 12,
@@ -288,7 +299,8 @@ export const transactions = [
     type: 'IN',
     amount: 9000000,
     description: 'Pembayaran tagihan bulan November',
-    customer_name: 'Pelanggan 5'
+    customer_name: 'Pelanggan 5',
+    recordedBy: 'Admin Siti'
   },
   {
     id: 13,
@@ -297,7 +309,8 @@ export const transactions = [
     type: 'OUT',
     amount: 1200000,
     description: 'Biaya listrik dan air',
-    customer_name: 'Internal'
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
   },
   {
     id: 14,
@@ -306,7 +319,8 @@ export const transactions = [
     type: 'IN',
     amount: 2700000,
     description: 'Pembayaran tagihan bulan November',
-    customer_name: 'Pelanggan 4'
+    customer_name: 'Pelanggan 4',
+    recordedBy: 'Admin Siti'
   },
   {
     id: 15,
@@ -315,7 +329,8 @@ export const transactions = [
     type: 'IN',
     amount: 5000000,
     description: 'Pembayaran proyek pengeboran',
-    customer_name: 'Pelanggan 3'
+    customer_name: 'Pelanggan 3',
+    recordedBy: 'Admin Budi'
   },
 
   // October 2025
@@ -326,7 +341,8 @@ export const transactions = [
     type: 'IN',
     amount: 4200000,
     description: 'Pembayaran tagihan bulan Oktober',
-    customer_name: 'Pelanggan 1'
+    customer_name: 'Pelanggan 1',
+    recordedBy: 'Admin Siti'
   },
   {
     id: 17,
@@ -335,7 +351,8 @@ export const transactions = [
     type: 'OUT',
     amount: 7500000,
     description: 'Pembayaran gaji bulan Oktober',
-    customer_name: 'Internal'
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
   },
   {
     id: 18,
@@ -344,7 +361,8 @@ export const transactions = [
     type: 'IN',
     amount: 3000000,
     description: 'Pembayaran tagihan bulan Oktober',
-    customer_name: 'Pelanggan 2'
+    customer_name: 'Pelanggan 2',
+    recordedBy: 'Admin Siti'
   },
   {
     id: 19,
@@ -353,7 +371,8 @@ export const transactions = [
     type: 'OUT',
     amount: 2000000,
     description: 'Biaya perawatan Sumur 2',
-    customer_name: 'Internal'
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
   },
   {
     id: 20,
@@ -362,7 +381,8 @@ export const transactions = [
     type: 'IN',
     amount: 8500000,
     description: 'Pembayaran tagihan bulan Oktober',
-    customer_name: 'Pelanggan 5'
+    customer_name: 'Pelanggan 5',
+    recordedBy: 'Admin Siti'
   },
   {
     id: 21,
@@ -371,7 +391,8 @@ export const transactions = [
     type: 'OUT',
     amount: 1800000,
     description: 'Biaya operasional kantor',
-    customer_name: 'Internal'
+    customer_name: 'Internal',
+    recordedBy: 'Admin Budi'
   },
   {
     id: 22,
@@ -380,7 +401,8 @@ export const transactions = [
     type: 'IN',
     amount: 2600000,
     description: 'Pembayaran tagihan bulan Oktober',
-    customer_name: 'Pelanggan 4'
+    customer_name: 'Pelanggan 4',
+    recordedBy: 'Admin Siti'
   },
   {
     id: 23,
@@ -389,7 +411,8 @@ export const transactions = [
     type: 'IN',
     amount: 6000000,
     description: 'Pembayaran DP proyek baru',
-    customer_name: 'Pelanggan 3'
+    customer_name: 'Pelanggan 3',
+    recordedBy: 'Admin Budi'
   },
   {
     id: 24,
@@ -398,7 +421,8 @@ export const transactions = [
     type: 'OUT',
     amount: 2500000,
     description: 'Pembelian suku cadang',
-    customer_name: 'Internal'
+    customer_name: 'Internal',
+    recordedBy: 'Admin Siti'
   }
 ];
 

@@ -45,22 +45,23 @@ const router = createBrowserRouter([
         element: <CashFlow />
       },
       {
-        path: 'finance/receipt/:transactionId/print',
-        element: <ReceiptPrint />
-      },
-      {
         path: 'finance/billing',
         element: <Billing />
-      },
-      {
-        path: 'finance/billing/print',
-        element: <BillingPrint />
       },
       {
         path: 'finance/report',
         element: <FinancialReport />
       }
     ]
+  },
+  // Print pages without layout (no sidebar/header)
+  {
+    path: 'finance/receipt/:transactionId/print',
+    element: <ReceiptPrint />
+  },
+  {
+    path: 'finance/billing/print',
+    element: <BillingPrint />
   }
 ]);
 

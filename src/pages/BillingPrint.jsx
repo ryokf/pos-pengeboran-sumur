@@ -70,78 +70,67 @@ export default function BillingPrint() {
                     </div>
                 </div>
 
-                {/* Billing Table */}
-                <table className="w-full border-collapse mb-8">
-                    <thead>
-                        <tr className="bg-gray-800 text-white">
-                            <th className="border border-gray-300 py-3 px-4 text-left">No</th>
-                            <th className="border border-gray-300 py-3 px-4 text-left">Nama Pelanggan</th>
-                            <th className="border border-gray-300 py-3 px-4 text-left">Alamat</th>
-                            <th className="border border-gray-300 py-3 px-4 text-center">Ukuran Sumur</th>
-                            <th className="border border-gray-300 py-3 px-4 text-center">Tarif/m³</th>
-                            <th className="border border-gray-300 py-3 px-4 text-right">Tagihan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {billingList.map((customer, index) => (
-                            <tr key={customer.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                                <td className="border border-gray-300 py-3 px-4 text-center">{index + 1}</td>
-                                <td className="border border-gray-300 py-3 px-4">
+                {/* Customer Cards with Cut Lines */}
+                <div className="space-y-0">
+                    {billingList.map((customer, index) => (
+                        <div key={customer.id}>
+                            {/* Customer Card */}
+                            <div className="border-2 border-gray-800 p-6 bg-white">
+                                {/* Header Row */}
+                                <div className="flex justify-between items-start mb-4 pb-3 border-b-2 border-gray-300">
                                     <div>
-                                        <p className="font-medium text-gray-800">{customer.name}</p>
-                                        <p className="text-xs text-gray-500">{customer.phone}</p>
+                                        <h3 className="text-xl font-bold text-gray-800">{customer.name}</h3>
+                                        <p className="text-sm text-gray-600">{customer.phone}</p>
                                     </div>
-                                </td>
-                                <td className="border border-gray-300 py-3 px-4 text-sm text-gray-600">
-                                    {customer.address}
-                                </td>
-                                <td className="border border-gray-300 py-3 px-4 text-center">
-                                    <span className="font-medium">{customer.wellSize}</span> m³
-                                </td>
-                                <td className="border border-gray-300 py-3 px-4 text-center text-sm">
-                                    {formatCurrency(customer.pricePerM3)}
-                                </td>
-                                <td className="border border-gray-300 py-3 px-4 text-right font-bold text-blue-600">
-                                    {formatCurrency(customer.monthlyCharge)}
-                                </td>
-                            </tr>
-                        ))}
-                        {/* Total Row */}
-                        <tr className="bg-gray-200 font-bold">
-                            <td colSpan="5" className="border border-gray-300 py-3 px-4 text-right">
-                                TOTAL TAGIHAN
-                            </td>
-                            <td className="border border-gray-300 py-3 px-4 text-right text-blue-600">
-                                {formatCurrency(totalBilling)}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                                    <div className="text-right">
+                                        <p className="text-xs text-gray-500 mb-1">No. {index + 1}</p>
+                                        <p className="text-xs text-gray-500">Periode: {currentMonth}</p>
+                                    </div>
+                                </div>
 
-                {/* Footer Notes */}
-                <div className="mt-8 border-t-2 border-gray-300 pt-6">
-                    <h3 className="font-bold text-gray-800 mb-3">Catatan:</h3>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                        <li>• Tarif berjenjang: Sumur &lt; 5 m³ = Rp {PRICING_TIERS.SMALL_WELL_PRICE.toLocaleString('id-ID')}/m³</li>
-                        <li>• Tarif berjenjang: Sumur ≥ 5 m³ = Rp {PRICING_TIERS.LARGE_WELL_PRICE.toLocaleString('id-ID')}/m³</li>
-                        <li>• Pembayaran dapat dilakukan melalui transfer bank atau tunai di kantor</li>
-                        <li>• Untuk informasi lebih lanjut, hubungi kantor kami</li>
-                    </ul>
+                                {/* Details Grid */}
+                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                    <div>
+                                        <p className="text-xs text-gray-500 mb-1">Alamat</p>
+                                        <p className="text-sm font-medium text-gray-800">{customer.address}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 mb-1">Ukuran Sumur</p>
+                                        <p className="text-sm font-medium text-gray-800">{customer.wellSize} m³</p>
+                                    </div>
+                                </div>
+
+                                {/* Billing Info */}
+                                <div className="bg-gray-100 p-4 rounded border border-gray-300">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="text-sm text-gray-600">Tarif per m³:</span>
+                                        <span className="text-sm font-semibold text-gray-800">{formatCurrency(customer.pricePerM3)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center pt-2 border-t border-gray-300">
+                                        <span className="text-base font-bold text-gray-800">TOTAL TAGIHAN:</span>
+                                        <span className="text-2xl font-bold text-blue-600">{formatCurrency(customer.monthlyCharge)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Cut Line - Only show between cards, not after the last one */}
+                            {index < billingList.length - 1 && (
+                                <div className="relative py-4">
+                                    <div className="border-t-2 border-dashed border-gray-400"></div>
+                                    <div className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white px-2">
+                                        <span className="text-xs text-gray-400">✂️ Potong di sini</span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    ))}
                 </div>
 
-                {/* Signature Section */}
-                <div className="mt-12 grid grid-cols-2 gap-8">
-                    <div className="text-center">
-                        <p className="mb-16 text-sm text-gray-600">Mengetahui,</p>
-                        <div className="border-t border-gray-800 pt-2">
-                            <p className="font-medium">Manager</p>
-                        </div>
-                    </div>
-                    <div className="text-center">
-                        <p className="mb-16 text-sm text-gray-600">Dibuat oleh,</p>
-                        <div className="border-t border-gray-800 pt-2">
-                            <p className="font-medium">Admin</p>
-                        </div>
+                {/* Summary Footer */}
+                <div className="mt-8 pt-6 border-t-4 border-gray-800">
+                    <div className="flex justify-between items-center bg-gray-800 text-white p-4 rounded">
+                        <span className="text-lg font-bold">TOTAL KESELURUHAN ({billingList.length} Pelanggan):</span>
+                        <span className="text-2xl font-bold">{formatCurrency(totalBilling)}</span>
                     </div>
                 </div>
             </div>

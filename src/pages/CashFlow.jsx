@@ -53,6 +53,7 @@ export default function CashFlow() {
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Kategori</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Keterangan</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Sumber/Tujuan</th>
+                <th className="text-left py-4 px-6 font-semibold text-gray-700">Dicatat Oleh</th>
                 <th className="text-right py-4 px-6 font-semibold text-gray-700">Nominal</th>
                 <th className="text-center py-4 px-6 font-semibold text-gray-700">Tipe</th>
               </tr>
@@ -68,6 +69,12 @@ export default function CashFlow() {
                   </td>
                   <td className="py-4 px-6 text-sm text-gray-800 font-medium">{transaction.description}</td>
                   <td className="py-4 px-6 text-sm text-gray-600">{transaction.customer_name}</td>
+                  <td className="py-4 px-6 text-sm text-gray-700">
+                    <span className="inline-flex items-center gap-1">
+                      <span className="text-blue-600">👤</span>
+                      {transaction.recordedBy}
+                    </span>
+                  </td>
                   <td className={`py-4 px-6 text-right font-bold ${ transaction.type === 'IN' ? 'text-green-600' : 'text-red-600' }`}>
                     {transaction.type === 'IN' ? '+' : '-'}{formatCurrency(transaction.amount)}
                   </td>
