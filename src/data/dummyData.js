@@ -402,6 +402,179 @@ export const transactions = [
   }
 ];
 
+// Meter readings for tracking water usage
+export const meterReadings = [
+  // Customer 1 (Pelanggan 1)
+  {
+    id: 1,
+    customerId: 1,
+    readingDate: '2025-09-01',
+    meterValue: 0.0,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan awal'
+  },
+  {
+    id: 2,
+    customerId: 1,
+    readingDate: '2025-10-01',
+    meterValue: 8.5,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan rutin bulan Oktober'
+  },
+  {
+    id: 3,
+    customerId: 1,
+    readingDate: '2025-11-01',
+    meterValue: 17.0,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan rutin bulan November'
+  },
+  {
+    id: 4,
+    customerId: 1,
+    readingDate: '2025-12-01',
+    meterValue: 25.5,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan rutin bulan Desember'
+  },
+
+  // Customer 2 (Pelanggan 2)
+  {
+    id: 5,
+    customerId: 2,
+    readingDate: '2025-09-01',
+    meterValue: 0.0,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan awal'
+  },
+  {
+    id: 6,
+    customerId: 2,
+    readingDate: '2025-10-01',
+    meterValue: 3.2,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan rutin bulan Oktober'
+  },
+  {
+    id: 7,
+    customerId: 2,
+    readingDate: '2025-11-01',
+    meterValue: 6.4,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan rutin bulan November'
+  },
+  {
+    id: 8,
+    customerId: 2,
+    readingDate: '2025-12-01',
+    meterValue: 9.6,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan rutin bulan Desember'
+  },
+
+  // Customer 3 (Pelanggan 3)
+  {
+    id: 9,
+    customerId: 3,
+    readingDate: '2025-09-01',
+    meterValue: 0.0,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan awal'
+  },
+  {
+    id: 10,
+    customerId: 3,
+    readingDate: '2025-10-01',
+    meterValue: 6.0,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan rutin bulan Oktober'
+  },
+  {
+    id: 11,
+    customerId: 3,
+    readingDate: '2025-11-01',
+    meterValue: 12.0,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan rutin bulan November'
+  },
+  {
+    id: 12,
+    customerId: 3,
+    readingDate: '2025-12-01',
+    meterValue: 18.0,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan rutin bulan Desember'
+  },
+
+  // Customer 4 (Pelanggan 4)
+  {
+    id: 13,
+    customerId: 4,
+    readingDate: '2025-09-01',
+    meterValue: 0.0,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan awal'
+  },
+  {
+    id: 14,
+    customerId: 4,
+    readingDate: '2025-10-01',
+    meterValue: 4.5,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan rutin bulan Oktober'
+  },
+  {
+    id: 15,
+    customerId: 4,
+    readingDate: '2025-11-01',
+    meterValue: 9.0,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan rutin bulan November'
+  },
+  {
+    id: 16,
+    customerId: 4,
+    readingDate: '2025-12-01',
+    meterValue: 13.5,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan rutin bulan Desember'
+  },
+
+  // Customer 5 (Pelanggan 5)
+  {
+    id: 17,
+    customerId: 5,
+    readingDate: '2025-09-01',
+    meterValue: 0.0,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan awal'
+  },
+  {
+    id: 18,
+    customerId: 5,
+    readingDate: '2025-10-01',
+    meterValue: 12.0,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan rutin bulan Oktober'
+  },
+  {
+    id: 19,
+    customerId: 5,
+    readingDate: '2025-11-01',
+    meterValue: 24.0,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan rutin bulan November'
+  },
+  {
+    id: 20,
+    customerId: 5,
+    readingDate: '2025-12-01',
+    meterValue: 36.0,
+    recordedBy: 'Admin',
+    notes: 'Pencatatan rutin bulan Desember'
+  }
+];
+
 export const dashboardStats = {
   totalCustomerBalance: 144000000, // Sum of all customer saldo
   cashOnHand: 45000000,
@@ -421,6 +594,7 @@ export const dummyData = {
   orders,
   wells,
   dashboardStats,
-  transactions
+  transactions,
+  meterReadings
 };
 

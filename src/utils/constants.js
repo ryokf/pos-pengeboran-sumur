@@ -61,6 +61,7 @@ export const calculateMonthlyBilling = (wellSize) => {
 export const MENU_ITEMS = [
   { label: 'Dasbor', icon: '📊', path: '/' },
   { label: 'Pelanggan', icon: '👥', path: '/customers' },
+  { label: 'Pencatatan Meteran', icon: '📏', path: '/meter-readings' },
   { label: 'Arus Kas', icon: '💰', path: '/finance/cash-flow' },
   { label: 'Tagihan', icon: '📋', path: '/finance/billing' },
   { label: 'Laporan Keuangan', icon: '📈', path: '/finance/report' },
@@ -150,3 +151,52 @@ export const getAvailableMonths = (transactions, year) => {
   return [...monthsSet].sort((a, b) => a - b);
 };
 
+// Meter Reading Utilities
+
+// Get latest meter reading for a customer
+export const getLatestMeterReading = (customerId, meterReadings) => {
+  const customerReadings = meterReadings
+    .filter(r => r.customerId === customerId)
+    .sort((a, b) => new Date(b.readingDate) - new Date(a.readingDate));
+  return customerReadings[0] || null;
+};
+
+// Get previous meter reading (before a specific date)
+export const getPreviousMeterReading = (customerId, meterReadings, beforeDate) => {
+  const customerReadings = meterReadings
+    .filter(r => r.customerId === customerId && new Date(r.readingDate) < new Date(beforeDate))
+    .sort((a, b) => new Date(b.readingDate) - new Date(a.readingDate));
+  return customerReadings[0] || null;
+};
+
+// Calculate usage between two readings
+export const calculateUsage = (currentReading, previousReading) => {
+  if (!currentReading || !previousReading) return 0;
+  return currentReading.meterValue - previousReading.meterValue;
+};
+
+// Get all meter readings for a customer (sorted by date, newest first)
+export const getCustomerMeterReadings = (customerId, meterReadings) => {
+  return meterReadings
+    .filter(r => r.customerId === customerId)
+    .sort((a, b) => new Date(b.readingDate) - new Date(a.readingDate));
+};
+
+// Format date for display in Indonesian format
+export const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('id-ID', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
+// Format date for input fields (YYYY-MM-DD)
+export const formatDateForInput = (dateString) => {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${ year }-${ month }-${ day }`;
+};

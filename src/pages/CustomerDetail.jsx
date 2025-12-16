@@ -1,8 +1,14 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { customers } from '../data/dummyData';
-import { PageHeader } from '../components';
-import { formatCurrency } from '../utils';
+import { customers, meterReadings } from '../data/dummyData';
+import { PageHeader, MeterReadingModal } from '../components';
+import {
+  formatCurrency,
+  getCustomerMeterReadings,
+  getLatestMeterReading,
+  calculateUsage,
+  formatDate
+} from '../utils';
 
 export default function CustomerDetail() {
   const { customerId } = useParams();
@@ -10,6 +16,7 @@ export default function CustomerDetail() {
   const customer = customers.find(c => c.id === parseInt(customerId));
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [showAdjustmentModal, setShowAdjustmentModal] = useState(false);
+  const [showMeterModal, setShowMeterModal] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState('');
   const [adjustmentAmount, setAdjustmentAmount] = useState('');
   const [adjustmentType, setAdjustmentType] = useState('add');
@@ -101,12 +108,77 @@ export default function CustomerDetail() {
         </div>
       </div>
 
-      {/* Transaction History Placeholder */}
+      {/* Meter Reading History */}
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Riwayat Transaksi</h3>
-        <div className="text-center py-12">
-          <p className="text-gray-500">Fitur riwayat transaksi akan ditambahkan segera</p>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold text-gray-800">Riwayat Pencatatan Meteran</h3>
+          <button
+            onClick={() => setShowMeterModal(true)}
+            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            📊 Catat Meteran Baru
+          </button>
         </div>
+
+        {(() => {
+          const customerReadings = getCustomerMeterReadings(customer.id, meterReadings);
+
+          if (customerReadings.length === 0) {
+            return (
+              <div className="text-center py-12">
+                <p className="text-gray-500">Belum ada pencatatan meteran</p>
+              </div>
+            );
+          }
+
+          return (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Tanggal</th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Nilai Meteran</th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Penggunaan</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Dicatat Oleh</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Catatan</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {customerReadings.map((reading, index) => {
+                    const previousReading = customerReadings[index + 1];
+                    const usage = calculateUsage(reading, previousReading);
+
+                    return (
+                      <tr key={reading.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td className="py-3 px-4 text-sm text-gray-700">
+                          {formatDate(reading.readingDate)}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <span className="font-semibold text-blue-600">{reading.meterValue} m³</span>
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          {usage > 0 ? (
+                            <span className="inline-block px-2 py-1 bg-green-100 text-green-700 rounded text-sm font-medium">
+                              +{usage.toFixed(1)} m³
+                            </span>
+                          ) : (
+                            <span className="text-sm text-gray-400">-</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-700">
+                          {reading.recordedBy}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-600">
+                          {reading.notes}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Top Up Modal */}
@@ -206,6 +278,20 @@ export default function CustomerDetail() {
           </div>
         </div>
       )}
+
+      {/* Meter Reading Modal */}
+      <MeterReadingModal
+        isOpen={showMeterModal}
+        onClose={() => setShowMeterModal(false)}
+        customerId={customer.id}
+        customerName={customer.name}
+        previousReading={getLatestMeterReading(customer.id, meterReadings)}
+        onSubmit={(newReading) => {
+          console.log('New meter reading:', newReading);
+          alert(`Pencatatan meteran untuk ${ customer.name } berhasil disimpan!`);
+          setShowMeterModal(false);
+        }}
+      />
     </div>
   );
 }

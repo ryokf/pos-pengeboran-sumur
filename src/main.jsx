@@ -13,6 +13,7 @@ import ReceiptPrint from './pages/ReceiptPrint';
 import Billing from './pages/Billing';
 import BillingPrint from './pages/BillingPrint';
 import FinancialReport from './pages/FinancialReport';
+import MeterReadings from './pages/MeterReadings';
 
 const router = createBrowserRouter([
   {
@@ -30,6 +31,10 @@ const router = createBrowserRouter([
       {
         path: 'customers/:customerId',
         element: <CustomerDetail />
+      },
+      {
+        path: 'meter-readings',
+        element: <MeterReadings />
       },
       {
         path: 'settings',

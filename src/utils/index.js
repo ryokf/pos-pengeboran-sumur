@@ -14,6 +14,12 @@ export {
   calculateFinancialSummary,
   formatReportPeriod,
   getAvailableYears,
-  getAvailableMonths
+  getAvailableMonths,
+  getLatestMeterReading,
+  getPreviousMeterReading,
+  calculateUsage,
+  getCustomerMeterReadings,
+  formatDate,
+  formatDateForInput
 } from './constants';
 
