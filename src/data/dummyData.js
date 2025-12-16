@@ -428,14 +428,15 @@ export const transactions = [
 
 // Meter readings for tracking water usage
 export const meterReadings = [
-  // Customer 1 (Pelanggan 1)
+  // Customer 1 (Pelanggan 1) - wellSize: 8.5 m³
   {
     id: 1,
     customerId: 1,
     readingDate: '2025-09-01',
     meterValue: 0.0,
     recordedBy: 'Admin',
-    notes: 'Pencatatan awal'
+    notes: 'Pencatatan awal',
+    totalCost: 0 // Initial reading, no cost
   },
   {
     id: 2,
@@ -443,7 +444,8 @@ export const meterReadings = [
     readingDate: '2025-10-01',
     meterValue: 8.5,
     recordedBy: 'Admin',
-    notes: 'Pencatatan rutin bulan Oktober'
+    notes: 'Pencatatan rutin bulan Oktober',
+    totalCost: 42500 // 8.5 m³ × Rp 5,000 (>= 5 m³)
   },
   {
     id: 3,
@@ -451,7 +453,8 @@ export const meterReadings = [
     readingDate: '2025-11-01',
     meterValue: 17.0,
     recordedBy: 'Admin',
-    notes: 'Pencatatan rutin bulan November'
+    notes: 'Pencatatan rutin bulan November',
+    totalCost: 42500 // 8.5 m³ × Rp 5,000
   },
   {
     id: 4,
@@ -459,17 +462,19 @@ export const meterReadings = [
     readingDate: '2025-12-01',
     meterValue: 25.5,
     recordedBy: 'Admin',
-    notes: 'Pencatatan rutin bulan Desember'
+    notes: 'Pencatatan rutin bulan Desember',
+    totalCost: 42500 // 8.5 m³ × Rp 5,000
   },
 
-  // Customer 2 (Pelanggan 2)
+  // Customer 2 (Pelanggan 2) - wellSize: 3.2 m³
   {
     id: 5,
     customerId: 2,
     readingDate: '2025-09-01',
     meterValue: 0.0,
     recordedBy: 'Admin',
-    notes: 'Pencatatan awal'
+    notes: 'Pencatatan awal',
+    totalCost: 0 // Initial reading, no cost
   },
   {
     id: 6,
@@ -477,7 +482,8 @@ export const meterReadings = [
     readingDate: '2025-10-01',
     meterValue: 3.2,
     recordedBy: 'Admin',
-    notes: 'Pencatatan rutin bulan Oktober'
+    notes: 'Pencatatan rutin bulan Oktober',
+    totalCost: 9600 // 3.2 m³ × Rp 3,000 (< 5 m³)
   },
   {
     id: 7,
@@ -485,7 +491,8 @@ export const meterReadings = [
     readingDate: '2025-11-01',
     meterValue: 6.4,
     recordedBy: 'Admin',
-    notes: 'Pencatatan rutin bulan November'
+    notes: 'Pencatatan rutin bulan November',
+    totalCost: 9600 // 3.2 m³ × Rp 3,000
   },
   {
     id: 8,
@@ -493,17 +500,19 @@ export const meterReadings = [
     readingDate: '2025-12-01',
     meterValue: 9.6,
     recordedBy: 'Admin',
-    notes: 'Pencatatan rutin bulan Desember'
+    notes: 'Pencatatan rutin bulan Desember',
+    totalCost: 9600 // 3.2 m³ × Rp 3,000
   },
 
-  // Customer 3 (Pelanggan 3)
+  // Customer 3 (Pelanggan 3) - wellSize: 6.0 m³
   {
     id: 9,
     customerId: 3,
     readingDate: '2025-09-01',
     meterValue: 0.0,
     recordedBy: 'Admin',
-    notes: 'Pencatatan awal'
+    notes: 'Pencatatan awal',
+    totalCost: 0 // Initial reading, no cost
   },
   {
     id: 10,
@@ -511,7 +520,8 @@ export const meterReadings = [
     readingDate: '2025-10-01',
     meterValue: 6.0,
     recordedBy: 'Admin',
-    notes: 'Pencatatan rutin bulan Oktober'
+    notes: 'Pencatatan rutin bulan Oktober',
+    totalCost: 30000 // 6.0 m³ × Rp 5,000 (>= 5 m³)
   },
   {
     id: 11,
@@ -519,7 +529,8 @@ export const meterReadings = [
     readingDate: '2025-11-01',
     meterValue: 12.0,
     recordedBy: 'Admin',
-    notes: 'Pencatatan rutin bulan November'
+    notes: 'Pencatatan rutin bulan November',
+    totalCost: 30000 // 6.0 m³ × Rp 5,000
   },
   {
     id: 12,
@@ -527,17 +538,19 @@ export const meterReadings = [
     readingDate: '2025-12-01',
     meterValue: 18.0,
     recordedBy: 'Admin',
-    notes: 'Pencatatan rutin bulan Desember'
+    notes: 'Pencatatan rutin bulan Desember',
+    totalCost: 30000 // 6.0 m³ × Rp 5,000
   },
 
-  // Customer 4 (Pelanggan 4)
+  // Customer 4 (Pelanggan 4) - wellSize: 4.5 m³
   {
     id: 13,
     customerId: 4,
     readingDate: '2025-09-01',
     meterValue: 0.0,
     recordedBy: 'Admin',
-    notes: 'Pencatatan awal'
+    notes: 'Pencatatan awal',
+    totalCost: 0 // Initial reading, no cost
   },
   {
     id: 14,
@@ -545,7 +558,8 @@ export const meterReadings = [
     readingDate: '2025-10-01',
     meterValue: 4.5,
     recordedBy: 'Admin',
-    notes: 'Pencatatan rutin bulan Oktober'
+    notes: 'Pencatatan rutin bulan Oktober',
+    totalCost: 13500 // 4.5 m³ × Rp 3,000 (< 5 m³)
   },
   {
     id: 15,
@@ -553,7 +567,8 @@ export const meterReadings = [
     readingDate: '2025-11-01',
     meterValue: 9.0,
     recordedBy: 'Admin',
-    notes: 'Pencatatan rutin bulan November'
+    notes: 'Pencatatan rutin bulan November',
+    totalCost: 13500 // 4.5 m³ × Rp 3,000
   },
   {
     id: 16,
@@ -561,17 +576,19 @@ export const meterReadings = [
     readingDate: '2025-12-01',
     meterValue: 13.5,
     recordedBy: 'Admin',
-    notes: 'Pencatatan rutin bulan Desember'
+    notes: 'Pencatatan rutin bulan Desember',
+    totalCost: 13500 // 4.5 m³ × Rp 3,000
   },
 
-  // Customer 5 (Pelanggan 5)
+  // Customer 5 (Pelanggan 5) - wellSize: 12.0 m³
   {
     id: 17,
     customerId: 5,
     readingDate: '2025-09-01',
     meterValue: 0.0,
     recordedBy: 'Admin',
-    notes: 'Pencatatan awal'
+    notes: 'Pencatatan awal',
+    totalCost: 0 // Initial reading, no cost
   },
   {
     id: 18,
@@ -579,7 +596,8 @@ export const meterReadings = [
     readingDate: '2025-10-01',
     meterValue: 12.0,
     recordedBy: 'Admin',
-    notes: 'Pencatatan rutin bulan Oktober'
+    notes: 'Pencatatan rutin bulan Oktober',
+    totalCost: 60000 // 12.0 m³ × Rp 5,000 (>= 5 m³)
   },
   {
     id: 19,
@@ -587,7 +605,8 @@ export const meterReadings = [
     readingDate: '2025-11-01',
     meterValue: 24.0,
     recordedBy: 'Admin',
-    notes: 'Pencatatan rutin bulan November'
+    notes: 'Pencatatan rutin bulan November',
+    totalCost: 60000 // 12.0 m³ × Rp 5,000
   },
   {
     id: 20,
@@ -595,7 +614,8 @@ export const meterReadings = [
     readingDate: '2025-12-01',
     meterValue: 36.0,
     recordedBy: 'Admin',
-    notes: 'Pencatatan rutin bulan Desember'
+    notes: 'Pencatatan rutin bulan Desember',
+    totalCost: 60000 // 12.0 m³ × Rp 5,000
   }
 ];
 

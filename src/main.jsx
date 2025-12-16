@@ -1,14 +1,13 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import { createBrowserRouter } from "react-router-dom";
-import { RouterProvider } from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Customers from './pages/Customers';
 import CustomerDetail from './pages/CustomerDetail';
 import Settings from './pages/Settings';
-import CashFlow from './pages/CashFlow';
+
 import ReceiptPrint from './pages/ReceiptPrint';
 import Billing from './pages/Billing';
 import BillingPrint from './pages/BillingPrint';
@@ -40,10 +39,7 @@ const router = createBrowserRouter([
         path: 'settings',
         element: <Settings />
       },
-      {
-        path: 'finance/cash-flow',
-        element: <CashFlow />
-      },
+
       {
         path: 'finance/billing',
         element: <Billing />

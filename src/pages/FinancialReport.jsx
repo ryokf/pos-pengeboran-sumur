@@ -222,6 +222,7 @@ export default function FinancialReport() {
                                 <th className="text-left py-4 px-6 font-semibold">Kategori</th>
                                 <th className="text-left py-4 px-6 font-semibold">Keterangan</th>
                                 <th className="text-left py-4 px-6 font-semibold">Sumber/Tujuan</th>
+                                <th className="text-left py-4 px-6 font-semibold">Dicatat Oleh</th>
                                 <th className="text-right py-4 px-6 font-semibold">Nominal</th>
                                 <th className="text-center py-4 px-6 font-semibold">Tipe</th>
                             </tr>
@@ -249,6 +250,12 @@ export default function FinancialReport() {
                                         <td className="py-4 px-6 text-sm text-gray-600">
                                             {transaction.customer_name}
                                         </td>
+                                        <td className="py-4 px-6 text-sm text-gray-700">
+                                            <span className="inline-flex items-center gap-1">
+                                                <span className="text-blue-600">👤</span>
+                                                {transaction.recordedBy}
+                                            </span>
+                                        </td>
                                         <td className={`py-4 px-6 text-right font-bold ${ transaction.type === 'IN' ? 'text-green-600' : 'text-red-600'
                                             }`}>
                                             {transaction.type === 'IN' ? '+' : '-'}
@@ -266,7 +273,7 @@ export default function FinancialReport() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="7" className="py-8 text-center text-gray-500">
+                                    <td colSpan="8" className="py-8 text-center text-gray-500">
                                         Tidak ada transaksi untuk periode ini
                                     </td>
                                 </tr>

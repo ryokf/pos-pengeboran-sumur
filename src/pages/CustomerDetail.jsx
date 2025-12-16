@@ -141,6 +141,7 @@ export default function CustomerDetail() {
                     <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Penggunaan</th>
                     <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Dicatat Oleh</th>
                     <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Catatan</th>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Total Biaya</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -170,6 +171,9 @@ export default function CustomerDetail() {
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-600">
                           {reading.notes}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-600">
+                          {formatCurrency(reading.totalCost)}
                         </td>
                       </tr>
                     );

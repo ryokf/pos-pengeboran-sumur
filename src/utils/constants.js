@@ -62,9 +62,8 @@ export const MENU_ITEMS = [
   { label: 'Dasbor', icon: '📊', path: '/' },
   { label: 'Pelanggan', icon: '👥', path: '/customers' },
   { label: 'Pencatatan Meteran', icon: '📏', path: '/meter-readings' },
-  { label: 'Arus Kas', icon: '💰', path: '/finance/cash-flow' },
   { label: 'Tagihan', icon: '📋', path: '/finance/billing' },
-  { label: 'Laporan Keuangan', icon: '📈', path: '/finance/report' },
+  { label: 'Laporan Keuangan', icon: '💰', path: '/finance/report' },
   { label: 'Pengaturan', icon: '⚙️', path: '/settings' }
 ];
 
