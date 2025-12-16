@@ -6,6 +6,7 @@ export default function Settings() {
     email: 'contact@pengeboran.com',
     phone: '085123456789',
     address: 'Jl. Industri No. 123, Jakarta',
+    adminFee: 2500, // Biaya admin default
     currency: 'IDR',
     dateFormat: 'DD/MM/YYYY',
     theme: 'light',
@@ -37,7 +38,7 @@ export default function Settings() {
         {/* Company Information */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">🏢 Informasi Perusahaan</h3>
-          
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Nama Perusahaan</label>
@@ -95,10 +96,56 @@ export default function Settings() {
           </form>
         </div>
 
+        {/* Admin Fee Settings */}
+        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h3 className="text-xl font-semibold text-gray-800 mb-4">💰 Biaya Admin</h3>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Biaya Admin (Rupiah)
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                  Rp
+                </span>
+                <input
+                  type="number"
+                  name="adminFee"
+                  value={settings.adminFee}
+                  onChange={handleChange}
+                  min="0"
+                  step="100"
+                  className="w-full pl-12 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="0"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Biaya admin yang akan dikenakan pada setiap transaksi pembayaran
+              </p>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                <span className="font-semibold">ℹ️ Informasi:</span> Biaya admin saat ini: <span className="font-bold">Rp {settings.adminFee.toLocaleString('id-ID')}</span>
+              </p>
+            </div>
+
+            <div className="border-t border-gray-200 pt-4">
+              <button
+                type="submit"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+              >
+                Simpan Biaya Admin
+              </button>
+            </div>
+          </form>
+        </div>
+
         {/* Preferences */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">⚙️ Preferensi</h3>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Mata Uang</label>
@@ -147,7 +194,7 @@ export default function Settings() {
         {/* Notifications */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">🔔 Notifikasi</h3>
-          
+
           <div className="space-y-4">
             <label className="flex items-center">
               <input
