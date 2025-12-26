@@ -1,10 +1,24 @@
 import { customers, wells } from '../data/dummyData';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FilterBar, PageHeader, EmptyState } from '../components';
 import { matchesSearch, formatCurrency, getInitials } from '../utils';
+import { getCustomers } from '../services/customerService';
 
 export default function Customers() {
+  const [customerData, setCustomerData] = useState([])
+
+  useEffect(() => {
+    const fecthCustomers = async () => {
+      const data = await getCustomers()
+      setCustomerData(data)
+      console.log(data);
+    }
+
+    fecthCustomers();
+  }, [])
+
+
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRT, setSelectedRT] = useState('All');
@@ -85,16 +99,14 @@ export default function Customers() {
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Telepon</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">RT</th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Alamat</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Sumur yang digunakan</th>
                 <th className="text-center py-4 px-6 font-semibold text-gray-700">Total Penggunaan Air</th>
                 <th className="text-right py-4 px-6 font-semibold text-gray-700">Saldo</th>
                 <th className="text-center py-4 px-6 font-semibold text-gray-700">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {filteredCustomers.map((customer) => {
-                const balance = getCustomerBalance(customer);
-                const balanceColor = balance >= 0 ? 'text-green-600' : 'text-red-600';
+              {customerData.map((customer) => {
+                const balanceColor = customer.current_balance >= 0 ? 'text-green-600' : 'text-red-600';
 
                 return (
                   <tr key={customer.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
@@ -113,12 +125,12 @@ export default function Customers() {
                       </span>
                     </td>
                     <td className="py-4 px-6 text-sm text-gray-600">{customer.address}</td>
-                    <td className="py-4 px-6 text-sm text-gray-600 text-center">{getWellName(customer.wellId)}</td>
+        
                     <td className="py-4 px-6 text-center text-sm text-gray-700">
                       <span className="font-medium">{customer.wellSize}</span> m³
                     </td>
                     <td className={`py-4 px-6 text-right font-bold text-lg ${ balanceColor }`}>
-                      {balance >= 0 ? '+' : '-'}{formatCurrency(Math.abs(balance))}
+                      {customer.current_balance >= 0 ? '+' : '-'}{formatCurrency(Math.abs(customer.current_balance))}
                     </td>
                     <td className="py-4 px-6 text-center">
                       <button
