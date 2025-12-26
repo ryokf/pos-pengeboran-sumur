@@ -11,7 +11,8 @@ export const customers = [
     city: "Jakarta",
     type: "Corporate",
     wellSize: 8.5,
-    saldo: -25000000
+    saldo: -25000000,
+    rt: "01"
   },
   {
     id: 2,
@@ -23,7 +24,8 @@ export const customers = [
     city: "Bandung",
     type: "Individual",
     wellSize: 3.2,
-    saldo: 7000000
+    saldo: 7000000,
+    rt: "02"
   },
   {
     id: 3,
@@ -35,7 +37,8 @@ export const customers = [
     city: "Surabaya",
     type: "Corporate",
     wellSize: 6,
-    saldo: -120000
+    saldo: -120000,
+    rt: "01"
   },
   {
     id: 4,
@@ -47,7 +50,8 @@ export const customers = [
     city: "Medan",
     type: "Individual",
     wellSize: 4.5,
-    saldo: 2000000
+    saldo: 2000000,
+    rt: "03"
   },
   {
     id: 5,
@@ -59,7 +63,8 @@ export const customers = [
     city: "Makassar",
     type: "Corporate",
     wellSize: 12,
-    saldo: 65000000
+    saldo: 65000000,
+    rt: "02"
   }
 ];
 

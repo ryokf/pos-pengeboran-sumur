@@ -7,7 +7,8 @@ import {
   getCustomerMeterReadings,
   getLatestMeterReading,
   calculateUsage,
-  formatDate
+  formatDate,
+  calculateMonthlyBilling
 } from '../utils';
 
 export default function CustomerDetail() {
@@ -48,7 +49,7 @@ export default function CustomerDetail() {
 
       <PageHeader
         title={customer.name}
-        description={`${ customer.type } - ${ customer.city }`}
+        description={`${customer.city}`}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -78,16 +79,66 @@ export default function CustomerDetail() {
               </button>
             </div>
           </div>
+
+          {/* Deposit & Billing Status */}
+          <div className="mt-6 bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Status Pembayaran</h3>
+            <div className="space-y-4">
+              {/* Deposit Status */}
+              <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Deposit/Setoran</p>
+                    <p className="text-2xl font-bold text-blue-600">{formatCurrency(Math.abs(balance))}</p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                    balance >= 0 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {balance >= 0 ? '✓ Lunas' : 'Belum Lunas'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Debt & Current Month Billing (if utang) */}
+              {balance < 0 && (
+                <div className="border-l-4 border-red-500 bg-red-50 p-4 rounded">
+                  <p className="text-sm font-medium text-gray-600 mb-3">Rincian Hutang</p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-700">Total Hutang:</span>
+                      <span className="text-sm font-bold text-red-600">{formatCurrency(Math.abs(balance))}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-700">Tagihan Bulan Ini:</span>
+                      <span className="text-sm font-semibold text-gray-800">{formatCurrency(calculateMonthlyBilling(customer.wellSize))}</span>
+                    </div>
+                    <div className="pt-2 border-t border-red-200">
+                      <p className="text-xs text-red-600 font-medium">
+                        ⚠️ Pelanggan memiliki tunggakan. Mohon melakukan pembayaran segera.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Paid Status */}
+              {balance >= 0 && (
+                <div className="border-l-4 border-green-500 bg-green-50 p-4 rounded">
+                  <p className="text-sm font-medium text-gray-600 mb-2">Tagihan Bulan Ini</p>
+                  <p className="text-lg font-bold text-green-600">{formatCurrency(calculateMonthlyBilling(customer.wellSize))}</p>
+                  <p className="text-xs text-green-600 mt-2">✓ Semua pembayaran terbayar dengan baik</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Customer Info Card */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Informasi Pelanggan</h3>
           <div className="space-y-4">
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-1">Tipe Pelanggan</p>
-              <p className="text-sm font-semibold text-gray-800">{customer.type}</p>
-            </div>
             <div>
               <p className="text-xs font-medium text-gray-500 mb-1">Email</p>
               <p className="text-sm text-gray-700">{customer.email}</p>

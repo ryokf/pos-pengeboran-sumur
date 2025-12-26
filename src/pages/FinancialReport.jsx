@@ -18,6 +18,12 @@ export default function FinancialReport() {
     const [period, setPeriod] = useState('monthly'); // 'monthly' or 'annual'
     const [selectedYear, setSelectedYear] = useState(currentYear);
     const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+    const [showIncomeModal, setShowIncomeModal] = useState(false);
+    const [showExpenseModal, setShowExpenseModal] = useState(false);
+    const [incomeAmount, setIncomeAmount] = useState('');
+    const [incomeDescription, setIncomeDescription] = useState('');
+    const [expenseAmount, setExpenseAmount] = useState('');
+    const [expenseDescription, setExpenseDescription] = useState('');
 
     const { transactions, customers } = dummyData;
 
@@ -132,6 +138,22 @@ export default function FinancialReport() {
                             🖨️ Cetak PDF
                         </button>
                     </div>
+                </div>
+
+                {/* Add Income/Expense Buttons */}
+                <div className="mt-4 flex gap-3">
+                    <button
+                        onClick={() => setShowIncomeModal(true)}
+                        className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2"
+                    >
+                        💰 Tambah Pemasukan
+                    </button>
+                    <button
+                        onClick={() => setShowExpenseModal(true)}
+                        className="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center justify-center gap-2"
+                    >
+                        💸 Tambah Pengeluaran
+                    </button>
                 </div>
             </div>
 
@@ -303,6 +325,118 @@ export default function FinancialReport() {
                     </div>
                 )}
             </div>
+
+            {/* Income Modal */}
+            {showIncomeModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
+                        <h3 className="text-xl font-semibold text-gray-800 mb-4">💰 Tambah Pemasukan</h3>
+                        <div className="space-y-4 mb-6">
+                            <div>
+                                <label htmlFor="income-amount" className="block text-sm font-medium text-gray-700 mb-2">Jumlah Pemasukan</label>
+                                <input
+                                    id="income-amount"
+                                    type="number"
+                                    value={incomeAmount}
+                                    onChange={(e) => setIncomeAmount(e.target.value)}
+                                    placeholder="Masukkan jumlah (dalam Rupiah)"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="income-desc" className="block text-sm font-medium text-gray-700 mb-2">Keterangan</label>
+                                <textarea
+                                    id="income-desc"
+                                    value={incomeDescription}
+                                    onChange={(e) => setIncomeDescription(e.target.value)}
+                                    placeholder="Masukkan keterangan pemasukan"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    rows="3"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowIncomeModal(false);
+                                    setIncomeAmount('');
+                                    setIncomeDescription('');
+                                }}
+                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={() => {
+                                    alert(`Pemasukan sebesar ${incomeAmount ? formatCurrency(Number(incomeAmount)) : '0'} berhasil ditambahkan!`);
+                                    setShowIncomeModal(false);
+                                    setIncomeAmount('');
+                                    setIncomeDescription('');
+                                }}
+                                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                            >
+                                Simpan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Expense Modal */}
+            {showExpenseModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
+                        <h3 className="text-xl font-semibold text-gray-800 mb-4">💸 Tambah Pengeluaran</h3>
+                        <div className="space-y-4 mb-6">
+                            <div>
+                                <label htmlFor="expense-amount" className="block text-sm font-medium text-gray-700 mb-2">Jumlah Pengeluaran</label>
+                                <input
+                                    id="expense-amount"
+                                    type="number"
+                                    value={expenseAmount}
+                                    onChange={(e) => setExpenseAmount(e.target.value)}
+                                    placeholder="Masukkan jumlah (dalam Rupiah)"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="expense-desc" className="block text-sm font-medium text-gray-700 mb-2">Keterangan</label>
+                                <textarea
+                                    id="expense-desc"
+                                    value={expenseDescription}
+                                    onChange={(e) => setExpenseDescription(e.target.value)}
+                                    placeholder="Masukkan keterangan pengeluaran"
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    rows="3"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowExpenseModal(false);
+                                    setExpenseAmount('');
+                                    setExpenseDescription('');
+                                }}
+                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={() => {
+                                    alert(`Pengeluaran sebesar ${expenseAmount ? formatCurrency(Number(expenseAmount)) : '0'} berhasil ditambahkan!`);
+                                    setShowExpenseModal(false);
+                                    setExpenseAmount('');
+                                    setExpenseDescription('');
+                                }}
+                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                            >
+                                Simpan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Print Styles */}
             <style>{`
