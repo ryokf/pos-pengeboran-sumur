@@ -7,9 +7,8 @@ export default function BillingPrint() {
         year: 'numeric'
     });
 
-    // Get active customers with billing info
+    // Get active customers with billing info (including those with debt)
     const receiptList = dummyData.customers
-        .filter(c => c.saldo > 0)
         .map(customer => {
             const monthlyCharge = calculateMonthlyBilling(customer.wellSize);
             const pricePerM3 = customer.wellSize < PRICING_TIERS.SMALL_WELL_THRESHOLD

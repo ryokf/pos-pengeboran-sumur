@@ -164,12 +164,13 @@ export default function CustomerDetail() {
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Riwayat Tagihan Bulanan</h3>
         
         {(() => {
-          // Get billing data for the past 6 months
+          // Get billing data for the past 12 months (to show debt history)
           const currentDate = new Date();
           const monthlyData = [];
+          let cumulativeDebt = 0;
           
-          // Calculate billing for last 6 months
-          for (let i = 5; i >= 0; i--) {
+          // Calculate billing for last 12 months
+          for (let i = 11; i >= 0; i--) {
             const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
             const monthYear = monthDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
             const monthKey = monthDate.toLocaleDateString('id-ID', { month: '2-digit', year: 'numeric' });
@@ -185,14 +186,18 @@ export default function CustomerDetail() {
             
             const totalPayment = monthPayments.reduce((sum, t) => sum + t.amount, 0);
             const monthlyCharge = calculateMonthlyBilling(customer.wellSize);
-            const debt = monthlyCharge - totalPayment;
+            const monthlyDebt = monthlyCharge - totalPayment;
+            
+            // Accumulate debt from previous months
+            cumulativeDebt += monthlyDebt;
             
             monthlyData.push({
               monthYear,
               monthKey,
               monthlyCharge,
               totalPayment,
-              debt: Math.max(0, debt)
+              monthlyDebt: Math.max(0, monthlyDebt),
+              cumulativeDebt: Math.max(0, cumulativeDebt)
             });
           }
 
@@ -204,7 +209,8 @@ export default function CustomerDetail() {
                     <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Bulan</th>
                     <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Tagihan</th>
                     <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Pembayaran</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Hutang</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Hutang Bulan Ini</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Total Hutang</th>
                     <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Status</th>
                   </tr>
                 </thead>
@@ -214,16 +220,19 @@ export default function CustomerDetail() {
                       <td className="py-3 px-4 text-sm font-medium text-gray-800">{data.monthYear}</td>
                       <td className="py-3 px-4 text-right text-sm text-gray-700">{formatCurrency(data.monthlyCharge)}</td>
                       <td className="py-3 px-4 text-right text-sm text-gray-700">{formatCurrency(data.totalPayment)}</td>
-                      <td className={`py-3 px-4 text-right text-sm font-semibold ${data.debt > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        {data.debt > 0 ? '-' : ''}{formatCurrency(data.debt)}
+                      <td className={`py-3 px-4 text-right text-sm font-semibold ${data.monthlyDebt > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        {data.monthlyDebt > 0 ? '-' : ''}{formatCurrency(data.monthlyDebt)}
+                      </td>
+                      <td className={`py-3 px-4 text-right text-sm font-semibold ${data.cumulativeDebt > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        {data.cumulativeDebt > 0 ? '-' : ''}{formatCurrency(data.cumulativeDebt)}
                       </td>
                       <td className="py-3 px-4 text-center">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                          data.debt > 0
+                          data.monthlyDebt > 0
                             ? 'bg-red-100 text-red-800'
                             : 'bg-green-100 text-green-800'
                         }`}>
-                          {data.debt > 0 ? '⚠️ Hutang' : '✓ Lunas'}
+                          {data.monthlyDebt > 0 ? '⚠️ Hutang' : '✓ Lunas'}
                         </span>
                       </td>
                     </tr>
