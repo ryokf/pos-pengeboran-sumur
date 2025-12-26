@@ -1,4 +1,4 @@
-// Dummy data for POS Pengeboran Sumur (Well Drilling POS System)
+// Dummy data for Sistem Kelola Tagihan Air (Water Billing Management System)
 
 export const customers = [
   {
@@ -76,7 +76,7 @@ export const orders = [
     orderDate: "2025-12-01",
     deliveryDate: "2025-12-05",
     status: "Completed",
-    projectName: "Pengeboran Sumur Jakarta Timur",
+    projectName: "Sistem Kelola Tagihan Air Jakarta Timur",
     amount: 5000000,
     paymentStatus: "Paid",
     notes: "Lokasi Jakarta Timur"

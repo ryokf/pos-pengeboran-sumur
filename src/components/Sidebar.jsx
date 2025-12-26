@@ -22,7 +22,7 @@ export default function Sidebar({ open }) {
                                     POS BOR
                                 </span>
                                 <span className="text-xs text-gray-400 font-medium">
-                                    Pengeboran Sumur
+                                    Kelola Tagihan Air
                                 </span>
                             </div>
                         )}

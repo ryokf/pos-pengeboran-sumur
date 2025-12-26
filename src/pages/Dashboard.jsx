@@ -2,6 +2,7 @@ import { dashboardStats, customers, orders, meterReadings } from '../data/dummyD
 import { StatCard, PageHeader } from '../components';
 import { formatCurrency } from '../utils';
 import { useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function Dashboard() {
   const [pumpStatus, setPumpStatus] = useState(dashboardStats.pumpStatus);
@@ -25,7 +26,7 @@ export default function Dashboard() {
     <div className="p-8">
       <PageHeader
         title="Dasbor"
-        description="Ringkasan kondisi bisnis Pengeboran Sumur"
+        description="Ringkasan kondisi bisnis Sistem Kelola Tagihan Air"
       />
 
       {/* Stats Cards */}
@@ -66,39 +67,36 @@ export default function Dashboard() {
         {/* Income vs Expense Chart */}
         <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Pemasukan vs Pengeluaran (Bulan Ini)</h2>
-          <div className="h-64 flex items-end gap-4 relative">
-            {dashboardStats.monthlyIncome.map((data, idx) => (
-              <div key={idx} className="flex-1 flex flex-col items-center relative group">
-                <div className="w-full flex gap-1 items-end justify-center mb-2" style={{ height: '200px' }}>
-                  {/* Income Bar */}
-                  <div
-                    className="flex-1 bg-green-500 rounded-t-lg transition-all hover:bg-green-600 cursor-pointer relative"
-                    style={{ height: `${ (data.income / 10000000) * 100 }%` }}
-                  >
-                    {/* Tooltip for Income */}
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                      <div className="font-semibold">Pemasukan {data.month}</div>
-                      <div>{formatCurrency(data.income)}</div>
-                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                    </div>
-                  </div>
-                  {/* Expense Bar */}
-                  <div
-                    className="flex-1 bg-red-500 rounded-t-lg transition-all hover:bg-red-600 cursor-pointer relative"
-                    style={{ height: `${ (data.expense / 10000000) * 100 }%` }}
-                  >
-                    {/* Tooltip for Expense */}
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                      <div className="font-semibold">Pengeluaran {data.month}</div>
-                      <div>{formatCurrency(data.expense)}</div>
-                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
-                    </div>
-                  </div>
-                </div>
-                <span className="text-xs text-gray-600 mt-2">{data.month}</span>
-              </div>
-            ))}
-          </div>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={dashboardStats.monthlyIncome}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="month" stroke="#6b7280" />
+              <YAxis stroke="#6b7280" />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#111827', border: 'none', borderRadius: '0.5rem', color: '#fff' }}
+                formatter={(value) => formatCurrency(value)}
+              />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="income" 
+                stroke="#22c55e" 
+                strokeWidth={2}
+                dot={{ fill: '#22c55e', r: 5 }}
+                activeDot={{ r: 7 }}
+                name="Pemasukan"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="expense" 
+                stroke="#ef4444" 
+                strokeWidth={2}
+                dot={{ fill: '#ef4444', r: 5 }}
+                activeDot={{ r: 7 }}
+                name="Pengeluaran"
+              />
+            </LineChart>
+          </ResponsiveContainer>
           <div className="flex gap-6 mt-6">
             <div className="flex items-center gap-2">
               <div className="w-4 h-4 bg-green-500 rounded"></div>

@@ -22,7 +22,7 @@ export default function Header({ setSidebarOpen, sidebarOpen }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <h1 className="text-lg md:text-2xl font-bold text-gray-800">POS Pengeboran Sumur</h1>
+        <h1 className="text-lg md:text-2xl font-bold text-gray-800">Sistem Kelola Tagihan Air</h1>
       </div>
 
       <div className="flex items-center gap-6">

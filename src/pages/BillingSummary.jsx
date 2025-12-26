@@ -69,7 +69,7 @@ export default function BillingSummary() {
             <div className="max-w-6xl mx-auto p-8">
                 {/* Header */}
                 <div className="text-center mb-8 border-b-2 border-gray-800 pb-6">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-2">POS PENGEBORAN SUMUR</h1>
+                    <h1 className="text-3xl font-bold text-gray-800 mb-2">SISTEM KELOLA TAGIHAN AIR</h1>
                     <p className="text-lg text-gray-600">Rekap Resi Bulanan</p>
                     <p className="text-md text-gray-600 mt-2">Periode: {currentMonth}</p>
                     <p className="text-sm text-gray-500 mt-1">Dicetak pada: {currentDate}</p>

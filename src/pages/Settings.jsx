@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 export default function Settings() {
   const [settings, setSettings] = useState({
-    companyName: 'PT Pengeboran Sumur Jaya',
+    companyName: 'Sistem Kelola Tagihan Air Masjid',
     email: 'contact@pengeboran.com',
     phone: '085123456789',
     address: 'Jl. Industri No. 123, Jakarta',

@@ -156,7 +156,7 @@ export default function ReceiptPrint() {
           {/* Header */}
           <div className="text-center mb-8 pb-6 border-b-2 border-gray-800">
             <div className="text-4xl mb-2">⛏️</div>
-            <h1 className="text-2xl font-bold">POS PENGEBORAN SUMUR</h1>
+            <h1 className="text-2xl font-bold">SISTEM KELOLA TAGIHAN AIR</h1>
             <p className="text-sm text-gray-600">Jl. Merdeka No. 123, Jakarta</p>
             <p className="text-sm text-gray-600">Telp: (021) 123-4567</p>
           </div>
