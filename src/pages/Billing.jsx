@@ -38,6 +38,10 @@ export default function Billing() {
     navigate('/finance/billing/print');
   };
 
+  const handlePrintSummary = () => {
+    navigate('/finance/billing/summary');
+  };
+
   return (
     <div className="p-8">
       <div className="max-w-2xl mx-auto">
@@ -115,6 +119,13 @@ export default function Billing() {
               className="text-lg font-bold py-4 px-12 rounded-lg transition-all duration-300 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               🖨️ Cetak Daftar Tagihan
+            </button>
+
+            <button
+              onClick={handlePrintSummary}
+              className="text-lg font-bold py-4 px-12 rounded-lg transition-all duration-300 bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              📊 Cetak Rekap Resi
             </button>
           </div>
 

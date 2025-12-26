@@ -11,6 +11,7 @@ import Settings from './pages/Settings';
 import ReceiptPrint from './pages/ReceiptPrint';
 import Billing from './pages/Billing';
 import BillingPrint from './pages/BillingPrint';
+import BillingSummary from './pages/BillingSummary';
 import FinancialReport from './pages/FinancialReport';
 import MeterReadings from './pages/MeterReadings';
 
@@ -58,6 +59,10 @@ const router = createBrowserRouter([
   {
     path: 'finance/billing/print',
     element: <BillingPrint />
+  },
+  {
+    path: 'finance/billing/summary',
+    element: <BillingSummary />
   }
 ]);
 
