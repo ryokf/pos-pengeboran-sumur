@@ -89,7 +89,7 @@ export default function Billing() {
 
           {/* Process Button */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button
+            {/* <button
               onClick={handleProcessBilling}
               disabled={isProcessing}
               className={`
@@ -108,7 +108,7 @@ export default function Billing() {
               ) : (
                 '▶ Proses Tagihan Bulan Ini'
               )}
-            </button>
+            </button> */}
 
             <button
               onClick={handlePrintBillingList}
