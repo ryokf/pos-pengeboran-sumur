@@ -113,6 +113,20 @@ export default function BillingPrint() {
                                             <p className="text-xs text-gray-600 mb-1">Jumlah Uang</p>
                                             <p className="text-lg font-bold text-gray-800">{formatCurrency(customer.monthlyCharge)}</p>
                                         </div>
+
+                                        {/* Debt Status */}
+                                        <div className="border border-gray-800 p-2 text-center">
+                                            {customer.saldo >= 0 ? (
+                                                <div className="bg-green-100 border border-green-500 rounded p-2">
+                                                    <p className="font-bold text-green-700 text-sm">✓ LUNAS</p>
+                                                </div>
+                                            ) : (
+                                                <div className="bg-red-100 border border-red-500 rounded p-2">
+                                                    <p className="font-bold text-red-700 text-xs mb-1">HUTANG</p>
+                                                    <p className="font-bold text-red-700 text-sm">{formatCurrency(Math.abs(customer.saldo))}</p>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 );
                             })}

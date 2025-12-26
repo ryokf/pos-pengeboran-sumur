@@ -118,7 +118,7 @@ export default function Customers() {
                       <span className="font-medium">{customer.wellSize}</span> m³
                     </td>
                     <td className={`py-4 px-6 text-right font-bold text-lg ${ balanceColor }`}>
-                      {formatCurrency(Math.abs(balance))}
+                      {balance >= 0 ? '+' : '-'}{formatCurrency(Math.abs(balance))}
                     </td>
                     <td className="py-4 px-6 text-center">
                       <button

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { customers, meterReadings } from '../data/dummyData';
+import { customers, meterReadings, transactions } from '../data/dummyData';
 import { PageHeader, MeterReadingModal } from '../components';
 import {
   formatCurrency,
@@ -157,6 +157,82 @@ export default function CustomerDetail() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Monthly Billing History */}
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">Riwayat Tagihan Bulanan</h3>
+        
+        {(() => {
+          // Get billing data for the past 6 months
+          const currentDate = new Date();
+          const monthlyData = [];
+          
+          // Calculate billing for last 6 months
+          for (let i = 5; i >= 0; i--) {
+            const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+            const monthYear = monthDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+            const monthKey = monthDate.toLocaleDateString('id-ID', { month: '2-digit', year: 'numeric' });
+            
+            // Get payments for this month from transactions
+            const monthPayments = transactions.filter(t => {
+              const tDate = new Date(t.date);
+              return tDate.getMonth() === monthDate.getMonth() && 
+                     tDate.getFullYear() === monthDate.getFullYear() &&
+                     t.type === 'IN' &&
+                     t.customer_name === customer.name;
+            });
+            
+            const totalPayment = monthPayments.reduce((sum, t) => sum + t.amount, 0);
+            const monthlyCharge = calculateMonthlyBilling(customer.wellSize);
+            const debt = monthlyCharge - totalPayment;
+            
+            monthlyData.push({
+              monthYear,
+              monthKey,
+              monthlyCharge,
+              totalPayment,
+              debt: Math.max(0, debt)
+            });
+          }
+
+          return (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Bulan</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Tagihan</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Pembayaran</th>
+                    <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Hutang</th>
+                    <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {monthlyData.map((data, idx) => (
+                    <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="py-3 px-4 text-sm font-medium text-gray-800">{data.monthYear}</td>
+                      <td className="py-3 px-4 text-right text-sm text-gray-700">{formatCurrency(data.monthlyCharge)}</td>
+                      <td className="py-3 px-4 text-right text-sm text-gray-700">{formatCurrency(data.totalPayment)}</td>
+                      <td className={`py-3 px-4 text-right text-sm font-semibold ${data.debt > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                        {data.debt > 0 ? '-' : ''}{formatCurrency(data.debt)}
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                          data.debt > 0
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {data.debt > 0 ? '⚠️ Hutang' : '✓ Lunas'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Meter Reading History */}
