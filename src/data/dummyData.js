@@ -1073,7 +1073,22 @@ export const dashboardStats = {
     { month: "Oct", income: 5800000, expense: 2500000 },
     { month: "Nov", income: 8100000, expense: 3200000 },
     { month: "Dec", income: 10000000, expense: 4000000 }
-  ]
+  ],
+  // Status Operasional Utama
+  pumpStatus: 'Hidup', // 'Hidup' atau 'Mati'
+  complaintsTodayCount: 3, // Jumlah keluhan hari ini
+  complaints: [
+    { id: 1, type: 'Air mati', time: '08:30', resident: 'Warga RT 01' },
+    { id: 2, type: 'Pipa bocor', time: '10:15', resident: 'Warga RT 02' },
+    { id: 3, type: 'Air kecil', time: '14:45', resident: 'Warga RT 03' }
+  ],
+  newConnectionQueue: 2, // Jumlah antrian pasang baru
+  
+  // Efisiensi Air
+  totalWaterUsageThisMonth: 248.5, // Total pemakaian warga bulan ini (m³)
+  
+  // Keuangan Rutin
+  masjidCashBalance: 85000000 // Saldo kas operasional masjid
 };
 
 export const dummyData = {
