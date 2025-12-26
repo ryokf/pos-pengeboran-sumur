@@ -65,7 +65,7 @@ export default function Header({ setSidebarOpen, sidebarOpen }) {
                       className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                       <div className="flex items-start gap-3">
-                        <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${
+                        <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${
                           notif.type === 'debt' ? 'bg-red-500' :
                           notif.type === 'alert' ? 'bg-orange-500' :
                           'bg-yellow-500'

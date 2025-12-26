@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { matchesSearch } from '../utils/constants';
 
 /**
  * Custom hook for managing filter and search functionality

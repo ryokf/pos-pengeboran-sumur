@@ -14,7 +14,7 @@ import {
 export default function CustomerDetail() {
   const { customerId } = useParams();
   const navigate = useNavigate();
-  const customer = customers.find(c => c.id === parseInt(customerId));
+  const customer = customers.find(c => c.id === Number.parseInt(customerId, 10));
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [showAdjustmentModal, setShowAdjustmentModal] = useState(false);
   const [showMeterModal, setShowMeterModal] = useState(false);
@@ -55,7 +55,7 @@ export default function CustomerDetail() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Main Balance Card */}
         <div className="lg:col-span-2">
-          <div className="bg-gradient-to-br from-blue-600 to-blue-800 rounded-lg shadow-lg p-8 text-white">
+          <div className="bg-linear-to-br from-blue-600 to-blue-800 rounded-lg shadow-lg p-8 text-white">
             <div className="mb-8">
               <p className="text-blue-100 text-sm font-medium mb-2">Saldo Akun Pelanggan</p>
               <h2 className="text-4xl font-bold mb-2">{balance >= 0 ? '+' : ''}{formatCurrency(Math.abs(balance))}</h2>
@@ -216,7 +216,7 @@ export default function CustomerDetail() {
                 </thead>
                 <tbody>
                   {monthlyData.map((data, idx) => (
-                    <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+                    <tr key={`billing-${idx}`} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-3 px-4 text-sm font-medium text-gray-800">{data.monthYear}</td>
                       <td className="py-3 px-4 text-right text-sm text-gray-700">{formatCurrency(data.monthlyCharge)}</td>
                       <td className="py-3 px-4 text-right text-sm text-gray-700">{formatCurrency(data.totalPayment)}</td>
@@ -328,8 +328,9 @@ export default function CustomerDetail() {
             <h3 className="text-xl font-semibold text-gray-800 mb-4">💳 Top Up Saldo</h3>
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Jumlah Top Up</label>
+                <label htmlFor="topup-amount" className="block text-sm font-medium text-gray-700 mb-2">Jumlah Top Up</label>
                 <input
+                  id="topup-amount"
                   type="number"
                   value={topUpAmount}
                   onChange={(e) => setTopUpAmount(e.target.value)}
@@ -350,7 +351,7 @@ export default function CustomerDetail() {
               </button>
               <button
                 onClick={() => {
-                  alert(`Top up sebesar ${ topUpAmount ? formatCurrency(parseInt(topUpAmount)) : '0' } berhasil diproses!`);
+                  alert(`Top up sebesar ${ topUpAmount ? formatCurrency(Number.parseInt(topUpAmount, 10)) : '0' } berhasil diproses!`);
                   setShowTopUpModal(false);
                   setTopUpAmount('');
                 }}
@@ -370,8 +371,9 @@ export default function CustomerDetail() {
             <h3 className="text-xl font-semibold text-gray-800 mb-4">⚙️ Penyesuaian Saldo</h3>
             <div className="space-y-4 mb-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tipe Penyesuaian</label>
+                <label htmlFor="adjustment-type" className="block text-sm font-medium text-gray-700 mb-2">Tipe Penyesuaian</label>
                 <select
+                  id="adjustment-type"
                   value={adjustmentType}
                   onChange={(e) => setAdjustmentType(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -381,8 +383,9 @@ export default function CustomerDetail() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Jumlah</label>
+                <label htmlFor="adjustment-amount" className="block text-sm font-medium text-gray-700 mb-2">Jumlah Penyesuaian</label>
                 <input
+                  id="adjustment-amount"
                   type="number"
                   value={adjustmentAmount}
                   onChange={(e) => setAdjustmentAmount(e.target.value)}
@@ -405,7 +408,7 @@ export default function CustomerDetail() {
               <button
                 onClick={() => {
                   const action = adjustmentType === 'add' ? 'Penambahan' : 'Pengurangan';
-                  alert(`${ action } saldo sebesar ${ adjustmentAmount ? formatCurrency(parseInt(adjustmentAmount)) : '0' } berhasil diproses!`);
+                  alert(`${ action } saldo sebesar ${ adjustmentAmount ? formatCurrency(Number.parseInt(adjustmentAmount, 10)) : '0' } berhasil diproses!`);
                   setShowAdjustmentModal(false);
                   setAdjustmentAmount('');
                   setAdjustmentType('add');

@@ -10,7 +10,7 @@ export default function Sidebar({ open }) {
             {/* Sidebar - Hidden on mobile, visible on desktop */}
             <div
                 className={`hidden md:flex md:flex-col h-screen ${ open ? 'w-64' : 'w-20'
-                    } bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 text-white transition-all duration-300 ease-in-out shadow-2xl border-r border-gray-800`}
+                    } bg-linear-to-b from-gray-900 via-gray-900 to-gray-950 text-white transition-all duration-300 ease-in-out shadow-2xl border-r border-gray-800`}
             >
                 {/* Logo Section */}
                 <div className={`p-6 ${ open ? 'px-6' : 'px-4' } border-b border-gray-800`}>
@@ -18,7 +18,7 @@ export default function Sidebar({ open }) {
                         <div className="text-3xl">⛏️</div>
                         {open && (
                             <div className="flex flex-col">
-                                <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+                                <span className="text-xl font-bold bg-linear-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
                                     POS BOR
                                 </span>
                                 <span className="text-xs text-gray-400 font-medium">
@@ -39,7 +39,7 @@ export default function Sidebar({ open }) {
                                 group relative flex items-center gap-3 px-4 py-3.5 rounded-xl
                                 transition-all duration-200 ease-in-out
                                 ${ isActive(item.path)
-                                    ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30 scale-[1.02]'
+                                    ? 'bg-linear-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30 scale-[1.02]'
                                     : 'text-gray-300 hover:bg-gray-800/60 hover:text-white hover:scale-[1.02]'
                                 }
                                 ${ !open && 'justify-center' }
@@ -67,7 +67,7 @@ export default function Sidebar({ open }) {
 
                             {/* Hover effect overlay */}
                             {!isActive(item.path) && (
-                                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-600/0 to-cyan-600/0 group-hover:from-blue-600/5 group-hover:to-cyan-600/5 transition-all duration-200" />
+                                <div className="absolute inset-0 rounded-xl bg-linear-to-r from-blue-600/0 to-cyan-600/0 group-hover:from-blue-600/5 group-hover:to-cyan-600/5 transition-all duration-200" />
                             )}
                         </Link>
                     ))}

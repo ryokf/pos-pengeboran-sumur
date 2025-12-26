@@ -1,12 +1,9 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { dummyData } from '../data/dummyData';
 import { calculateMonthlyBilling, PRICING_TIERS, formatCurrency } from '../utils/constants';
 
 export default function Billing() {
   const navigate = useNavigate();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
 
   // Count active customers (customers with positive balance)
   const activeCustomers = dummyData.customers.filter(c => c.saldo > 0).length;
@@ -18,21 +15,6 @@ export default function Billing() {
     }
     return sum;
   }, 0);
-
-  const handleProcessBilling = async () => {
-    setIsProcessing(true);
-
-    // Simulate API call to backend
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    setSuccessMessage(
-      `✓ Proses tagihan berhasil! ${ activeCustomers } pelanggan telah ditagih sebesar ${ formatCurrency(totalBillingPotential) }`
-    );
-    setIsProcessing(false);
-
-    // Clear success message after 5 seconds
-    setTimeout(() => setSuccessMessage(''), 5000);
-  };
 
   const handlePrintBillingList = () => {
     navigate('/finance/billing/print');
@@ -54,7 +36,7 @@ export default function Billing() {
         {/* Info Cards */}
         <div className="grid grid-cols-2 gap-6 mb-12">
           {/* Active Customers Card */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-300 rounded-lg p-6">
+          <div className="bg-linear-to-br from-blue-50 to-blue-100 border border-blue-300 rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-blue-600 font-medium mb-1">Pelanggan Aktif</p>
@@ -66,7 +48,7 @@ export default function Billing() {
           </div>
 
           {/* Total Billing Potential Card */}
-          <div className="bg-gradient-to-br from-green-50 to-green-100 border border-green-300 rounded-lg p-6">
+          <div className="bg-linear-to-br from-green-50 to-green-100 border border-green-300 rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-green-600 font-medium mb-1">Potensi Tagihan</p>
@@ -100,7 +82,7 @@ export default function Billing() {
                 text-lg font-bold py-4 px-12 rounded-lg transition-all duration-300
                 ${ isProcessing
                   ? 'bg-gray-400 text-white cursor-not-allowed'
-                  : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:scale-105'
+                  : 'bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:scale-105'
                 }
               `}
             >
@@ -116,25 +98,18 @@ export default function Billing() {
 
             <button
               onClick={handlePrintBillingList}
-              className="text-lg font-bold py-4 px-12 rounded-lg transition-all duration-300 bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="text-lg font-bold py-4 px-12 rounded-lg transition-all duration-300 bg-linear-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               🖨️ Cetak Daftar Tagihan
             </button>
 
             <button
               onClick={handlePrintSummary}
-              className="text-lg font-bold py-4 px-12 rounded-lg transition-all duration-300 bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="text-lg font-bold py-4 px-12 rounded-lg transition-all duration-300 bg-linear-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               📊 Cetak Rekap Resi
             </button>
           </div>
-
-          {/* Success Message */}
-          {successMessage && (
-            <div className="mt-8 p-4 bg-green-50 border-2 border-green-300 rounded-lg">
-              <p className="text-green-700 font-medium">{successMessage}</p>
-            </div>
-          )}
         </div>
 
         {/* Information Section */}

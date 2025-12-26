@@ -1,20 +1,14 @@
-import { dashboardStats, customers, orders, meterReadings } from '../data/dummyData';
+import { dashboardStats, customers } from '../data/dummyData';
 import { StatCard, PageHeader } from '../components';
 import { formatCurrency } from '../utils';
 import { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function Dashboard() {
-  const [pumpStatus, setPumpStatus] = useState(dashboardStats.pumpStatus);
-  const [showPumpModal, setShowPumpModal] = useState(false);
+  const [pumpStatus] = useState(dashboardStats.pumpStatus);
 
   // Calculate dashboard metrics
   const totalCustomerBalance = customers.reduce((acc, c) => acc + c.saldo, 0);
-  const drillingProjects = orders.filter(o => o.status === 'Drilling').length;
-  const overdueDebts = customers.reduce((acc, c) => acc + (c.saldo < 0 ? Math.abs(c.saldo) : 0), 0);
-  
-  // Get unpaid customers (those who haven't paid this month)
-  const unpaidCustomers = customers.filter(c => c.saldo < 0);
 
   // Get top debtors (5 customers with negative balance)
   const topDebtors = [...customers]
@@ -151,7 +145,7 @@ export default function Dashboard() {
             </div>
           </div>
           <button
-            onClick={() => setShowPumpModal(true)}
+            onClick={() => {}}
             className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
           >
             Ubah Status

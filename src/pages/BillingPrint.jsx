@@ -39,7 +39,7 @@ export default function BillingPrint() {
         });
 
     const handlePrint = () => {
-        window.print();
+        globalThis.print();
     };
 
     // Split receipts into pages (6 receipts per page: 3x2 grid)
@@ -64,7 +64,7 @@ export default function BillingPrint() {
             {/* Printable Content */}
             <div>
                 {pages.map((pageReceipts, pageIndex) => (
-                    <div key={pageIndex} className="page-break w-full" style={{ pageBreakAfter: 'always', minHeight: '100vh' }}>
+                    <div key={`page-${pageIndex}`} className="page-break w-full" style={{ pageBreakAfter: 'always', minHeight: '100vh' }}>
                         <div className="p-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', padding: '20px' }}>
                             {pageReceipts.map((customer) => {
 
@@ -131,7 +131,7 @@ export default function BillingPrint() {
                             })}
                             {/* Empty cells for incomplete last page */}
                             {pageReceipts.length < receitsPerPage && Array.from({ length: receitsPerPage - pageReceipts.length }).map((_, i) => (
-                                <div key={`empty-${ i }`}></div>
+                                <div key={`empty-${pageIndex}-${i}`}></div>
                             ))}
                         </div>
                     </div>
