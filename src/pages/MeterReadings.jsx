@@ -1,30 +1,73 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { customers, wells, meterReadings } from '../data/dummyData';
 import { PageHeader, FilterBar, MeterReadingModal } from '../components';
+import { formatDate, matchesSearch } from '../utils';
 import {
-    getLatestMeterReading,
-    getPreviousMeterReading,
-    calculateUsage,
-    formatDate,
-    matchesSearch
-} from '../utils';
+    getCustomers,
+    getCustomerMeterReadings,
+    addMeterReading
+} from '../services/customerService';
 
 export default function MeterReadings() {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCustomer, setSelectedCustomer] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [customers, setCustomers] = useState([]);
+    const [meterReadingsMap, setMeterReadingsMap] = useState({});
+    const [submitting, setSubmitting] = useState(false);
+
+    // Fetch all customers and their meter readings
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+
+                // Fetch all customers
+                const customersData = await getCustomers();
+                setCustomers(customersData);
+
+                // Fetch meter readings for all customers
+                const readingsMap = {};
+                for (const customer of customersData) {
+                    const readings = await getCustomerMeterReadings(customer.id);
+                    readingsMap[customer.id] = readings;
+                }
+                setMeterReadingsMap(readingsMap);
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('Gagal memuat data: ' + error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, []);
 
     // Filter customers based on search
     const filteredCustomers = customers.filter(customer =>
         matchesSearch(searchTerm, customer.name, customer.phone, customer.email)
     );
 
-    // Get well name by ID
-    const getWellName = (wellId) => {
-        const well = wells.find(w => w.id === wellId);
-        return well ? well.name : 'N/A';
+    // Get latest meter reading for a customer
+    const getLatestReading = (customerId) => {
+        const readings = meterReadingsMap[customerId] || [];
+        return readings.length > 0 ? readings[0] : null;
+    };
+
+    // Get previous meter reading for a customer
+    const getPreviousReading = (customerId) => {
+        const readings = meterReadingsMap[customerId] || [];
+        return readings.length > 1 ? readings[1] : null;
+    };
+
+    // Calculate usage
+    const calculateUsage = (latestReading, previousReading) => {
+        if (!latestReading || !previousReading) return 0;
+        return latestReading.usage_amount || 0;
     };
 
     // Handle opening modal for a customer
@@ -34,13 +77,60 @@ export default function MeterReadings() {
     };
 
     // Handle submitting new reading
-    const handleSubmitReading = (newReading) => {
-        console.log('New reading submitted:', newReading);
-        alert(`Pencatatan meteran untuk ${ selectedCustomer.name } berhasil disimpan!`);
-        setShowModal(false);
-        setSelectedCustomer(null);
-        // In a real app, this would update the state/database
+    const handleSubmitReading = async (newReading) => {
+        try {
+            setSubmitting(true);
+
+            // Get the latest reading for previous value
+            const latestReading = getLatestReading(selectedCustomer.id);
+            const previousValue = latestReading ? latestReading.current_value : 0;
+
+            // Get current month and year from reading date
+            const readingDate = new Date(newReading.readingDate);
+            const currentMonth = readingDate.getMonth() + 1;
+            const currentYear = readingDate.getFullYear();
+
+            // Submit to database
+            await addMeterReading(
+                selectedCustomer.id,
+                newReading.meterValue,
+                currentMonth,
+                currentYear,
+                previousValue,
+                newReading.notes || ''
+            );
+
+            // Refresh meter readings for this customer
+            const updatedReadings = await getCustomerMeterReadings(selectedCustomer.id);
+            setMeterReadingsMap(prev => ({
+                ...prev,
+                [selectedCustomer.id]: updatedReadings
+            }));
+
+            alert(`Pencatatan meteran untuk ${ selectedCustomer.name } berhasil disimpan!`);
+            setShowModal(false);
+            setSelectedCustomer(null);
+
+        } catch (error) {
+            console.error('Error submitting meter reading:', error);
+            alert('Gagal menyimpan pencatatan meteran: ' + error.message);
+        } finally {
+            setSubmitting(false);
+        }
     };
+
+    if (loading) {
+        return (
+            <div className="p-8">
+                <div className="flex items-center justify-center h-64">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Memuat data...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-8">
@@ -62,7 +152,6 @@ export default function MeterReadings() {
                         <thead className="bg-gray-50 border-b border-gray-200">
                             <tr>
                                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Pelanggan</th>
-                                <th className="text-left py-4 px-6 font-semibold text-gray-700">Sumur</th>
                                 <th className="text-center py-4 px-6 font-semibold text-gray-700">Pencatatan Sebelumnya</th>
                                 <th className="text-center py-4 px-6 font-semibold text-gray-700">Pencatatan Terakhir</th>
                                 <th className="text-center py-4 px-6 font-semibold text-gray-700">Penggunaan</th>
@@ -71,10 +160,8 @@ export default function MeterReadings() {
                         </thead>
                         <tbody>
                             {filteredCustomers.map((customer) => {
-                                const latestReading = getLatestMeterReading(customer.id, meterReadings);
-                                const previousReading = latestReading
-                                    ? getPreviousMeterReading(customer.id, meterReadings, latestReading.readingDate)
-                                    : null;
+                                const latestReading = getLatestReading(customer.id);
+                                const previousReading = getPreviousReading(customer.id);
                                 const usage = calculateUsage(latestReading, previousReading);
 
                                 return (
@@ -82,17 +169,14 @@ export default function MeterReadings() {
                                         <td className="py-4 px-6">
                                             <div>
                                                 <p className="font-medium text-gray-800">{customer.name}</p>
-                                                <p className="text-sm text-gray-600">{customer.phone}</p>
+                                                <p className="text-sm text-gray-600">{customer.phone || '-'}</p>
                                             </div>
-                                        </td>
-                                        <td className="py-4 px-6 text-sm text-gray-700">
-                                            {getWellName(customer.wellId)}
                                         </td>
                                         <td className="py-4 px-6 text-center">
                                             {previousReading ? (
                                                 <div>
-                                                    <p className="text-sm text-gray-600">{formatDate(previousReading.readingDate)}</p>
-                                                    <p className="font-semibold text-gray-800">{previousReading.meterValue} m³</p>
+                                                    <p className="text-sm text-gray-600">{formatDate(previousReading.reading_date)}</p>
+                                                    <p className="font-semibold text-gray-800">{previousReading.current_value} m³</p>
                                                 </div>
                                             ) : (
                                                 <span className="text-sm text-gray-400">-</span>
@@ -101,8 +185,8 @@ export default function MeterReadings() {
                                         <td className="py-4 px-6 text-center">
                                             {latestReading ? (
                                                 <div>
-                                                    <p className="text-sm text-gray-600">{formatDate(latestReading.readingDate)}</p>
-                                                    <p className="font-semibold text-blue-600">{latestReading.meterValue} m³</p>
+                                                    <p className="text-sm text-gray-600">{formatDate(latestReading.reading_date)}</p>
+                                                    <p className="font-semibold text-blue-600">{latestReading.current_value} m³</p>
                                                 </div>
                                             ) : (
                                                 <span className="text-sm text-gray-400">Belum ada data</span>
@@ -155,8 +239,9 @@ export default function MeterReadings() {
                     }}
                     customerId={selectedCustomer.id}
                     customerName={selectedCustomer.name}
-                    previousReading={getLatestMeterReading(selectedCustomer.id, meterReadings)}
+                    previousReading={getLatestReading(selectedCustomer.id)}
                     onSubmit={handleSubmitReading}
+                    submitting={submitting}
                 />
             )}
         </div>

@@ -7,7 +7,8 @@ export default function MeterReadingModal({
     customerId,
     customerName,
     previousReading,
-    onSubmit
+    onSubmit,
+    submitting = false
 }) {
     const today = new Date().toISOString().split('T')[0];
     const [readingDate, setReadingDate] = useState(today);
@@ -27,8 +28,10 @@ export default function MeterReadingModal({
             return;
         }
 
-        if (previousReading && parseFloat(meterValue) < previousReading.meterValue) {
-            setError(`Nilai meteran harus lebih besar atau sama dengan pencatatan sebelumnya (${ previousReading.meterValue } m³)`);
+        // Check against previous reading (use current_value from Supabase)
+        const previousValue = previousReading?.current_value || 0;
+        if (previousReading && parseFloat(meterValue) < previousValue) {
+            setError(`Nilai meteran harus lebih besar atau sama dengan pencatatan sebelumnya (${ previousValue } m³)`);
             return;
         }
 
@@ -37,7 +40,6 @@ export default function MeterReadingModal({
             customerId,
             readingDate,
             meterValue: parseFloat(meterValue),
-            recordedBy: 'Admin',
             notes: notes || 'Pencatatan meteran'
         };
 
@@ -60,7 +62,7 @@ export default function MeterReadingModal({
 
     const calculatePreviewUsage = () => {
         if (!meterValue || !previousReading) return 0;
-        return parseFloat(meterValue) - previousReading.meterValue;
+        return parseFloat(meterValue) - (previousReading.current_value || 0);
     };
 
     return (
@@ -76,8 +78,12 @@ export default function MeterReadingModal({
                         <div className="mt-3 pt-3 border-t border-blue-200">
                             <p className="text-xs text-gray-600 mb-1">Pencatatan Terakhir</p>
                             <div className="flex justify-between items-center">
-                                <span className="text-sm text-gray-700">{formatDate(previousReading.readingDate)}</span>
-                                <span className="text-sm font-bold text-blue-600">{previousReading.meterValue} m³</span>
+                                <span className="text-sm text-gray-700">
+                                    {formatDate(previousReading.reading_date)}
+                                </span>
+                                <span className="text-sm font-bold text-blue-600">
+                                    {previousReading.current_value} m³
+                                </span>
                             </div>
                         </div>
                     )}
@@ -95,6 +101,7 @@ export default function MeterReadingModal({
                             max={today}
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required
+                            disabled={submitting}
                         />
                     </div>
 
@@ -110,6 +117,7 @@ export default function MeterReadingModal({
                             placeholder="Masukkan nilai meteran"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required
+                            disabled={submitting}
                         />
                     </div>
 
@@ -132,6 +140,7 @@ export default function MeterReadingModal({
                             placeholder="Tambahkan catatan jika diperlukan"
                             rows="3"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            disabled={submitting}
                         />
                     </div>
 
@@ -145,15 +154,17 @@ export default function MeterReadingModal({
                         <button
                             type="button"
                             onClick={handleClose}
-                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                            disabled={submitting}
+                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             Batal
                         </button>
                         <button
                             type="submit"
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            disabled={submitting}
+                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Simpan
+                            {submitting ? 'Menyimpan...' : 'Simpan'}
                         </button>
                     </div>
                 </form>

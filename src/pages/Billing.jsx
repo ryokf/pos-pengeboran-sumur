@@ -1,20 +1,60 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { dummyData } from '../data/dummyData';
-import { calculateMonthlyBilling, PRICING_TIERS, formatCurrency } from '../utils/constants';
+import { formatCurrency } from '../utils';
+import { getCustomers } from '../services/customerService';
+import { getInvoices, getAppSettings, getPricingTiers } from '../services/billingService';
 
 export default function Billing() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [customers, setCustomers] = useState([]);
+  const [invoices, setInvoices] = useState([]);
+  const [appSettings, setAppSettings] = useState(null);
+  const [pricingTiers, setPricingTiers] = useState([]);
 
-  // Count active customers (customers with positive balance)
-  const activeCustomers = dummyData.customers.filter(c => c.saldo > 0).length;
+  // Fetch data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
 
-  // Calculate total billing potential using tiered pricing
-  const totalBillingPotential = dummyData.customers.reduce((sum, c) => {
-    if (c.saldo > 0) {
-      return sum + calculateMonthlyBilling(c.wellSize);
-    }
-    return sum;
-  }, 0);
+        // Fetch all data in parallel
+        const [customersData, invoicesData, settingsData, tiersData] = await Promise.all([
+          getCustomers(),
+          getInvoices(),
+          getAppSettings(),
+          getPricingTiers()
+        ]);
+
+        setCustomers(customersData);
+        setInvoices(invoicesData);
+        setAppSettings(settingsData);
+        setPricingTiers(tiersData);
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        alert('Gagal memuat data: ' + error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Get current month invoices
+  const getCurrentMonthInvoices = () => {
+    const now = new Date();
+    const currentMonth = now.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+    return invoices.filter(inv => inv.period === currentMonth);
+  };
+
+  // Count active customers (customers with status active)
+  const activeCustomers = customers.filter(c => c.status === 'active').length;
+
+  // Calculate total billing potential from current month invoices
+  const currentMonthInvoices = getCurrentMonthInvoices();
+  const totalBillingPotential = currentMonthInvoices.reduce((sum, inv) => sum + (inv.total_amount || 0), 0);
 
   const handlePrintBillingList = () => {
     navigate('/finance/billing/print');
@@ -23,6 +63,19 @@ export default function Billing() {
   const handlePrintSummary = () => {
     navigate('/finance/billing/summary');
   };
+
+  if (loading) {
+    return (
+      <div className="p-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Memuat data...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -51,7 +104,7 @@ export default function Billing() {
           <div className="bg-linear-to-br from-green-50 to-green-100 border border-green-300 rounded-lg p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-green-600 font-medium mb-1">Potensi Tagihan</p>
+                <p className="text-sm text-green-600 font-medium mb-1">Total Tagihan</p>
                 <p className="text-2xl font-bold text-green-900">
                   {formatCurrency(totalBillingPotential)}
                 </p>
@@ -66,36 +119,14 @@ export default function Billing() {
         <div className="bg-white border-2 border-gray-200 rounded-lg p-12 text-center">
           <div className="mb-6">
             <div className="text-6xl mb-4">📋</div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Proses Tagihan</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Laporan Tagihan</h2>
             <p className="text-gray-600">
-              Klik tombol di bawah untuk memproses tagihan bulanan kepada semua pelanggan aktif.
-              Sistem akan secara otomatis membuat mutasi 'Debit' untuk setiap pelanggan.
+              Cetak daftar tagihan atau rekap resi untuk pelanggan bulan ini.
             </p>
           </div>
 
-          {/* Process Button */}
+          {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {/* <button
-              onClick={handleProcessBilling}
-              disabled={isProcessing}
-              className={`
-                text-lg font-bold py-4 px-12 rounded-lg transition-all duration-300
-                ${ isProcessing
-                  ? 'bg-gray-400 text-white cursor-not-allowed'
-                  : 'bg-linear-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:scale-105'
-                }
-              `}
-            >
-              {isProcessing ? (
-                <>
-                  <span className="inline-block animate-spin mr-2">⏳</span>
-                  Sedang memproses...
-                </>
-              ) : (
-                '▶ Proses Tagihan Bulan Ini'
-              )}
-            </button> */}
-
             <button
               onClick={handlePrintBillingList}
               className="text-lg font-bold py-4 px-12 rounded-lg transition-all duration-300 bg-linear-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-lg hover:shadow-xl transform hover:scale-105"
@@ -114,62 +145,67 @@ export default function Billing() {
 
         {/* Information Section */}
         <div className="mt-12 grid grid-cols-1 gap-6">
-          {/* How It Works */}
+          {/* Pricing Information */}
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-            <h3 className="text-lg font-bold text-blue-900 mb-4">📌 Cara Kerja</h3>
-            <ul className="space-y-2 text-sm text-blue-800">
-              <li className="flex items-start">
-                <span className="font-bold mr-2">1.</span>
-                <span>Sistem menghitung biaya bulanan berdasarkan ukuran sumur dengan tarif berjenjang</span>
-              </li>
-              <li className="flex items-start">
-                <span className="font-bold mr-2">2.</span>
-                <span>Sumur &lt; 5 m³: Rp {PRICING_TIERS.SMALL_WELL_PRICE.toLocaleString('id-ID')}/m³</span>
-              </li>
-              <li className="flex items-start">
-                <span className="font-bold mr-2">3.</span>
-                <span>Sumur ≥ 5 m³: Rp {PRICING_TIERS.LARGE_WELL_PRICE.toLocaleString('id-ID')}/m³</span>
-              </li>
-              <li className="flex items-start">
-                <span className="font-bold mr-2">4.</span>
-                <span>Membuat transaksi 'Debit' otomatis untuk setiap pelanggan aktif</span>
-              </li>
-              <li className="flex items-start">
-                <span className="font-bold mr-2">5.</span>
-                <span>Notifikasi akan dikirim kepada pelanggan tentang tagihan baru</span>
-              </li>
-            </ul>
+            <h3 className="text-lg font-bold text-blue-900 mb-4">💰 Informasi Tarif</h3>
+            <div className="space-y-2 text-sm text-blue-800">
+              {pricingTiers.map((tier, index) => (
+                <div key={tier.id} className="flex items-start">
+                  <span className="font-bold mr-2">{index + 1}.</span>
+                  <span>
+                    {tier.name}: {tier.min_usage}-{tier.max_usage || '∞'} m³ =
+                    Rp {tier.price_per_m3.toLocaleString('id-ID')}/m³
+                  </span>
+                </div>
+              ))}
+              {appSettings && (
+                <div className="flex items-start pt-2 border-t border-blue-200">
+                  <span className="font-bold mr-2">•</span>
+                  <span>
+                    Biaya Admin: Rp {appSettings.admin_fee.toLocaleString('id-ID')}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Active Customers List */}
+          {/* Current Month Invoices */}
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4">👥 Pelanggan yang Akan Ditagih</h3>
-            <div className="space-y-2">
-              {dummyData.customers
-                .filter(c => c.saldo > 0)
-                .map(customer => {
-                  const monthlyCharge = calculateMonthlyBilling(customer.wellSize);
-                  const pricePerM3 = customer.wellSize < PRICING_TIERS.SMALL_WELL_THRESHOLD
-                    ? PRICING_TIERS.SMALL_WELL_PRICE
-                    : PRICING_TIERS.LARGE_WELL_PRICE;
-
-                  return (
-                    <div key={customer.id} className="flex justify-between items-center py-3 border-b border-gray-200 last:border-b-0">
-                      <div>
-                        <p className="font-medium text-gray-900">{customer.name}</p>
-                        <p className="text-xs text-gray-500">
-                          {customer.wellSize} m³ × Rp {pricePerM3.toLocaleString('id-ID')}/m³
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-blue-600">
-                          {formatCurrency(monthlyCharge)}
-                        </p>
-                        <p className="text-xs text-gray-500">tagihan bulanan</p>
-                      </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-4">
+              📋 Tagihan Bulan Ini ({currentMonthInvoices.length})
+            </h3>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {currentMonthInvoices.length > 0 ? (
+                currentMonthInvoices.map(invoice => (
+                  <div key={invoice.id} className="flex justify-between items-center py-3 border-b border-gray-200 last:border-b-0">
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {invoice.customers?.name || 'Unknown'}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        {invoice.invoice_number || '-'}
+                      </p>
                     </div>
-                  );
-                })}
+                    <div className="text-right">
+                      <p className="font-semibold text-blue-600">
+                        {formatCurrency(invoice.total_amount)}
+                      </p>
+                      <p className={`text-xs ${ invoice.status === 'Paid' ? 'text-green-600' :
+                          invoice.status === 'Unpaid' ? 'text-red-600' :
+                            'text-gray-500'
+                        }`}>
+                        {invoice.status === 'Paid' ? '✓ Lunas' :
+                          invoice.status === 'Unpaid' ? '⚠ Belum Bayar' :
+                            invoice.status}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-gray-500 py-4">
+                  Belum ada tagihan untuk bulan ini
+                </p>
+              )}
             </div>
           </div>
 
@@ -177,10 +213,10 @@ export default function Billing() {
           <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-6">
             <h3 className="text-lg font-bold text-yellow-900 mb-3">⚠️ Catatan Penting</h3>
             <ul className="space-y-2 text-sm text-yellow-800">
-              <li>• Proses ini tidak bisa dibatalkan setelah dimulai</li>
-              <li>• Pastikan data pelanggan sudah benar sebelum memproses</li>
-              <li>• Sistem akan mencatat waktu proses untuk keperluan audit</li>
-              <li>• Backup data akan dibuat secara otomatis sebelum proses dimulai</li>
+              <li>• Tagihan dibuat berdasarkan pembacaan meteran bulanan</li>
+              <li>• Tarif dihitung berdasarkan penggunaan air (m³)</li>
+              <li>• Biaya admin ditambahkan ke setiap tagihan</li>
+              <li>• Pelanggan dapat melihat detail tagihan di halaman detail mereka</li>
             </ul>
           </div>
         </div>

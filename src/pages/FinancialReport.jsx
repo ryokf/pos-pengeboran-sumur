@@ -1,14 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '../components';
-import { dummyData } from '../data/dummyData';
-import {
-    formatCurrency,
-    filterTransactionsByPeriod,
-    calculateFinancialSummary,
-    formatReportPeriod,
-    getAvailableYears,
-    getAvailableMonths
-} from '../utils';
+import { formatCurrency } from '../utils';
+import { getTransactionsByPeriod, addTransaction } from '../services/transactionService';
+import { getCustomers } from '../services/customerService';
 
 export default function FinancialReport() {
     const currentDate = new Date();
@@ -18,48 +12,200 @@ export default function FinancialReport() {
     const [period, setPeriod] = useState('monthly'); // 'monthly' or 'annual'
     const [selectedYear, setSelectedYear] = useState(currentYear);
     const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+    const [transactions, setTransactions] = useState([]);
+    const [customers, setCustomers] = useState([]);
+
     const [showIncomeModal, setShowIncomeModal] = useState(false);
     const [showExpenseModal, setShowExpenseModal] = useState(false);
     const [incomeAmount, setIncomeAmount] = useState('');
+    const [incomeCategory, setIncomeCategory] = useState('Pemasukan Lain');
     const [incomeDescription, setIncomeDescription] = useState('');
     const [expenseAmount, setExpenseAmount] = useState('');
+    const [expenseCategory, setExpenseCategory] = useState('Operasional');
     const [expenseDescription, setExpenseDescription] = useState('');
 
-    const { transactions, customers } = dummyData;
+    // Fetch data when period changes
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                setLoading(true);
 
-    // Get available years and months
-    const availableYears = useMemo(() => getAvailableYears(transactions), [transactions]);
-    const availableMonths = useMemo(
-        () => getAvailableMonths(transactions, selectedYear),
-        [transactions, selectedYear]
-    );
+                // Fetch transactions for selected period
+                const transactionsData = await getTransactionsByPeriod(
+                    selectedYear,
+                    period === 'monthly' ? selectedMonth : null
+                );
 
-    // Filter transactions based on selected period
-    const filteredTransactions = useMemo(() => {
-        return filterTransactionsByPeriod(
-            transactions,
-            period,
-            selectedYear,
-            period === 'monthly' ? selectedMonth : null
-        );
-    }, [transactions, period, selectedYear, selectedMonth]);
+                // Fetch customers for outstanding debts calculation
+                const customersData = await getCustomers();
+
+                setTransactions(transactionsData);
+                setCustomers(customersData);
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('Gagal memuat data: ' + error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [period, selectedYear, selectedMonth]);
 
     // Calculate financial summary
-    const summary = useMemo(
-        () => calculateFinancialSummary(filteredTransactions, customers),
-        [filteredTransactions, customers]
-    );
+    const summary = useMemo(() => {
+        const totalIncome = transactions
+            .filter(t => t.type === 'IN')
+            .reduce((sum, t) => sum + (t.amount || 0), 0);
 
-    const periodLabel = formatReportPeriod(period, selectedYear, selectedMonth);
+        const totalExpenses = transactions
+            .filter(t => t.type === 'OUT')
+            .reduce((sum, t) => sum + (t.amount || 0), 0);
+
+        const netBalance = totalIncome - totalExpenses;
+
+        // Calculate outstanding debts (customers with negative balance)
+        const outstandingDebts = customers
+            .filter(c => c.current_balance < 0)
+            .reduce((sum, c) => sum + Math.abs(c.current_balance), 0);
+
+        return {
+            totalIncome,
+            totalExpenses,
+            netBalance,
+            outstandingDebts
+        };
+    }, [transactions, customers]);
+
+    // Get available years from transactions
+    const availableYears = useMemo(() => {
+        if (transactions.length === 0) return [currentYear];
+
+        const years = transactions.map(t => new Date(t.transaction_date).getFullYear());
+        const uniqueYears = [...new Set(years)].sort((a, b) => b - a);
+
+        return uniqueYears.length > 0 ? uniqueYears : [currentYear];
+    }, [transactions, currentYear]);
+
+    // Get available months for selected year
+    const availableMonths = useMemo(() => {
+        const months = transactions
+            .filter(t => new Date(t.transaction_date).getFullYear() === selectedYear)
+            .map(t => new Date(t.transaction_date).getMonth() + 1);
+
+        const uniqueMonths = [...new Set(months)].sort((a, b) => a - b);
+
+        return uniqueMonths.length > 0 ? uniqueMonths : [currentMonth];
+    }, [transactions, selectedYear, currentMonth]);
 
     const monthNames = [
         'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
         'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
 
+    const periodLabel = period === 'monthly'
+        ? `${ monthNames[selectedMonth - 1] } ${ selectedYear }`
+        : `Tahun ${ selectedYear }`;
+
     const handlePrint = () => {
         globalThis.print();
     };
+
+    // Handle add income
+    const handleAddIncome = async () => {
+        if (!incomeAmount || parseFloat(incomeAmount) <= 0) {
+            alert('Masukkan jumlah yang valid');
+            return;
+        }
+
+        try {
+            setSubmitting(true);
+
+            await addTransaction({
+                type: 'IN',
+                category: incomeCategory,
+                amount: parseFloat(incomeAmount),
+                description: incomeDescription || 'Pemasukan',
+                transaction_date: new Date().toISOString().split('T')[0],
+                customer_id: null
+            });
+
+            // Refresh transactions
+            const updatedTransactions = await getTransactionsByPeriod(
+                selectedYear,
+                period === 'monthly' ? selectedMonth : null
+            );
+            setTransactions(updatedTransactions);
+
+            alert(`Pemasukan sebesar ${ formatCurrency(parseFloat(incomeAmount)) } berhasil ditambahkan!`);
+            setShowIncomeModal(false);
+            setIncomeAmount('');
+            setIncomeCategory('Pemasukan Lain');
+            setIncomeDescription('');
+
+        } catch (error) {
+            console.error('Error adding income:', error);
+            alert('Gagal menambahkan pemasukan: ' + error.message);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    // Handle add expense
+    const handleAddExpense = async () => {
+        if (!expenseAmount || parseFloat(expenseAmount) <= 0) {
+            alert('Masukkan jumlah yang valid');
+            return;
+        }
+
+        try {
+            setSubmitting(true);
+
+            await addTransaction({
+                type: 'OUT',
+                category: expenseCategory,
+                amount: parseFloat(expenseAmount),
+                description: expenseDescription || 'Pengeluaran',
+                transaction_date: new Date().toISOString().split('T')[0],
+                customer_id: null
+            });
+
+            // Refresh transactions
+            const updatedTransactions = await getTransactionsByPeriod(
+                selectedYear,
+                period === 'monthly' ? selectedMonth : null
+            );
+            setTransactions(updatedTransactions);
+
+            alert(`Pengeluaran sebesar ${ formatCurrency(parseFloat(expenseAmount)) } berhasil ditambahkan!`);
+            setShowExpenseModal(false);
+            setExpenseAmount('');
+            setExpenseCategory('Operasional');
+            setExpenseDescription('');
+
+        } catch (error) {
+            console.error('Error adding expense:', error);
+            alert('Gagal menambahkan pengeluaran: ' + error.message);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="p-8">
+                <div className="flex items-center justify-center h-64">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600">Memuat data...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-8">
@@ -233,7 +379,7 @@ export default function FinancialReport() {
                         Detail Transaksi - {periodLabel}
                     </h2>
                     <p className="text-sm text-gray-600 mt-1">
-                        Total {filteredTransactions.length} transaksi
+                        Total {transactions.length} transaksi
                     </p>
                 </div>
 
@@ -246,14 +392,13 @@ export default function FinancialReport() {
                                 <th className="text-left py-4 px-6 font-semibold">Kategori</th>
                                 <th className="text-left py-4 px-6 font-semibold">Keterangan</th>
                                 <th className="text-left py-4 px-6 font-semibold">Sumber/Tujuan</th>
-                                <th className="text-left py-4 px-6 font-semibold">Dicatat Oleh</th>
                                 <th className="text-right py-4 px-6 font-semibold">Nominal</th>
                                 <th className="text-center py-4 px-6 font-semibold">Tipe</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredTransactions.length > 0 ? (
-                                filteredTransactions.map((transaction, index) => (
+                            {transactions.length > 0 ? (
+                                transactions.map((transaction, index) => (
                                     <tr
                                         key={transaction.id}
                                         className={`border-b border-gray-100 ${ index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
@@ -261,7 +406,7 @@ export default function FinancialReport() {
                                     >
                                         <td className="py-4 px-6 text-sm text-gray-600">{index + 1}</td>
                                         <td className="py-4 px-6 text-sm text-gray-600">
-                                            {new Date(transaction.date).toLocaleDateString('id-ID')}
+                                            {new Date(transaction.transaction_date).toLocaleDateString('id-ID')}
                                         </td>
                                         <td className="py-4 px-6">
                                             <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
@@ -272,13 +417,7 @@ export default function FinancialReport() {
                                             {transaction.description}
                                         </td>
                                         <td className="py-4 px-6 text-sm text-gray-600">
-                                            {transaction.customer_name}
-                                        </td>
-                                        <td className="py-4 px-6 text-sm text-gray-700">
-                                            <span className="inline-flex items-center gap-1">
-                                                <span className="text-blue-600">👤</span>
-                                                {transaction.recordedBy}
-                                            </span>
+                                            {transaction.customers?.name || 'Internal'}
                                         </td>
                                         <td className={`py-4 px-6 text-right font-bold ${ transaction.type === 'IN' ? 'text-green-600' : 'text-red-600'
                                             }`}>
@@ -297,7 +436,7 @@ export default function FinancialReport() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="8" className="py-8 text-center text-gray-500">
+                                    <td colSpan="7" className="py-8 text-center text-gray-500">
                                         Tidak ada transaksi untuk periode ini
                                     </td>
                                 </tr>
@@ -307,7 +446,7 @@ export default function FinancialReport() {
                 </div>
 
                 {/* Summary Row */}
-                {filteredTransactions.length > 0 && (
+                {transactions.length > 0 && (
                     <div className="bg-gray-100 border-t-2 border-gray-300 px-6 py-4">
                         <div className="grid grid-cols-3 gap-4 text-sm font-semibold">
                             <div className="text-green-700">
@@ -333,6 +472,20 @@ export default function FinancialReport() {
                         <h3 className="text-xl font-semibold text-gray-800 mb-4">💰 Tambah Pemasukan</h3>
                         <div className="space-y-4 mb-6">
                             <div>
+                                <label htmlFor="income-category" className="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
+                                <select
+                                    id="income-category"
+                                    value={incomeCategory}
+                                    onChange={(e) => setIncomeCategory(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    disabled={submitting}
+                                >
+                                    <option value="Pembayaran Bulanan">Pembayaran Bulanan</option>
+                                    <option value="Top Up">Top Up</option>
+                                    <option value="Pemasukan Lain">Pemasukan Lain</option>
+                                </select>
+                            </div>
+                            <div>
                                 <label htmlFor="income-amount" className="block text-sm font-medium text-gray-700 mb-2">Jumlah Pemasukan</label>
                                 <input
                                     id="income-amount"
@@ -341,6 +494,7 @@ export default function FinancialReport() {
                                     onChange={(e) => setIncomeAmount(e.target.value)}
                                     placeholder="Masukkan jumlah (dalam Rupiah)"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    disabled={submitting}
                                 />
                             </div>
                             <div>
@@ -352,6 +506,7 @@ export default function FinancialReport() {
                                     placeholder="Masukkan keterangan pemasukan"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                                     rows="3"
+                                    disabled={submitting}
                                 />
                             </div>
                         </div>
@@ -360,22 +515,20 @@ export default function FinancialReport() {
                                 onClick={() => {
                                     setShowIncomeModal(false);
                                     setIncomeAmount('');
+                                    setIncomeCategory('Pemasukan Lain');
                                     setIncomeDescription('');
                                 }}
-                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                                disabled={submitting}
+                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
                             >
                                 Batal
                             </button>
                             <button
-                                onClick={() => {
-                                    alert(`Pemasukan sebesar ${incomeAmount ? formatCurrency(Number(incomeAmount)) : '0'} berhasil ditambahkan!`);
-                                    setShowIncomeModal(false);
-                                    setIncomeAmount('');
-                                    setIncomeDescription('');
-                                }}
-                                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                                onClick={handleAddIncome}
+                                disabled={submitting}
+                                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
                             >
-                                Simpan
+                                {submitting ? 'Menyimpan...' : 'Simpan'}
                             </button>
                         </div>
                     </div>
@@ -389,6 +542,22 @@ export default function FinancialReport() {
                         <h3 className="text-xl font-semibold text-gray-800 mb-4">💸 Tambah Pengeluaran</h3>
                         <div className="space-y-4 mb-6">
                             <div>
+                                <label htmlFor="expense-category" className="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
+                                <select
+                                    id="expense-category"
+                                    value={expenseCategory}
+                                    onChange={(e) => setExpenseCategory(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    disabled={submitting}
+                                >
+                                    <option value="Operasional">Operasional</option>
+                                    <option value="Gaji Karyawan">Gaji Karyawan</option>
+                                    <option value="Perawatan Sumur">Perawatan Sumur</option>
+                                    <option value="Peralatan">Peralatan</option>
+                                    <option value="Pengeluaran Lain">Pengeluaran Lain</option>
+                                </select>
+                            </div>
+                            <div>
                                 <label htmlFor="expense-amount" className="block text-sm font-medium text-gray-700 mb-2">Jumlah Pengeluaran</label>
                                 <input
                                     id="expense-amount"
@@ -397,6 +566,7 @@ export default function FinancialReport() {
                                     onChange={(e) => setExpenseAmount(e.target.value)}
                                     placeholder="Masukkan jumlah (dalam Rupiah)"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    disabled={submitting}
                                 />
                             </div>
                             <div>
@@ -408,6 +578,7 @@ export default function FinancialReport() {
                                     placeholder="Masukkan keterangan pengeluaran"
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                                     rows="3"
+                                    disabled={submitting}
                                 />
                             </div>
                         </div>
@@ -416,22 +587,20 @@ export default function FinancialReport() {
                                 onClick={() => {
                                     setShowExpenseModal(false);
                                     setExpenseAmount('');
+                                    setExpenseCategory('Operasional');
                                     setExpenseDescription('');
                                 }}
-                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                                disabled={submitting}
+                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
                             >
                                 Batal
                             </button>
                             <button
-                                onClick={() => {
-                                    alert(`Pengeluaran sebesar ${expenseAmount ? formatCurrency(Number(expenseAmount)) : '0'} berhasil ditambahkan!`);
-                                    setShowExpenseModal(false);
-                                    setExpenseAmount('');
-                                    setExpenseDescription('');
-                                }}
-                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                                onClick={handleAddExpense}
+                                disabled={submitting}
+                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
                             >
-                                Simpan
+                                {submitting ? 'Menyimpan...' : 'Simpan'}
                             </button>
                         </div>
                     </div>
@@ -441,142 +610,25 @@ export default function FinancialReport() {
             {/* Print Styles */}
             <style>{`
         @media print {
-          /* Hide non-printable elements */
           .no-print {
             display: none !important;
           }
           
-          /* Show print-only elements */
           .print-only {
             display: block !important;
           }
           
-          /* Body and page setup */
           body {
             print-color-adjust: exact;
             -webkit-print-color-adjust: exact;
-            margin: 0;
-            padding: 0;
-            color: #000 !important;
           }
           
-          /* Page configuration */
           @page {
             margin: 1.5cm;
             size: A4 landscape;
           }
-          
-          /* Main container */
-          .p-8 {
-            padding: 0 !important;
-          }
-          
-          /* Table container - remove shadows and backgrounds */
-          .bg-white {
-            background-color: white !important;
-          }
-          
-          .shadow-md {
-            box-shadow: none !important;
-            border: 2px solid #000 !important;
-          }
-          
-          .rounded-lg {
-            border-radius: 0 !important;
-          }
-          
-          /* Table header section */
-          .bg-gray-50 {
-            background-color: white !important;
-            border-bottom: 2px solid #000 !important;
-          }
-          
-          /* Table styling for print */
-          table {
-            page-break-inside: auto;
-            border-collapse: collapse;
-            width: 100%;
-            border: none !important;
-          }
-          
-          thead {
-            display: table-header-group;
-          }
-          
-          /* Table header - clean professional style */
-          thead tr {
-            background-color: white !important;
-            border-top: 2px solid #000 !important;
-            border-bottom: 2px solid #000 !important;
-          }
-          
-          thead th {
-            background-color: white !important;
-            color: #000 !important;
-            font-weight: bold !important;
-            padding: 8px 12px !important;
-            border: none !important;
-          }
-          
-          /* Table body rows - remove zebra striping */
-          tbody tr {
-            page-break-inside: avoid;
-            page-break-after: auto;
-            background-color: white !important;
-            border-bottom: 1px solid #ccc !important;
-          }
-          
-          tbody tr:hover {
-            background-color: white !important;
-          }
-          
-          tbody td {
-            padding: 6px 12px !important;
-            color: #000 !important;
-            border: none !important;
-          }
-          
-          /* Remove badge styling - make them plain text */
-          .px-3.py-1.bg-blue-100,
-          .px-3.py-1.bg-green-100,
-          .px-3.py-1.bg-red-100,
-          .px-3.py-1.rounded-full {
-            background-color: transparent !important;
-            color: #000 !important;
-            padding: 0 !important;
-            border: none !important;
-            font-weight: normal !important;
-          }
-          
-          /* Text colors - convert to black or dark gray for formal look */
-          .text-gray-600,
-          .text-gray-700,
-          .text-gray-800,
-          .text-blue-700,
-          .text-blue-600 {
-            color: #000 !important;
-          }
-          
-          /* Keep red/green for amounts but darker */
-          .text-green-600,
-          .text-green-700 {
-            color: #006400 !important;
-          }
-          
-          .text-red-600,
-          .text-red-700 {
-            color: #8B0000 !important;
-          }
-          
-          /* Summary footer */
-          .bg-gray-100 {
-            background-color: white !important;
-            border-top: 2px solid #000 !important;
-            border-bottom: 2px solid #000 !important;
-          }
         }
         
-        /* Screen-only styles */
         @media screen {
           .print-only {
             display: none;

@@ -1,20 +1,74 @@
-import { dashboardStats, customers } from '../data/dummyData';
+import { useState, useEffect } from 'react';
 import { StatCard, PageHeader } from '../components';
 import { formatCurrency } from '../utils';
-import { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { getDashboardStats, updatePumpStatus } from '../services/dashboardService';
 
 export default function Dashboard() {
-  const [pumpStatus] = useState(dashboardStats.pumpStatus);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState(null);
+  const [pumpStatus, setPumpStatus] = useState('Mati');
+  const [updatingPump, setUpdatingPump] = useState(false);
 
-  // Calculate dashboard metrics
-  const totalCustomerBalance = customers.reduce((acc, c) => acc + c.saldo, 0);
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const dashboardData = await getDashboardStats();
+        setStats(dashboardData);
+        setPumpStatus(dashboardData.pumpStatus);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        alert('Gagal memuat data dashboard: ' + error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Get top debtors (5 customers with negative balance)
-  const topDebtors = [...customers]
-    .filter(c => c.saldo < 0)
-    .sort((a, b) => a.saldo - b.saldo)
-    .slice(0, 5);
+    fetchDashboardData();
+  }, []);
+
+  // Handle pump status toggle
+  const handleTogglePumpStatus = async () => {
+    try {
+      setUpdatingPump(true);
+      const newStatus = pumpStatus === 'Hidup' ? 'Mati' : 'Hidup';
+
+      await updatePumpStatus(newStatus);
+      setPumpStatus(newStatus);
+      alert(`Status pompa berhasil diubah menjadi ${ newStatus }`);
+
+    } catch (error) {
+      console.error('Error updating pump status:', error);
+      alert('Gagal mengubah status pompa: ' + error.message);
+    } finally {
+      setUpdatingPump(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Memuat data dashboard...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div className="p-8">
+        <div className="text-center py-12">
+          <p className="text-gray-500">Gagal memuat data dashboard</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -27,63 +81,57 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           title="Total Saldo Pelanggan"
-          value={formatCurrency(totalCustomerBalance)}
+          value={formatCurrency(stats.totalCustomerBalance)}
           icon="💰"
           subtext="Deposit - Hutang"
         />
         <StatCard
           title="Saldo Kas Masjid"
-          value={formatCurrency(dashboardStats.masjidCashBalance)}
+          value={formatCurrency(stats.masjidCashBalance)}
           icon="🕌"
           subtext="Operasional Air"
         />
         <StatCard
           title="Keluhan Masuk Hari Ini"
-          value={dashboardStats.complaintsTodayCount}
+          value={stats.complaintsTodayCount}
           icon="⚠️"
           subtext="Laporan dari Warga"
         />
-        {/* <StatCard
-          title="Antrian Pasang Baru"
-          value={dashboardStats.newConnectionQueue}
-          icon="📋"
-          subtext="Menunggu Proses"
-        /> */}
         <StatCard
           title="Total Pemakaian Air Bulan Ini"
-          value={dashboardStats.totalWaterUsageThisMonth + " m³"}
+          value={stats.totalWaterUsageThisMonth.toFixed(1) + " m³"}
           icon="🚰"
           subtext=""
         />
       </div>
 
-       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Income vs Expense Chart */}
         <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Pemasukan vs Pengeluaran (Bulan Ini)</h2>
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">Pemasukan vs Pengeluaran (6 Bulan Terakhir)</h2>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={dashboardStats.monthlyIncome}>
+            <LineChart data={stats.monthlyIncome}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="month" stroke="#6b7280" />
               <YAxis stroke="#6b7280" />
-              <Tooltip 
+              <Tooltip
                 contentStyle={{ backgroundColor: '#111827', border: 'none', borderRadius: '0.5rem', color: '#fff' }}
                 formatter={(value) => formatCurrency(value)}
               />
               <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="income" 
-                stroke="#22c55e" 
+              <Line
+                type="monotone"
+                dataKey="income"
+                stroke="#22c55e"
                 strokeWidth={2}
                 dot={{ fill: '#22c55e', r: 5 }}
                 activeDot={{ r: 7 }}
                 name="Pemasukan"
               />
-              <Line 
-                type="monotone" 
-                dataKey="expense" 
-                stroke="#ef4444" 
+              <Line
+                type="monotone"
+                dataKey="expense"
+                stroke="#ef4444"
                 strokeWidth={2}
                 dot={{ fill: '#ef4444', r: 5 }}
                 activeDot={{ r: 7 }}
@@ -107,15 +155,15 @@ export default function Dashboard() {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">5 Piutang Terbesar</h2>
           <div className="space-y-3 max-h-80 overflow-y-auto">
-            {topDebtors.length > 0 ? (
-              topDebtors.map((debtor, idx) => (
+            {stats.topDebtors.length > 0 ? (
+              stats.topDebtors.map((debtor, idx) => (
                 <div key={debtor.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                   <div className="flex-1">
                     <p className="font-medium text-sm text-gray-800">{idx + 1}. {debtor.name}</p>
                     <p className="text-xs text-gray-600">RT {debtor.rt}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-sm text-red-600">-{formatCurrency(Math.abs(debtor.saldo))}</p>
+                    <p className="font-semibold text-sm text-red-600">-{formatCurrency(Math.abs(debtor.current_balance))}</p>
                   </div>
                 </div>
               ))
@@ -131,12 +179,12 @@ export default function Dashboard() {
 
       {/* Status Operasional Utama */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 my-8">
-        
+
         {/* Pump Status */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Status Pompa Masjid</h3>
           <div className="flex items-center gap-4 mb-6">
-            <div className={`text-6xl ${pumpStatus === 'Hidup' ? '🟢' : '🔴'}`}></div>
+            <div className="text-6xl">{pumpStatus === 'Hidup' ? '🟢' : '🔴'}</div>
             <div>
               <p className="text-2xl font-bold text-gray-800">{pumpStatus}</p>
               <p className="text-sm text-gray-600">
@@ -145,17 +193,20 @@ export default function Dashboard() {
             </div>
           </div>
           <button
-            onClick={() => {}}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold"
+            onClick={handleTogglePumpStatus}
+            disabled={updatingPump}
+            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Ubah Status
+            {updatingPump ? 'Mengubah...' : 'Ubah Status'}
           </button>
         </div>
+
+        {/* Keluhan Masuk Hari Ini */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Keluhan Masuk Hari Ini</h3>
-          {dashboardStats.complaints.length > 0 ? (
+          {stats.complaints.length > 0 ? (
             <div className="space-y-3 max-h-64 overflow-y-auto">
-              {dashboardStats.complaints.map(complaint => (
+              {stats.complaints.map(complaint => (
                 <div key={complaint.id} className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex-1">
@@ -180,34 +231,7 @@ export default function Dashboard() {
             Catat Keluhan Baru
           </button>
         </div>
-
-        {/* New Connections Queue */}
-        {/* <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Antrian Pasang Baru</h3>
-          <div className="flex items-center justify-between mb-6">
-            <div className="text-5xl font-bold text-purple-600">{dashboardStats.newConnectionQueue}</div>
-            <div className="text-4xl">📋</div>
-          </div>
-          <p className="text-sm text-gray-600 mb-4">Warga baru menunggu untuk disambungkan</p>
-          <button
-            onClick={() => alert('Fitur manajemen antrian akan dibuka')}
-            className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-semibold text-sm"
-          >
-            Kelola Antrian
-          </button>
-        </div> */}
       </div>
-
-      {/* Keluhan dan Tunggakan */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Keluhan Masuk */}
-        
-
-      </div>
-
-      {/* Income vs Expense Chart & Tables */}
-
-     
     </div>
   );
 }

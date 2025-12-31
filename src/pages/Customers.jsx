@@ -37,17 +37,6 @@ export default function Customers() {
     return matchesSearchTerm && matchesRT;
   });
 
-  // Get well name by ID
-  const getWellName = (wellId) => {
-    const well = wells.find(w => w.id === wellId);
-    return well ? well.name : 'N/A';
-  };
-
-  // Get customer balance
-  const getCustomerBalance = (customer) => {
-    return customer.saldo;
-  };
-
   return (
     <div className="p-8">
       <PageHeader
@@ -61,7 +50,7 @@ export default function Customers() {
         searchPlaceholder="Cari berdasarkan nama, email, atau telepon..."
         filterLabel="Tipe"
         filterValue="All"
-        onFilterChange={() => {}}
+        onFilterChange={() => { }}
         filterOptions={[]}
         onAddNew={() => alert('Form pelanggan baru akan dibuka')}
         addButtonLabel="+ Pelanggan Baru"
@@ -79,7 +68,7 @@ export default function Customers() {
           >
             {rtOptions.map(rt => (
               <option key={rt} value={rt}>
-                {rt === 'All' ? 'Semua RT' : `RT ${rt}`}
+                {rt === 'All' ? 'Semua RT' : `RT ${ rt }`}
               </option>
             ))}
           </select>
@@ -118,27 +107,21 @@ export default function Customers() {
                         <p className="font-medium text-gray-800">{customer.name}</p>
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-sm text-gray-600">{customer.phone}</td>
+                    <td className="py-4 px-6 text-sm text-gray-600">{customer.phone ? customer.phone : "-"}</td>
                     <td className="py-4 px-6">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
                         RT {customer.rt}
                       </span>
                     </td>
                     <td className="py-4 px-6 text-sm text-gray-600">{customer.address}</td>
-        
+
                     <td className="py-4 px-6 text-center text-sm text-gray-700">
-                      <span className="font-medium">{customer.wellSize}</span> m³
+                      <span className="font-medium">{customer.total_usage_m3}</span> m³
                     </td>
                     <td className={`py-4 px-6 text-right font-bold text-lg ${ balanceColor }`}>
                       {customer.current_balance >= 0 ? '+' : '-'}{formatCurrency(Math.abs(customer.current_balance))}
                     </td>
                     <td className="py-4 px-6 text-center">
-                      <button
-                        onClick={() => navigate(`/customers/${ customer.id }`)}
-                        className="text-blue-600 hover:text-blue-800 font-medium text-sm mr-3"
-                      >
-                        Ubah
-                      </button>
                       <button
                         onClick={() => navigate(`/customers/${ customer.id }`)}
                         className="text-gray-600 hover:text-gray-800 font-medium text-sm"

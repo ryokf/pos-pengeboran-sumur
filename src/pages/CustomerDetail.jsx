@@ -1,27 +1,199 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { customers, meterReadings, transactions } from '../data/dummyData';
 import { PageHeader, MeterReadingModal } from '../components';
 import {
-  formatCurrency,
-  getCustomerMeterReadings,
-  getLatestMeterReading,
-  calculateUsage,
-  formatDate,
-  calculateMonthlyBilling
+  formatCurrency
 } from '../utils';
+import {
+  getCustomerById,
+  getCustomerMeterReadings,
+  getCustomerTransactions,
+  getCustomerInvoices,
+  addTopUp,
+  addAdjustment,
+  addMeterReading
+} from '../services/customerService';
 
 export default function CustomerDetail() {
   const { customerId } = useParams();
   const navigate = useNavigate();
-  const customer = customers.find(c => c.id === Number.parseInt(customerId, 10));
+
+  // State management
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [customer, setCustomer] = useState(null);
+  const [meterReadings, setMeterReadings] = useState([]);
+  const [transactions, setTransactions] = useState([]);
+  const [invoices, setInvoices] = useState([]);
+
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [showAdjustmentModal, setShowAdjustmentModal] = useState(false);
   const [showMeterModal, setShowMeterModal] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState('');
   const [adjustmentAmount, setAdjustmentAmount] = useState('');
   const [adjustmentType, setAdjustmentType] = useState('add');
+  const [submitting, setSubmitting] = useState(false);
 
+  // Fetch all customer data
+  useEffect(() => {
+    const fetchCustomerData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch customer details
+        const customerData = await getCustomerById(customerId);
+        setCustomer(customerData);
+
+        // Fetch meter readings
+        const readingsData = await getCustomerMeterReadings(customerId);
+        setMeterReadings(readingsData);
+
+        // Fetch transactions
+        const transactionsData = await getCustomerTransactions(customerId);
+        setTransactions(transactionsData);
+
+        // Fetch invoices
+        const invoicesData = await getCustomerInvoices(customerId);
+        setInvoices(invoicesData);
+
+      } catch (err) {
+        console.error('Error fetching customer data:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (customerId) {
+      fetchCustomerData();
+    }
+  }, [customerId]);
+
+  // Handle top up submission
+  const handleTopUp = async () => {
+    if (!topUpAmount || Number.parseFloat(topUpAmount) <= 0) {
+      alert('Masukkan jumlah yang valid');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await addTopUp(customerId, Number.parseFloat(topUpAmount));
+
+      // Refresh customer data
+      const updatedCustomer = await getCustomerById(customerId);
+      setCustomer(updatedCustomer);
+
+      alert(`Top up sebesar ${ formatCurrency(Number.parseFloat(topUpAmount)) } berhasil diproses!`);
+      setShowTopUpModal(false);
+      setTopUpAmount('');
+    } catch (err) {
+      console.error('Error processing top up:', err);
+      alert('Gagal memproses top up: ' + err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Handle adjustment submission
+  const handleAdjustment = async () => {
+    if (!adjustmentAmount || Number.parseFloat(adjustmentAmount) <= 0) {
+      alert('Masukkan jumlah yang valid');
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      await addAdjustment(customerId, Number.parseFloat(adjustmentAmount), adjustmentType);
+
+      // Refresh customer data
+      const updatedCustomer = await getCustomerById(customerId);
+      setCustomer(updatedCustomer);
+
+      const action = adjustmentType === 'add' ? 'Penambahan' : 'Pengurangan';
+      alert(`${ action } saldo sebesar ${ formatCurrency(Number.parseFloat(adjustmentAmount)) } berhasil diproses!`);
+      setShowAdjustmentModal(false);
+      setAdjustmentAmount('');
+      setAdjustmentType('add');
+    } catch (err) {
+      console.error('Error processing adjustment:', err);
+      alert('Gagal memproses penyesuaian: ' + err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Handle meter reading submission
+  const handleMeterReading = async (newReading) => {
+    try {
+      setSubmitting(true);
+
+      // Get the latest reading for previous value
+      const latestReading = meterReadings.length > 0 ? meterReadings[0] : null;
+      const previousValue = latestReading ? latestReading.current_value : 0;
+
+      // Get current month and year
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+
+      await addMeterReading(
+        customerId,
+        newReading.meterValue,
+        currentMonth,
+        currentYear,
+        previousValue,
+        newReading.notes || ''
+      );
+
+      // Refresh meter readings
+      const updatedReadings = await getCustomerMeterReadings(customerId);
+      setMeterReadings(updatedReadings);
+
+      alert(`Pencatatan meteran untuk ${ customer.name } berhasil disimpan!`);
+      setShowMeterModal(false);
+    } catch (err) {
+      console.error('Error saving meter reading:', err);
+      alert('Gagal menyimpan pencatatan meteran: ' + err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="p-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Memuat data pelanggan...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="p-8">
+        <PageHeader title="Error" />
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 mt-4">
+          <p className="text-red-800">Terjadi kesalahan: {error}</p>
+          <button
+            onClick={() => navigate('/customers')}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Kembali ke Pelanggan
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Customer not found
   if (!customer) {
     return (
       <div className="p-8">
@@ -36,7 +208,82 @@ export default function CustomerDetail() {
     );
   }
 
-  const balance = customer.saldo;
+  const balance = customer.current_balance || 0;
+
+  // Build monthly billing data
+  const buildMonthlyData = () => {
+    const currentDate = new Date();
+    const monthlyData = [];
+
+    for (let i = 11; i >= 0; i--) {
+      const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+      const month = monthDate.getMonth() + 1;
+      const year = monthDate.getFullYear();
+      const monthYear = monthDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+
+      // Find meter reading for this month
+      const reading = meterReadings.find(r => r.period_month === month && r.period_year === year);
+
+      // Find invoice for this month
+      const invoice = invoices.find(inv => {
+        const invDate = new Date(inv.created_at);
+        return invDate.getMonth() + 1 === month && invDate.getFullYear() === year;
+      });
+
+      // Find payments for this month
+      const monthPayments = transactions.filter(t => {
+        const tDate = new Date(t.transaction_date);
+        return tDate.getMonth() + 1 === month && tDate.getFullYear() === year;
+      });
+
+      const totalPayment = monthPayments.reduce((sum, t) => sum + (t.amount || 0), 0);
+      const monthlyCharge = invoice ? invoice.total_amount : 0;
+      const meterValue = reading ? reading.current_value : '-';
+      const usage = reading ? reading.usage_amount : 0;
+      const monthlyDebt = monthlyCharge - totalPayment;
+
+      // Determine status based on payment vs charge comparison
+      // Status logic:
+      // - Lunas: if there's a charge and payment >= charge (fully paid)
+      // - Hutang: if there's a charge and payment < charge (underpaid or not paid)
+      // - '-': only if there's no activity at all (no reading, no invoice, no payment)
+      let status;
+
+      // Check if there's any activity this month
+      const hasActivity = reading || invoice || totalPayment > 0;
+
+      if (!hasActivity) {
+        // No activity at all this month
+        status = '-';
+      } else if (monthlyCharge === 0 && totalPayment === 0) {
+        // Only meter reading exists, no invoice and no payment yet
+        status = '-';
+      } else if (monthlyCharge === 0 && totalPayment > 0) {
+        // No invoice but there's payment (advance payment or overpayment)
+        status = 'Lunas';
+      } else if (totalPayment >= monthlyCharge) {
+        // Payment covers the charge (fully paid)
+        status = 'Lunas';
+      } else {
+        // Payment is less than charge (underpaid or not paid)
+        status = 'Hutang';
+      }
+
+      monthlyData.push({
+        monthYear,
+        meterValue,
+        usage,
+        monthlyCharge,
+        totalPayment,
+        monthlyDebt: Math.max(0, monthlyDebt),
+        status
+      });
+    }
+
+    return monthlyData;
+  };
+
+  const monthlyData = buildMonthlyData();
 
   return (
     <div className="p-8">
@@ -47,10 +294,7 @@ export default function CustomerDetail() {
         ← Kembali ke Daftar Pelanggan
       </button>
 
-      <PageHeader
-        title={customer.name}
-        description={`${customer.city}`}
-      />
+      <PageHeader title={customer.name} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Main Balance Card */}
@@ -79,60 +323,6 @@ export default function CustomerDetail() {
               </button>
             </div>
           </div>
-
-          {/* Deposit & Billing Status */}
-          <div className="mt-6 bg-white rounded-lg shadow-md p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Status Pembayaran</h3>
-            <div className="space-y-4">
-              {/* Deposit Status */}
-              <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 mb-1">Deposit/Setoran</p>
-                    <p className="text-2xl font-bold text-blue-600">{formatCurrency(Math.abs(balance))}</p>
-                  </div>
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                    balance >= 0 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {balance >= 0 ? '✓ Lunas' : 'Belum Lunas'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Debt & Current Month Billing (if utang) */}
-              {balance < 0 && (
-                <div className="border-l-4 border-red-500 bg-red-50 p-4 rounded">
-                  <p className="text-sm font-medium text-gray-600 mb-3">Rincian Hutang</p>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-700">Total Hutang:</span>
-                      <span className="text-sm font-bold text-red-600">{formatCurrency(Math.abs(balance))}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-700">Tagihan Bulan Ini:</span>
-                      <span className="text-sm font-semibold text-gray-800">{formatCurrency(calculateMonthlyBilling(customer.wellSize))}</span>
-                    </div>
-                    <div className="pt-2 border-t border-red-200">
-                      <p className="text-xs text-red-600 font-medium">
-                        ⚠️ Pelanggan memiliki tunggakan. Mohon melakukan pembayaran segera.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Paid Status */}
-              {balance >= 0 && (
-                <div className="border-l-4 border-green-500 bg-green-50 p-4 rounded">
-                  <p className="text-sm font-medium text-gray-600 mb-2">Tagihan Bulan Ini</p>
-                  <p className="text-lg font-bold text-green-600">{formatCurrency(calculateMonthlyBilling(customer.wellSize))}</p>
-                  <p className="text-xs text-green-600 mt-2">✓ Semua pembayaran terbayar dengan baik</p>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
 
         {/* Customer Info Card */}
@@ -141,113 +331,43 @@ export default function CustomerDetail() {
           <div className="space-y-4">
             <div>
               <p className="text-xs font-medium text-gray-500 mb-1">Email</p>
-              <p className="text-sm text-gray-700">{customer.email}</p>
+              <p className="text-sm text-gray-700">{customer.email || '-'}</p>
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500 mb-1">Telepon</p>
-              <p className="text-sm text-gray-700">{customer.phone}</p>
+              <p className="text-sm text-gray-700">{customer.phone || '-'}</p>
             </div>
             <div>
-              <p className="text-xs font-medium text-gray-500 mb-1">Lokasi</p>
-              <p className="text-sm text-gray-700">{customer.city}</p>
+              <p className="text-xs font-medium text-gray-500 mb-1">RT/RW</p>
+              <p className="text-sm text-gray-700">RT {customer.rt || '-'} / RW {customer.rw || '-'}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-1">Kota</p>
+              <p className="text-sm text-gray-700">{customer.city || '-'}</p>
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500 mb-1">Alamat</p>
-              <p className="text-sm text-gray-700">{customer.address}</p>
+              <p className="text-sm text-gray-700">{customer.address || '-'}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-1">Nomor Meteran</p>
+              <p className="text-sm text-gray-700">{customer.meter_number || '-'}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-1">Status</p>
+              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${ customer.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                }`}>
+                {customer.status === 'active' ? '✓ Aktif' : customer.status}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Monthly Billing History */}
+      {/* Billing History */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Riwayat Tagihan Bulanan</h3>
-        
-        {(() => {
-          // Get billing data for the past 12 months (to show debt history)
-          const currentDate = new Date();
-          const monthlyData = [];
-          let cumulativeDebt = 0;
-          
-          // Calculate billing for last 12 months
-          for (let i = 11; i >= 0; i--) {
-            const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-            const monthYear = monthDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
-            const monthKey = monthDate.toLocaleDateString('id-ID', { month: '2-digit', year: 'numeric' });
-            
-            // Get payments for this month from transactions
-            const monthPayments = transactions.filter(t => {
-              const tDate = new Date(t.date);
-              return tDate.getMonth() === monthDate.getMonth() && 
-                     tDate.getFullYear() === monthDate.getFullYear() &&
-                     t.type === 'IN' &&
-                     t.customer_name === customer.name;
-            });
-            
-            const totalPayment = monthPayments.reduce((sum, t) => sum + t.amount, 0);
-            const monthlyCharge = calculateMonthlyBilling(customer.wellSize);
-            const monthlyDebt = monthlyCharge - totalPayment;
-            
-            // Accumulate debt from previous months
-            cumulativeDebt += monthlyDebt;
-            
-            monthlyData.push({
-              monthYear,
-              monthKey,
-              monthlyCharge,
-              totalPayment,
-              monthlyDebt: Math.max(0, monthlyDebt),
-              cumulativeDebt: Math.max(0, cumulativeDebt)
-            });
-          }
-
-          return (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Bulan</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Tagihan</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Pembayaran</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Hutang Bulan Ini</th>
-                    <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Total Hutang</th>
-                    <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {monthlyData.map((data, idx) => (
-                    <tr key={`billing-${idx}`} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 px-4 text-sm font-medium text-gray-800">{data.monthYear}</td>
-                      <td className="py-3 px-4 text-right text-sm text-gray-700">{formatCurrency(data.monthlyCharge)}</td>
-                      <td className="py-3 px-4 text-right text-sm text-gray-700">{formatCurrency(data.totalPayment)}</td>
-                      <td className={`py-3 px-4 text-right text-sm font-semibold ${data.monthlyDebt > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        {data.monthlyDebt > 0 ? '-' : ''}{formatCurrency(data.monthlyDebt)}
-                      </td>
-                      <td className={`py-3 px-4 text-right text-sm font-semibold ${data.cumulativeDebt > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        {data.cumulativeDebt > 0 ? '-' : ''}{formatCurrency(data.cumulativeDebt)}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                          data.monthlyDebt > 0
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-green-100 text-green-800'
-                        }`}>
-                          {data.monthlyDebt > 0 ? '⚠️ Hutang' : '✓ Lunas'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          );
-        })()}
-      </div>
-
-      {/* Meter Reading History */}
-      <div className="bg-white rounded-lg shadow-md p-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">Riwayat Pencatatan Meteran</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Riwayat Tagihan</h3>
           <button
             onClick={() => setShowMeterModal(true)}
             className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
@@ -256,69 +376,59 @@ export default function CustomerDetail() {
           </button>
         </div>
 
-        {(() => {
-          const customerReadings = getCustomerMeterReadings(customer.id, meterReadings);
-
-          if (customerReadings.length === 0) {
-            return (
-              <div className="text-center py-12">
-                <p className="text-gray-500">Belum ada pencatatan meteran</p>
-              </div>
-            );
-          }
-
-          return (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Tanggal</th>
-                    <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Nilai Meteran</th>
-                    <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Penggunaan</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Dicatat Oleh</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Catatan</th>
-                    <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Total Biaya</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {customerReadings.map((reading, index) => {
-                    const previousReading = customerReadings[index + 1];
-                    const usage = calculateUsage(reading, previousReading);
-
-                    return (
-                      <tr key={reading.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                        <td className="py-3 px-4 text-sm text-gray-700">
-                          {formatDate(reading.readingDate)}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          <span className="font-semibold text-blue-600">{reading.meterValue} m³</span>
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          {usage > 0 ? (
-                            <span className="inline-block px-2 py-1 bg-green-100 text-green-700 rounded text-sm font-medium">
-                              +{usage.toFixed(1)} m³
-                            </span>
-                          ) : (
-                            <span className="text-sm text-gray-400">-</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-gray-700">
-                          {reading.recordedBy}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-gray-600">
-                          {reading.notes}
-                        </td>
-                        <td className="py-3 px-4 text-sm text-gray-600">
-                          {formatCurrency(reading.totalCost)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          );
-        })()}
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Bulan</th>
+                <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Nilai Meteran</th>
+                <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Penggunaan</th>
+                <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Tagihan</th>
+                <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Pembayaran</th>
+                <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Hutang</th>
+                <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {monthlyData.map((data, idx) => (
+                <tr key={`billing-${ idx }`} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="py-3 px-4 text-sm font-medium text-gray-800">{data.monthYear}</td>
+                  <td className="py-3 px-4 text-center text-sm">
+                    {typeof data.meterValue === 'number' ? (
+                      <span className="font-semibold text-blue-600">{data.meterValue} m³</span>
+                    ) : (
+                      <span className="text-gray-400">{data.meterValue}</span>
+                    )}
+                  </td>
+                  <td className="py-3 px-4 text-center text-sm">
+                    {data.usage > 0 ? (
+                      <span className="inline-block px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
+                        +{data.usage.toFixed(1)} m³
+                      </span>
+                    ) : (
+                      <span className="text-sm text-gray-400">-</span>
+                    )}
+                  </td>
+                  <td className="py-3 px-4 text-right text-sm text-gray-700">{formatCurrency(data.monthlyCharge)}</td>
+                  <td className="py-3 px-4 text-right text-sm text-gray-700">{formatCurrency(data.totalPayment)}</td>
+                  <td className={`py-3 px-4 text-right text-sm font-semibold ${ data.monthlyDebt > 0 ? 'text-red-600' : 'text-green-600' }`}>
+                    {data.monthlyDebt > 0 ? '-' : ''}{formatCurrency(data.monthlyDebt)}
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${ data.status === 'Lunas' ? 'bg-green-100 text-green-800' :
+                      data.status === 'Hutang' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-600'
+                      }`}>
+                      {data.status === 'Lunas' ? '✓ Lunas' :
+                        data.status === 'Hutang' ? '⚠️ Hutang' :
+                          data.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Top Up Modal */}
@@ -345,19 +455,17 @@ export default function CustomerDetail() {
                   setShowTopUpModal(false);
                   setTopUpAmount('');
                 }}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                disabled={submitting}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
               >
                 Batal
               </button>
               <button
-                onClick={() => {
-                  alert(`Top up sebesar ${ topUpAmount ? formatCurrency(Number.parseInt(topUpAmount, 10)) : '0' } berhasil diproses!`);
-                  setShowTopUpModal(false);
-                  setTopUpAmount('');
-                }}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                onClick={handleTopUp}
+                disabled={submitting}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
-                Proses
+                {submitting ? 'Memproses...' : 'Proses'}
               </button>
             </div>
           </div>
@@ -401,21 +509,17 @@ export default function CustomerDetail() {
                   setAdjustmentAmount('');
                   setAdjustmentType('add');
                 }}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                disabled={submitting}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
               >
                 Batal
               </button>
               <button
-                onClick={() => {
-                  const action = adjustmentType === 'add' ? 'Penambahan' : 'Pengurangan';
-                  alert(`${ action } saldo sebesar ${ adjustmentAmount ? formatCurrency(Number.parseInt(adjustmentAmount, 10)) : '0' } berhasil diproses!`);
-                  setShowAdjustmentModal(false);
-                  setAdjustmentAmount('');
-                  setAdjustmentType('add');
-                }}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                onClick={handleAdjustment}
+                disabled={submitting}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
-                Proses
+                {submitting ? 'Memproses...' : 'Proses'}
               </button>
             </div>
           </div>
@@ -428,12 +532,8 @@ export default function CustomerDetail() {
         onClose={() => setShowMeterModal(false)}
         customerId={customer.id}
         customerName={customer.name}
-        previousReading={getLatestMeterReading(customer.id, meterReadings)}
-        onSubmit={(newReading) => {
-          console.log('New meter reading:', newReading);
-          alert(`Pencatatan meteran untuk ${ customer.name } berhasil disimpan!`);
-          setShowMeterModal(false);
-        }}
+        previousReading={meterReadings.length > 0 ? meterReadings[0] : null}
+        onSubmit={handleMeterReading}
       />
     </div>
   );
