@@ -1,37 +1,52 @@
-import { customers, wells } from '../data/dummyData';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FilterBar, PageHeader, EmptyState } from '../components';
+import { FilterBar, PageHeader, EmptyState, AddCustomerModal } from '../components';
 import { matchesSearch, formatCurrency, getInitials } from '../utils';
-import { getCustomers } from '../services/customerService';
+import { getCustomers, addCustomer } from '../services/customerService';
 
 export default function Customers() {
-  const [customerData, setCustomerData] = useState([])
-
-  useEffect(() => {
-    const fecthCustomers = async () => {
-      const data = await getCustomers()
-      setCustomerData(data)
-      console.log(data);
-    }
-
-    fecthCustomers();
-  }, [])
-
-
   const navigate = useNavigate();
+  const [customerData, setCustomerData] = useState([])
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRT, setSelectedRT] = useState('All');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const fetchCustomers = async () => {
+    const data = await getCustomers()
+    setCustomerData(data)
+    console.log(data);
+  }
+
+  useEffect(() => {
+    fetchCustomers();
+  }, [])
+
+  const handleAddCustomer = async (formData) => {
+    setSubmitting(true);
+    try {
+      await addCustomer(formData);
+      alert('Pelanggan berhasil ditambahkan!');
+      setIsModalOpen(false);
+      // Refresh customer list
+      fetchCustomers();
+    } catch (error) {
+      alert('Gagal menambahkan pelanggan: ' + error.message);
+      console.error('Error adding customer:', error);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // Get unique RT values from customers
-  const rtOptions = ['All', ...new Set(customers.map(c => c.rt))].sort((a, b) => {
+  const rtOptions = ['All', ...new Set(customerData.map(c => c.rt).filter(rt => rt))].sort((a, b) => {
     if (a === 'All') return -1;
     if (b === 'All') return 1;
     return a.localeCompare(b);
   });
 
   // Filter customers based on search term and RT
-  const filteredCustomers = customers.filter(customer => {
+  const filteredCustomers = customerData.filter(customer => {
     const matchesSearchTerm = matchesSearch(searchTerm, customer.name, customer.email, customer.phone);
     const matchesRT = selectedRT === 'All' || customer.rt === selectedRT;
     return matchesSearchTerm && matchesRT;
@@ -52,7 +67,7 @@ export default function Customers() {
         filterValue="All"
         onFilterChange={() => { }}
         filterOptions={[]}
-        onAddNew={() => alert('Form pelanggan baru akan dibuka')}
+        onAddNew={() => setIsModalOpen(true)}
         addButtonLabel="+ Pelanggan Baru"
       />
 
@@ -140,6 +155,14 @@ export default function Customers() {
       {filteredCustomers.length === 0 && (
         <EmptyState message="Tidak ada pelanggan ditemukan" />
       )}
+
+      {/* Add Customer Modal */}
+      <AddCustomerModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleAddCustomer}
+        submitting={submitting}
+      />
     </div>
   );
 }

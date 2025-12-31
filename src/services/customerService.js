@@ -139,6 +139,34 @@ const addMeterReading = async (customerId, currentValue, periodMonth, periodYear
     return data;
 }
 
+// Add new customer
+const addCustomer = async (customerData) => {
+    const { data, error } = await supabase
+        .from('customers')
+        .insert([
+            {
+                name: customerData.name,
+                phone: customerData.phone || null,
+                email: customerData.email || null,
+                address: customerData.address || null,
+                city: customerData.city || null,
+                rt: customerData.rt || null,
+                rw: customerData.rw || null,
+                meter_number: customerData.meter_number || null,
+                status: customerData.status || 'active',
+                current_balance: 0,
+                join_date: new Date().toISOString().split('T')[0]
+            }
+        ])
+        .select()
+        .single();
+
+    if (error) {
+        throw new Error(error.message);
+    }
+    return data;
+}
+
 export {
     getCustomers,
     getCustomerById,
@@ -147,5 +175,6 @@ export {
     getCustomerInvoices,
     addTopUp,
     addAdjustment,
-    addMeterReading
+    addMeterReading,
+    addCustomer
 };
