@@ -33,6 +33,7 @@ export default function CustomerDetail() {
   const [adjustmentAmount, setAdjustmentAmount] = useState('');
   const [adjustmentType, setAdjustmentType] = useState('add');
   const [submitting, setSubmitting] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   // Fetch all customer data
   useEffect(() => {
@@ -133,25 +134,34 @@ export default function CustomerDetail() {
       const latestReading = meterReadings.length > 0 ? meterReadings[0] : null;
       const previousValue = latestReading ? latestReading.current_value : 0;
 
-      // Get current month and year
-      const now = new Date();
-      const currentMonth = now.getMonth() + 1;
-      const currentYear = now.getFullYear();
+      // Use period from the form (not current month/year)
+      const periodMonth = newReading.periodMonth;
+      const periodYear = newReading.periodYear;
 
-      await addMeterReading(
+      const result = await addMeterReading(
         customerId,
-        newReading.meterValue,
-        currentMonth,
-        currentYear,
+        newReading.usageAmount,  // Now passing usage amount instead of cumulative value
+        periodMonth,
+        periodYear,
         previousValue,
         newReading.notes || ''
       );
 
-      // Refresh meter readings
+      // Refresh all data (meter readings, invoices, and customer balance)
       const updatedReadings = await getCustomerMeterReadings(customerId);
       setMeterReadings(updatedReadings);
 
-      alert(`Pencatatan meteran untuk ${ customer.name } berhasil disimpan!`);
+      const updatedInvoices = await getCustomerInvoices(customerId);
+      setInvoices(updatedInvoices);
+
+      const updatedCustomer = await getCustomerById(customerId);
+      setCustomer(updatedCustomer);
+
+      const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      const periodName = `${ monthNames[periodMonth - 1] } ${ periodYear }`;
+
+      alert(`Pencatatan meteran berhasil disimpan!\n\nPeriode: ${ periodName }\nTagihan otomatis dibuat:\n- Penggunaan: ${ result.meterReading.usage_amount } m³\n- Total Tagihan: Rp ${ result.invoice.total_amount.toLocaleString('id-ID') }`);
       setShowMeterModal(false);
     } catch (err) {
       console.error('Error saving meter reading:', err);
@@ -210,25 +220,51 @@ export default function CustomerDetail() {
 
   const balance = customer.current_balance || 0;
 
-  // Build monthly billing data
+  // Get available years from data
+  const getAvailableYears = () => {
+    const years = new Set();
+
+    // Get years from meter readings
+    meterReadings.forEach(r => years.add(r.period_year));
+
+    // Get years from invoices
+    invoices.forEach(inv => {
+      const invDate = new Date(inv.created_at);
+      years.add(invDate.getFullYear());
+    });
+
+    // Get years from transactions
+    transactions.forEach(t => {
+      const tDate = new Date(t.transaction_date);
+      years.add(tDate.getFullYear());
+    });
+
+    // Always include current year
+    years.add(new Date().getFullYear());
+
+    return Array.from(years).sort((a, b) => b - a); // Sort descending
+  };
+
+  const availableYears = getAvailableYears();
+
+  // Build monthly billing data - only show months with activity
   const buildMonthlyData = () => {
-    const currentDate = new Date();
     const monthlyData = [];
 
-    for (let i = 11; i >= 0; i--) {
-      const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-      const month = monthDate.getMonth() + 1;
-      const year = monthDate.getFullYear();
+    // Iterate through all 12 months of the selected year
+    for (let month = 1; month <= 12; month++) {
+      const year = selectedYear;
+      const monthDate = new Date(year, month - 1, 1);
       const monthYear = monthDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
 
       // Find meter reading for this month
       const reading = meterReadings.find(r => r.period_month === month && r.period_year === year);
 
-      // Find invoice for this month
-      const invoice = invoices.find(inv => {
-        const invDate = new Date(inv.created_at);
-        return invDate.getMonth() + 1 === month && invDate.getFullYear() === year;
-      });
+      // Find invoice for this month by reading_id (not created_at)
+      // This ensures invoice appears in correct period regardless of creation date
+      const invoice = reading
+        ? invoices.find(inv => inv.reading_id === reading.id)
+        : null;
 
       // Find payments for this month
       const monthPayments = transactions.filter(t => {
@@ -237,50 +273,48 @@ export default function CustomerDetail() {
       });
 
       const totalPayment = monthPayments.reduce((sum, t) => sum + (t.amount || 0), 0);
-      const monthlyCharge = invoice ? invoice.total_amount : 0;
-      const meterValue = reading ? reading.current_value : '-';
-      const usage = reading ? reading.usage_amount : 0;
-      const monthlyDebt = monthlyCharge - totalPayment;
-
-      // Determine status based on payment vs charge comparison
-      // Status logic:
-      // - Lunas: if there's a charge and payment >= charge (fully paid)
-      // - Hutang: if there's a charge and payment < charge (underpaid or not paid)
-      // - '-': only if there's no activity at all (no reading, no invoice, no payment)
-      let status;
 
       // Check if there's any activity this month
       const hasActivity = reading || invoice || totalPayment > 0;
 
-      if (!hasActivity) {
-        // No activity at all this month
-        status = '-';
-      } else if (monthlyCharge === 0 && totalPayment === 0) {
-        // Only meter reading exists, no invoice and no payment yet
-        status = '-';
-      } else if (monthlyCharge === 0 && totalPayment > 0) {
-        // No invoice but there's payment (advance payment or overpayment)
-        status = 'Lunas';
-      } else if (totalPayment >= monthlyCharge) {
-        // Payment covers the charge (fully paid)
-        status = 'Lunas';
-      } else {
-        // Payment is less than charge (underpaid or not paid)
-        status = 'Hutang';
-      }
+      // Only add to monthlyData if there's activity
+      if (hasActivity) {
+        const monthlyCharge = invoice ? invoice.total_amount : 0;
+        const meterValue = reading ? reading.current_value : '-';
+        const usage = reading ? reading.usage_amount : 0;
+        const monthlyDebt = monthlyCharge - totalPayment;
 
-      monthlyData.push({
-        monthYear,
-        meterValue,
-        usage,
-        monthlyCharge,
-        totalPayment,
-        monthlyDebt: Math.max(0, monthlyDebt),
-        status
-      });
+        // Determine status
+        let status;
+
+        if (monthlyCharge === 0 && totalPayment === 0) {
+          // Only meter reading exists, no invoice and no payment yet
+          status = '-';
+        } else if (monthlyCharge === 0 && totalPayment > 0) {
+          // No invoice but there's payment (advance payment or overpayment)
+          status = 'Lunas';
+        } else if (totalPayment >= monthlyCharge) {
+          // Payment covers the charge (fully paid)
+          status = 'Lunas';
+        } else {
+          // Payment is less than charge (underpaid or not paid)
+          status = 'Hutang';
+        }
+
+        monthlyData.push({
+          monthYear,
+          meterValue,
+          usage,
+          monthlyCharge,
+          totalPayment,
+          monthlyDebt: Math.max(0, monthlyDebt),
+          status
+        });
+      }
     }
 
-    return monthlyData;
+    // Reverse to show most recent first
+    return monthlyData.reverse();
   };
 
   const monthlyData = buildMonthlyData();
@@ -366,69 +400,99 @@ export default function CustomerDetail() {
 
       {/* Billing History */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">Riwayat Tagihan</h3>
-          <button
-            onClick={() => setShowMeterModal(true)}
-            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            📊 Catat Meteran Baru
-          </button>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">Riwayat Tagihan</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              {monthlyData.length > 0 ? `${ monthlyData.length } bulan dengan aktivitas` : 'Belum ada riwayat tagihan'}
+            </p>
+          </div>
+
+          <div className="flex gap-3 items-center">
+            {/* Year Filter */}
+            <div className="flex items-center gap-2">
+              <label htmlFor="year-filter" className="text-sm font-medium text-gray-700">Tahun:</label>
+              <select
+                id="year-filter"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(Number(e.target.value))}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              >
+                {availableYears.map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              onClick={() => setShowMeterModal(true)}
+              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
+            >
+              📊 Catat Meteran Baru
+            </button>
+          </div>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Bulan</th>
-                <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Nilai Meteran</th>
-                <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Penggunaan</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Tagihan</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Pembayaran</th>
-                <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Hutang</th>
-                <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {monthlyData.map((data, idx) => (
-                <tr key={`billing-${ idx }`} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-4 text-sm font-medium text-gray-800">{data.monthYear}</td>
-                  <td className="py-3 px-4 text-center text-sm">
-                    {typeof data.meterValue === 'number' ? (
-                      <span className="font-semibold text-blue-600">{data.meterValue} m³</span>
-                    ) : (
-                      <span className="text-gray-400">{data.meterValue}</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-center text-sm">
-                    {data.usage > 0 ? (
-                      <span className="inline-block px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
-                        +{data.usage.toFixed(1)} m³
-                      </span>
-                    ) : (
-                      <span className="text-sm text-gray-400">-</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-right text-sm text-gray-700">{formatCurrency(data.monthlyCharge)}</td>
-                  <td className="py-3 px-4 text-right text-sm text-gray-700">{formatCurrency(data.totalPayment)}</td>
-                  <td className={`py-3 px-4 text-right text-sm font-semibold ${ data.monthlyDebt > 0 ? 'text-red-600' : 'text-green-600' }`}>
-                    {data.monthlyDebt > 0 ? '-' : ''}{formatCurrency(data.monthlyDebt)}
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${ data.status === 'Lunas' ? 'bg-green-100 text-green-800' :
-                      data.status === 'Hutang' ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-600'
-                      }`}>
-                      {data.status === 'Lunas' ? '✓ Lunas' :
-                        data.status === 'Hutang' ? '⚠️ Hutang' :
-                          data.status}
-                    </span>
-                  </td>
+        {monthlyData.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 mb-2">Tidak ada riwayat tagihan untuk tahun {selectedYear}</p>
+            <p className="text-sm text-gray-400">Pilih tahun lain atau tambahkan pencatatan meteran baru</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Bulan</th>
+                  <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Nilai Meteran</th>
+                  <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Penggunaan</th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Tagihan</th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Pembayaran</th>
+                  <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Hutang</th>
+                  <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Status</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {monthlyData.map((data, idx) => (
+                  <tr key={`billing-${ idx }`} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 px-4 text-sm font-medium text-gray-800">{data.monthYear}</td>
+                    <td className="py-3 px-4 text-center text-sm">
+                      {typeof data.meterValue === 'number' ? (
+                        <span className="font-semibold text-blue-600">{data.meterValue} m³</span>
+                      ) : (
+                        <span className="text-gray-400">{data.meterValue}</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-center text-sm">
+                      {data.usage > 0 ? (
+                        <span className="inline-block px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium">
+                          +{data.usage.toFixed(1)} m³
+                        </span>
+                      ) : (
+                        <span className="text-sm text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-right text-sm text-gray-700">{formatCurrency(data.monthlyCharge)}</td>
+                    <td className="py-3 px-4 text-right text-sm text-gray-700">{formatCurrency(data.totalPayment)}</td>
+                    <td className={`py-3 px-4 text-right text-sm font-semibold ${ data.monthlyDebt > 0 ? 'text-red-600' : 'text-green-600' }`}>
+                      {data.monthlyDebt > 0 ? '-' : ''}{formatCurrency(data.monthlyDebt)}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${ data.status === 'Lunas' ? 'bg-green-100 text-green-800' :
+                        data.status === 'Hutang' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-600'
+                        }`}>
+                        {data.status === 'Lunas' ? '✓ Lunas' :
+                          data.status === 'Hutang' ? '⚠️ Hutang' :
+                            data.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Top Up Modal */}

@@ -93,7 +93,7 @@ export default function MeterReadings() {
             // Submit to database
             await addMeterReading(
                 selectedCustomer.id,
-                newReading.meterValue,
+                newReading.usageAmount,  // Now passing usage amount instead of cumulative value
                 currentMonth,
                 currentYear,
                 previousValue,

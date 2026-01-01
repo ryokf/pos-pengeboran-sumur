@@ -11,8 +11,14 @@ export default function MeterReadingModal({
     submitting = false
 }) {
     const today = new Date().toISOString().split('T')[0];
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentYear = currentDate.getFullYear();
+
     const [readingDate, setReadingDate] = useState(today);
-    const [meterValue, setMeterValue] = useState('');
+    const [periodMonth, setPeriodMonth] = useState(currentMonth);
+    const [periodYear, setPeriodYear] = useState(currentYear);
+    const [usageAmount, setUsageAmount] = useState('');
     const [notes, setNotes] = useState('');
     const [error, setError] = useState('');
 
@@ -23,23 +29,20 @@ export default function MeterReadingModal({
         setError('');
 
         // Validation
-        if (!meterValue || parseFloat(meterValue) < 0) {
-            setError('Nilai meteran harus diisi dan tidak boleh negatif');
+        if (!usageAmount || parseFloat(usageAmount) < 0) {
+            setError('Penggunaan air harus diisi dan tidak boleh negatif');
             return;
         }
 
-        // Check against previous reading (use current_value from Supabase)
-        const previousValue = previousReading?.current_value || 0;
-        if (previousReading && parseFloat(meterValue) < previousValue) {
-            setError(`Nilai meteran harus lebih besar atau sama dengan pencatatan sebelumnya (${ previousValue } m³)`);
-            return;
-        }
 
-        // Submit the reading
+
+        // Submit the reading with period
         const newReading = {
             customerId,
             readingDate,
-            meterValue: parseFloat(meterValue),
+            periodMonth: parseInt(periodMonth),
+            periodYear: parseInt(periodYear),
+            usageAmount: parseFloat(usageAmount),
             notes: notes || 'Pencatatan meteran'
         };
 
@@ -47,26 +50,43 @@ export default function MeterReadingModal({
 
         // Reset form
         setReadingDate(today);
-        setMeterValue('');
+        setPeriodMonth(currentMonth);
+        setPeriodYear(currentYear);
+        setUsageAmount('');
         setNotes('');
         setError('');
     };
 
     const handleClose = () => {
         setReadingDate(today);
-        setMeterValue('');
+        setPeriodMonth(currentMonth);
+        setPeriodYear(currentYear);
+        setUsageAmount('');
         setNotes('');
         setError('');
         onClose();
     };
 
-    const calculatePreviewUsage = () => {
-        if (!meterValue || !previousReading) return 0;
-        return parseFloat(meterValue) - (previousReading.current_value || 0);
+    const calculateCumulativeMeter = () => {
+        if (!usageAmount) return null;
+        const previousValue = previousReading?.current_value || 0;
+        return previousValue + parseFloat(usageAmount);
     };
 
+    // Generate month options
+    const monthNames = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+
+    // Generate year options (current year and 2 years back)
+    const yearOptions = [];
+    for (let i = 0; i < 3; i++) {
+        yearOptions.push(currentYear - i);
+    }
+
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
                 <h3 className="text-xl font-semibold text-gray-800 mb-4">📊 Catat Meteran Baru</h3>
 
@@ -105,27 +125,68 @@ export default function MeterReadingModal({
                         />
                     </div>
 
+                    {/* Period Selection */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Periode Bulan
+                            </label>
+                            <select
+                                value={periodMonth}
+                                onChange={(e) => setPeriodMonth(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required
+                                disabled={submitting}
+                            >
+                                {monthNames.map((name, index) => (
+                                    <option key={index + 1} value={index + 1}>
+                                        {name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Tahun
+                            </label>
+                            <select
+                                value={periodYear}
+                                onChange={(e) => setPeriodYear(e.target.value)}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                required
+                                disabled={submitting}
+                            >
+                                {yearOptions.map(year => (
+                                    <option key={year} value={year}>
+                                        {year}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Nilai Meteran (m³)
+                            Penggunaan Bulan Ini (m³)
                         </label>
                         <input
                             type="number"
                             step="0.1"
-                            value={meterValue}
-                            onChange={(e) => setMeterValue(e.target.value)}
-                            placeholder="Masukkan nilai meteran"
+                            value={usageAmount}
+                            onChange={(e) => setUsageAmount(e.target.value)}
+                            placeholder="Masukkan penggunaan air (m³)"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required
                             disabled={submitting}
                         />
                     </div>
 
-                    {meterValue && previousReading && (
-                        <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                            <p className="text-xs text-gray-600 mb-1">Penggunaan (Preview)</p>
-                            <p className="text-lg font-bold text-green-600">
-                                {calculatePreviewUsage().toFixed(1)} m³
+                    {usageAmount && calculateCumulativeMeter() !== null && (
+                        <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <p className="text-xs text-gray-600 mb-1">Nilai Meteran Akan Menjadi</p>
+                            <p className="text-lg font-bold text-blue-600">
+                                {calculateCumulativeMeter().toFixed(1)} m³
                             </p>
                         </div>
                     )}
