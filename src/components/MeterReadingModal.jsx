@@ -28,21 +28,20 @@ export default function MeterReadingModal({
         e.preventDefault();
         setError('');
 
-        // Validation
+        // Validasi simple
         if (!usageAmount || parseFloat(usageAmount) < 0) {
-            setError('Penggunaan air harus diisi dan tidak boleh negatif');
+            setError('Penggunaan air harus diisi');
             return;
         }
 
-
-
-        // Submit the reading with period
+        // DATA YANG DIKIRIM JADI SANGAT SEDIKIT
+        // Database Trigger yang akan melengkapi sisanya (previous_value & current_value)
         const newReading = {
-            customerId,
-            readingDate,
-            periodMonth: parseInt(periodMonth),
-            periodYear: parseInt(periodYear),
-            usageAmount: parseFloat(usageAmount),
+            customer_id: customerId,
+            reading_date: readingDate,
+            period_month: parseInt(periodMonth),
+            period_year: parseInt(periodYear),
+            usage_amount: parseFloat(usageAmount), // Cukup kirim ini saja!
             notes: notes || 'Pencatatan meteran'
         };
 

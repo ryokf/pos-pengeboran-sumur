@@ -138,14 +138,9 @@ export default function CustomerDetail() {
       const periodMonth = newReading.periodMonth;
       const periodYear = newReading.periodYear;
 
-      const result = await addMeterReading(
-        customerId,
-        newReading.usageAmount,  // Now passing usage amount instead of cumulative value
-        periodMonth,
-        periodYear,
-        previousValue,
-        newReading.notes || ''
-      );
+      // Submit to database - pass the complete object
+      // Database trigger will handle previous_value and current_value calculation
+      const result = await addMeterReading(newReading);
 
       // Refresh all data (meter readings, invoices, and customer balance)
       const updatedReadings = await getCustomerMeterReadings(customerId);

@@ -81,24 +81,9 @@ export default function MeterReadings() {
         try {
             setSubmitting(true);
 
-            // Get the latest reading for previous value
-            const latestReading = getLatestReading(selectedCustomer.id);
-            const previousValue = latestReading ? latestReading.current_value : 0;
-
-            // Get current month and year from reading date
-            const readingDate = new Date(newReading.readingDate);
-            const currentMonth = readingDate.getMonth() + 1;
-            const currentYear = readingDate.getFullYear();
-
-            // Submit to database
-            await addMeterReading(
-                selectedCustomer.id,
-                newReading.usageAmount,  // Now passing usage amount instead of cumulative value
-                currentMonth,
-                currentYear,
-                previousValue,
-                newReading.notes || ''
-            );
+            // Submit to database - pass the complete object
+            // Database trigger will handle previous_value and current_value calculation
+            await addMeterReading(newReading);
 
             // Refresh meter readings for this customer
             const updatedReadings = await getCustomerMeterReadings(selectedCustomer.id);

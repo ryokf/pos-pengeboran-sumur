@@ -117,26 +117,12 @@ const addAdjustment = async (customerId, amount, type, description = 'Penyesuaia
 }
 
 // Add meter reading and auto-generate invoice
-// Note: currentValue parameter now represents MONTHLY USAGE, not cumulative meter value
-const addMeterReading = async (customerId, usageAmount, periodMonth, periodYear, previousValue = 0, notes = '') => {
-    // 1. Calculate cumulative meter value
-    const cumulativeValue = previousValue + usageAmount;
-
-    // 2. Insert meter reading
+// Database trigger will automatically calculate previous_value and current_value
+const addMeterReading = async (meterReadingData) => {
+    // 1. Insert meter reading - database trigger will handle previous_value and current_value calculation
     const { data: meterData, error: meterError } = await supabase
         .from('meter_readings')
-        .insert([
-            {
-                customer_id: customerId,
-                period_month: periodMonth,
-                period_year: periodYear,
-                reading_date: new Date().toISOString().split('T')[0],
-                previous_value: previousValue,
-                current_value: cumulativeValue,  // Store cumulative value
-                usage_amount: usageAmount,        // Store monthly usage
-                notes: notes
-            }
-        ])
+        .insert([meterReadingData])
         .select()
         .single();
 
@@ -144,8 +130,8 @@ const addMeterReading = async (customerId, usageAmount, periodMonth, periodYear,
         throw new Error(meterError.message);
     }
 
-    // 3. Use the provided usage amount directly
-    const usage = usageAmount;
+    // 2. Get the calculated usage from the inserted record
+    const usage = meterData.usage_amount;
 
     // 4. Get pricing tiers from database
     const { data: pricingTiers, error: pricingError } = await supabase
@@ -196,25 +182,25 @@ const addMeterReading = async (customerId, usageAmount, periodMonth, periodYear,
     // 7. Generate invoice number
     const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
         'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-    const period = `${ monthNames[periodMonth - 1] } ${ periodYear }`;
+    const period = `${ monthNames[meterData.period_month - 1] } ${ meterData.period_year }`;
 
     // Get count of invoices this month for numbering
     const { count } = await supabase
         .from('invoices')
         .select('*', { count: 'exact', head: true })
-        .like('invoice_number', `INV/${ periodYear }/${ String(periodMonth).padStart(2, '0') }/%`);
+        .like('invoice_number', `INV/${ meterData.period_year }/${ String(meterData.period_month).padStart(2, '0') }/%`);
 
-    const invoiceNumber = `INV/${ periodYear }/${ String(periodMonth).padStart(2, '0') }/${ String((count || 0) + 1).padStart(3, '0') }`;
+    const invoiceNumber = `INV/${ meterData.period_year }/${ String(meterData.period_month).padStart(2, '0') }/${ String((count || 0) + 1).padStart(3, '0') }`;
 
     // 7. Create invoice
-    const dueDate = new Date(periodYear, periodMonth, 10); // Due on 10th of next month
+    const dueDate = new Date(meterData.period_year, meterData.period_month, 10); // Due on 10th of next month
     const dueDateStr = dueDate.toISOString().split('T')[0];
 
     const { data: invoiceData, error: invoiceError } = await supabase
         .from('invoices')
         .insert([
             {
-                customer_id: customerId,
+                customer_id: meterData.customer_id,
                 reading_id: meterData.id,
                 invoice_number: invoiceNumber,
                 period: period,
