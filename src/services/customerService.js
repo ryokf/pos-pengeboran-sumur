@@ -116,6 +116,138 @@ const addAdjustment = async (customerId, amount, type, description = 'Penyesuaia
     return data;
 }
 
+// Pay all unpaid invoices for a customer (Pure Frontend Logic)
+const payAllUnpaidInvoices = async (customerId) => {
+    try {
+        // 1. Get customer balance
+        const { data: customer, error: customerError } = await supabase
+            .from('customers')
+            .select('current_balance')
+            .eq('id', customerId)
+            .single();
+
+        if (customerError) {
+            throw new Error('Failed to get customer balance: ' + customerError.message);
+        }
+
+        let remainingBalance = customer.current_balance;
+
+        if (remainingBalance <= 0) {
+            return {
+                success: true,
+                message: 'Saldo tidak cukup untuk membayar tagihan',
+                invoices_paid: 0,
+                total_amount_paid: 0,
+                new_balance: remainingBalance
+            };
+        }
+
+        // 2. Get unpaid invoices (oldest first)
+        const { data: invoices, error: invoicesError } = await supabase
+            .from('invoices')
+            .select('*')
+            .eq('customer_id', customerId)
+            .eq('status', 'Unpaid')
+            .order('created_at', { ascending: true });
+
+        if (invoicesError) {
+            throw new Error('Failed to get invoices: ' + invoicesError.message);
+        }
+
+        if (!invoices || invoices.length === 0) {
+            return {
+                success: true,
+                message: 'Tidak ada tagihan yang perlu dibayar',
+                invoices_paid: 0,
+                total_amount_paid: 0,
+                new_balance: remainingBalance
+            };
+        }
+
+        let invoicesPaid = 0;
+        let totalPaid = 0;
+
+        // 3. Loop and pay each invoice
+        for (const invoice of invoices) {
+            if (remainingBalance <= 0) break;
+
+            // Get existing payments for this invoice
+            const { data: payments, error: paymentsError } = await supabase
+                .from('transactions')
+                .select('amount')
+                .eq('invoice_id', invoice.id)
+                .eq('type', 'OUT');
+
+            if (paymentsError) {
+                console.error('Failed to get payments for invoice:', invoice.id, paymentsError);
+                continue;
+            }
+
+            const totalPayment = payments ? payments.reduce((sum, p) => sum + (p.amount || 0), 0) : 0;
+            const remainingDebt = invoice.total_amount - totalPayment;
+
+            if (remainingDebt <= 0) continue; // Already paid
+
+            // Determine payment amount
+            const paymentAmount = Math.min(remainingBalance, remainingDebt);
+
+            // Create payment transaction
+            const { error: transactionError } = await supabase
+                .from('transactions')
+                .insert({
+                    customer_id: customerId,
+                    invoice_id: invoice.id,
+                    type: 'OUT',
+                    category: 'Pembayaran Tagihan',
+                    amount: paymentAmount,
+                    description: `Pembayaran untuk ${ invoice.period } (${ invoice.invoice_number })`,
+                    transaction_date: new Date().toISOString().split('T')[0]
+                });
+
+            if (transactionError) {
+                console.error('Failed to create payment transaction:', transactionError);
+                continue;
+            }
+
+            // Update invoice status if fully paid
+            if (paymentAmount >= remainingDebt) {
+                const { error: updateError } = await supabase
+                    .from('invoices')
+                    .update({ status: 'Paid' })
+                    .eq('id', invoice.id);
+
+                if (updateError) {
+                    console.error('Failed to update invoice status:', updateError);
+                }
+
+                invoicesPaid++;
+            }
+
+            remainingBalance -= paymentAmount;
+            totalPaid += paymentAmount;
+        }
+
+        // Get updated balance from database (trigger will have updated it)
+        const { data: updatedCustomer } = await supabase
+            .from('customers')
+            .select('current_balance')
+            .eq('id', customerId)
+            .single();
+
+        return {
+            success: true,
+            message: `Paid ${ invoicesPaid } invoice(s)`,
+            invoices_paid: invoicesPaid,
+            total_amount_paid: totalPaid,
+            new_balance: updatedCustomer?.current_balance || remainingBalance
+        };
+
+    } catch (error) {
+        console.error('Error in payAllUnpaidInvoices:', error);
+        throw error;
+    }
+}
+
 // Add meter reading and auto-generate invoice
 // Database trigger will automatically calculate previous_value and current_value
 const addMeterReading = async (meterReadingData) => {
@@ -253,6 +385,12 @@ const addCustomer = async (customerData) => {
     return data;
 }
 
+// Auto-pay invoices after top-up (called from handleTopUp in CustomerDetail)
+// This is the same logic as payAllUnpaidInvoices, just with a different name for clarity
+const autoPayInvoicesAfterTopUp = async (customerId) => {
+    return await payAllUnpaidInvoices(customerId);
+}
+
 export {
     getCustomers,
     getCustomerById,
@@ -262,5 +400,7 @@ export {
     addTopUp,
     addAdjustment,
     addMeterReading,
-    addCustomer
+    addCustomer,
+    payAllUnpaidInvoices,
+    autoPayInvoicesAfterTopUp
 };

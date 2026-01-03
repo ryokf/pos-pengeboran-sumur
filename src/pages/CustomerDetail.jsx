@@ -11,7 +11,9 @@ import {
   getCustomerInvoices,
   addTopUp,
   addAdjustment,
-  addMeterReading
+  addMeterReading,
+  payAllUnpaidInvoices,
+  autoPayInvoicesAfterTopUp
 } from '../services/customerService';
 
 export default function CustomerDetail() {
@@ -80,13 +82,33 @@ export default function CustomerDetail() {
 
     try {
       setSubmitting(true);
-      await addTopUp(customerId, Number.parseFloat(topUpAmount));
+      const topUpValue = Number.parseFloat(topUpAmount);
 
-      // Refresh customer data
+      // 1. Add top-up transaction
+      await addTopUp(customerId, topUpValue);
+
+      // 2. Auto-pay unpaid invoices
+      const paymentResult = await autoPayInvoicesAfterTopUp(customerId);
+
+      // 3. Refresh all customer data
       const updatedCustomer = await getCustomerById(customerId);
       setCustomer(updatedCustomer);
 
-      alert(`Top up sebesar ${ formatCurrency(Number.parseFloat(topUpAmount)) } berhasil diproses!`);
+      const updatedInvoices = await getCustomerInvoices(customerId);
+      setInvoices(updatedInvoices);
+
+      const updatedTransactions = await getCustomerTransactions(customerId);
+      setTransactions(updatedTransactions);
+
+      // 4. Show success message with payment details
+      alert(
+        `Top up berhasil!\n\n` +
+        `- Jumlah top-up: ${ formatCurrency(topUpValue) }\n` +
+        `- Tagihan dibayar: ${ paymentResult.invoices_paid }\n` +
+        `- Total pembayaran: ${ formatCurrency(paymentResult.total_amount_paid) }\n` +
+        `- Saldo akhir: ${ formatCurrency(paymentResult.new_balance) }`
+      );
+
       setShowTopUpModal(false);
       setTopUpAmount('');
     } catch (err) {
@@ -125,14 +147,42 @@ export default function CustomerDetail() {
     }
   };
 
+  // Handle pay all unpaid invoices
+  const handlePayAllInvoices = async () => {
+    try {
+      setSubmitting(true);
+
+      const result = await payAllUnpaidInvoices(customerId);
+
+      if (!result.success) {
+        alert('Gagal membayar tagihan: ' + result.message);
+        return;
+      }
+
+      // Refresh all data
+      const updatedCustomer = await getCustomerById(customerId);
+      setCustomer(updatedCustomer);
+
+      const updatedInvoices = await getCustomerInvoices(customerId);
+      setInvoices(updatedInvoices);
+
+      const updatedTransactions = await getCustomerTransactions(customerId);
+      setTransactions(updatedTransactions);
+
+      alert(`Berhasil membayar tagihan!\n\n- Jumlah tagihan dibayar: ${ result.invoices_paid }\n- Total pembayaran: Rp ${ result.total_amount_paid.toLocaleString('id-ID') }\n- Saldo tersisa: Rp ${ result.new_balance.toLocaleString('id-ID') }`);
+
+    } catch (err) {
+      console.error('Error paying invoices:', err);
+      alert('Gagal membayar tagihan: ' + err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   // Handle meter reading submission
   const handleMeterReading = async (newReading) => {
     try {
       setSubmitting(true);
-
-      // Get the latest reading for previous value
-      const latestReading = meterReadings.length > 0 ? meterReadings[0] : null;
-      const previousValue = latestReading ? latestReading.current_value : 0;
 
       // Use period from the form (not current month/year)
       const periodMonth = newReading.periodMonth;
@@ -261,13 +311,12 @@ export default function CustomerDetail() {
         ? invoices.find(inv => inv.reading_id === reading.id)
         : null;
 
-      // Find payments for this month
-      const monthPayments = transactions.filter(t => {
-        const tDate = new Date(t.transaction_date);
-        return tDate.getMonth() + 1 === month && tDate.getFullYear() === year;
-      });
+      // Find payments for this invoice (by invoice_id, not by month!)
+      const invoicePayments = invoice
+        ? transactions.filter(t => t.invoice_id === invoice.id && t.type === 'OUT')
+        : [];
 
-      const totalPayment = monthPayments.reduce((sum, t) => sum + (t.amount || 0), 0);
+      const totalPayment = invoicePayments.reduce((sum, t) => sum + (t.amount || 0), 0);
 
       // Check if there's any activity this month
       const hasActivity = reading || invoice || totalPayment > 0;
@@ -279,10 +328,15 @@ export default function CustomerDetail() {
         const usage = reading ? reading.usage_amount : 0;
         const monthlyDebt = monthlyCharge - totalPayment;
 
-        // Determine status
+        // Determine status - prioritize invoice.status from database
         let status;
 
-        if (monthlyCharge === 0 && totalPayment === 0) {
+        if (invoice && invoice.status) {
+          // Use status from database (Paid, Unpaid, Cancelled)
+          status = invoice.status === 'Paid' ? 'Lunas' :
+            invoice.status === 'Unpaid' ? 'Hutang' :
+              invoice.status;
+        } else if (monthlyCharge === 0 && totalPayment === 0) {
           // Only meter reading exists, no invoice and no payment yet
           status = '-';
         } else if (monthlyCharge === 0 && totalPayment > 0) {
@@ -337,19 +391,31 @@ export default function CustomerDetail() {
               </p>
             </div>
 
-            <div className="flex gap-4">
-              <button
-                onClick={() => setShowTopUpModal(true)}
-                className="flex-1 bg-white text-blue-600 font-semibold py-3 px-4 rounded-lg hover:bg-blue-50 transition-colors"
-              >
-                💳 Top Up Saldo
-              </button>
-              <button
-                onClick={() => setShowAdjustmentModal(true)}
-                className="flex-1 bg-blue-500 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-400 transition-colors"
-              >
-                ⚙️ Penyesuaian
-              </button>
+            <div className="flex flex-col gap-3">
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setShowTopUpModal(true)}
+                  className="flex-1 bg-white text-blue-600 font-semibold py-3 px-4 rounded-lg hover:bg-blue-50 transition-colors"
+                >
+                  💳 Top Up Saldo
+                </button>
+                <button
+                  onClick={() => setShowAdjustmentModal(true)}
+                  className="flex-1 bg-blue-500 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-400 transition-colors"
+                >
+                  ⚙️ Penyesuaian
+                </button>
+              </div>
+
+              {balance > 0 && (
+                <button
+                  onClick={handlePayAllInvoices}
+                  disabled={submitting}
+                  className="w-full bg-green-500 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  💰 Bayar Semua Hutang
+                </button>
+              )}
             </div>
           </div>
         </div>
