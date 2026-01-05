@@ -90,17 +90,23 @@ export default function CustomerDetail() {
       // 2. Auto-pay unpaid invoices
       const paymentResult = await autoPayInvoicesAfterTopUp(customerId);
 
-      // 3. Refresh all customer data
-      const updatedCustomer = await getCustomerById(customerId);
-      setCustomer(updatedCustomer);
+      // 3. Wait a moment to ensure all database transactions are committed
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      const updatedInvoices = await getCustomerInvoices(customerId);
-      setInvoices(updatedInvoices);
-
+      // 4. Refresh all customer data in the correct order
+      // First refresh transactions to get the latest payment records
       const updatedTransactions = await getCustomerTransactions(customerId);
       setTransactions(updatedTransactions);
 
-      // 4. Show success message with payment details
+      // Then refresh invoices to get updated statuses
+      const updatedInvoices = await getCustomerInvoices(customerId);
+      setInvoices(updatedInvoices);
+
+      // Finally refresh customer balance
+      const updatedCustomer = await getCustomerById(customerId);
+      setCustomer(updatedCustomer);
+
+      // 5. Show success message with payment details
       alert(
         `Top up berhasil!\n\n` +
         `- Jumlah top-up: ${ formatCurrency(topUpValue) }\n` +

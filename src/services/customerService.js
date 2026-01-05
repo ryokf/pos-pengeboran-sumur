@@ -41,13 +41,12 @@ const getCustomerMeterReadings = async (customerId) => {
     return data;
 }
 
-// Get customer transactions (payments)
+// Get customer transactions (both top-ups and payments)
 const getCustomerTransactions = async (customerId) => {
     const { data, error } = await supabase
         .from('transactions')
         .select('*')
         .eq('customer_id', customerId)
-        .eq('type', 'IN')
         .order('transaction_date', { ascending: false });
 
     if (error) {
@@ -132,15 +131,10 @@ const payAllUnpaidInvoices = async (customerId) => {
 
         let remainingBalance = customer.current_balance;
 
-        if (remainingBalance <= 0) {
-            return {
-                success: true,
-                message: 'Saldo tidak cukup untuk membayar tagihan',
-                invoices_paid: 0,
-                total_amount_paid: 0,
-                new_balance: remainingBalance
-            };
-        }
+        // NOTE: We don't return early if balance is negative (customer has debt)
+        // After top-up, balance might still be negative but there's cash available to pay
+        // Example: balance = -32500, top-up 20000 → balance = -12500
+        // We should still try to pay invoices with available funds
 
         // 2. Get unpaid invoices (oldest first)
         const { data: invoices, error: invoicesError } = await supabase
@@ -167,8 +161,13 @@ const payAllUnpaidInvoices = async (customerId) => {
         let invoicesPaid = 0;
         let totalPaid = 0;
 
+        // Log invoices to be processed
+        console.log(`Processing ${ invoices.length } unpaid invoices for customer ${ customerId }`);
+        console.log('Invoices:', invoices.map(inv => ({ id: inv.id, period: inv.period, amount: inv.total_amount })));
+
         // 3. Loop and pay each invoice
         for (const invoice of invoices) {
+            // Stop if no more positive balance available to pay
             if (remainingBalance <= 0) break;
 
             // Get existing payments for this invoice
@@ -188,11 +187,15 @@ const payAllUnpaidInvoices = async (customerId) => {
 
             if (remainingDebt <= 0) continue; // Already paid
 
-            // Determine payment amount
-            const paymentAmount = Math.min(remainingBalance, remainingDebt);
+            // Determine payment amount - use Math.max to ensure never negative
+            // This is crucial when balance might be negative (customer in debt)
+            const paymentAmount = Math.max(0, Math.min(remainingBalance, remainingDebt));
+
+            // Skip if no payment can be made (balance not sufficient)
+            if (paymentAmount <= 0) continue;
 
             // Create payment transaction
-            const { error: transactionError } = await supabase
+            const { data: transactionData, error: transactionError } = await supabase
                 .from('transactions')
                 .insert({
                     customer_id: customerId,
@@ -202,12 +205,16 @@ const payAllUnpaidInvoices = async (customerId) => {
                     amount: paymentAmount,
                     description: `Pembayaran untuk ${ invoice.period } (${ invoice.invoice_number })`,
                     transaction_date: new Date().toISOString().split('T')[0]
-                });
+                })
+                .select();
 
             if (transactionError) {
                 console.error('Failed to create payment transaction:', transactionError);
                 continue;
             }
+
+            // Log successful payment creation
+            console.log(`Payment created: Invoice ${ invoice.invoice_number }, Amount: ${ paymentAmount }, Transaction ID: ${ transactionData?.[0]?.id }`);
 
             // Update invoice status if fully paid
             if (paymentAmount >= remainingDebt) {

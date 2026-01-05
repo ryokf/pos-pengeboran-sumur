@@ -1,7 +1,7 @@
 // Reusable search input component
 export function SearchInput({ value, onChange, placeholder = 'Cari...' }) {
   return (
-    <div>
+    <div className="col-span-3">
       <label className="block text-sm font-medium text-gray-700 mb-2">Cari</label>
       <input
         type="text"
@@ -33,9 +33,9 @@ export function FilterSelect({ label, value, onChange, options }) {
 }
 
 // Reusable filter bar with search and filter
-export function FilterBar({ 
-  searchValue, 
-  onSearchChange, 
+export function FilterBar({
+  searchValue,
+  onSearchChange,
   searchPlaceholder = 'Cari...',
   filterLabel,
   filterValue,
@@ -46,24 +46,24 @@ export function FilterBar({
 }) {
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <SearchInput 
-          value={searchValue} 
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <SearchInput
+          value={searchValue}
           onChange={onSearchChange}
           placeholder={searchPlaceholder}
         />
-        
-        {filterLabel && (
+
+        {/* {filterLabel && (
           <FilterSelect
             label={filterLabel}
             value={filterValue}
             onChange={onFilterChange}
             options={filterOptions}
           />
-        )}
-        
+        )} */}
+
         <div className="flex items-end">
-          <button 
+          <button
             onClick={onAddNew}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
           >
@@ -88,7 +88,7 @@ export function PageHeader({ title, description }) {
 // Reusable badge/status component
 export function StatusBadge({ status, colorClass }) {
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-medium ${colorClass}`}>
+    <span className={`px-3 py-1 rounded-full text-xs font-medium ${ colorClass }`}>
       {status}
     </span>
   );
