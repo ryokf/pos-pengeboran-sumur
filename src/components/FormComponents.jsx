@@ -37,10 +37,6 @@ export function FilterBar({
   searchValue,
   onSearchChange,
   searchPlaceholder = 'Cari...',
-  filterLabel,
-  filterValue,
-  onFilterChange,
-  filterOptions,
   onAddNew,
   addButtonLabel = '+ Baru'
 }) {

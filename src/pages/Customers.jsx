@@ -63,10 +63,6 @@ export default function Customers() {
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
         searchPlaceholder="Cari berdasarkan nama, email, atau telepon..."
-        filterLabel="Tipe"
-        filterValue="All"
-        onFilterChange={() => { }}
-        filterOptions={[]}
         onAddNew={() => setIsModalOpen(true)}
         addButtonLabel="+ Pelanggan Baru"
       />

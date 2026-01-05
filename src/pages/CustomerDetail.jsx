@@ -88,7 +88,7 @@ export default function CustomerDetail() {
       await addTopUp(customerId, topUpValue);
 
       // 2. Auto-pay unpaid invoices
-      const paymentResult = await autoPayInvoicesAfterTopUp(customerId);
+      const paymentResult = await autoPayInvoicesAfterTopUp(customerId, topUpValue);
 
       // 3. Wait a moment to ensure all database transactions are committed
       await new Promise(resolve => setTimeout(resolve, 500));

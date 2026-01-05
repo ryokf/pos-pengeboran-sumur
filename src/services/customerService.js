@@ -71,6 +71,25 @@ const getCustomerInvoices = async (customerId) => {
 
 // Add top up (payment transaction)
 const addTopUp = async (customerId, amount, description = 'Top Up Saldo') => {
+    const { data: customer, error: customerError } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('id', customerId)
+        .single();
+
+    if (customerError) {
+        throw new Error(customerError.message);
+    }
+    const currentBalance = customer.current_balance;
+    const newBalance = currentBalance + amount;
+
+    await supabase
+        .from('customers')
+        .update({
+            current_balance: newBalance
+        })
+        .eq('id', customerId);
+
     const { data, error } = await supabase
         .from('transactions')
         .insert([
@@ -116,21 +135,8 @@ const addAdjustment = async (customerId, amount, type, description = 'Penyesuaia
 }
 
 // Pay all unpaid invoices for a customer (Pure Frontend Logic)
-const payAllUnpaidInvoices = async (customerId) => {
+const payAllUnpaidInvoices = async (customerId, topUpValue) => {
     try {
-        // 1. Get customer balance
-        const { data: customer, error: customerError } = await supabase
-            .from('customers')
-            .select('current_balance')
-            .eq('id', customerId)
-            .single();
-
-        if (customerError) {
-            throw new Error('Failed to get customer balance: ' + customerError.message);
-        }
-
-        let remainingBalance = customer.current_balance;
-
         // NOTE: We don't return early if balance is negative (customer has debt)
         // After top-up, balance might still be negative but there's cash available to pay
         // Example: balance = -32500, top-up 20000 → balance = -12500
@@ -154,7 +160,7 @@ const payAllUnpaidInvoices = async (customerId) => {
                 message: 'Tidak ada tagihan yang perlu dibayar',
                 invoices_paid: 0,
                 total_amount_paid: 0,
-                new_balance: remainingBalance
+                new_balance: topUpValue
             };
         }
 
@@ -168,7 +174,7 @@ const payAllUnpaidInvoices = async (customerId) => {
         // 3. Loop and pay each invoice
         for (const invoice of invoices) {
             // Stop if no more positive balance available to pay
-            if (remainingBalance <= 0) break;
+            if (topUpValue <= 0) break;
 
             // Get existing payments for this invoice
             const { data: payments, error: paymentsError } = await supabase
@@ -189,7 +195,7 @@ const payAllUnpaidInvoices = async (customerId) => {
 
             // Determine payment amount - use Math.max to ensure never negative
             // This is crucial when balance might be negative (customer in debt)
-            const paymentAmount = Math.max(0, Math.min(remainingBalance, remainingDebt));
+            const paymentAmount = Math.max(0, Math.min(topUpValue, remainingDebt));
 
             // Skip if no payment can be made (balance not sufficient)
             if (paymentAmount <= 0) continue;
@@ -230,7 +236,7 @@ const payAllUnpaidInvoices = async (customerId) => {
                 invoicesPaid++;
             }
 
-            remainingBalance -= paymentAmount;
+            topUpValue -= paymentAmount;
             totalPaid += paymentAmount;
         }
 
@@ -246,7 +252,7 @@ const payAllUnpaidInvoices = async (customerId) => {
             message: `Paid ${ invoicesPaid } invoice(s)`,
             invoices_paid: invoicesPaid,
             total_amount_paid: totalPaid,
-            new_balance: updatedCustomer?.current_balance || remainingBalance
+            new_balance: updatedCustomer?.current_balance
         };
 
     } catch (error) {
@@ -394,8 +400,8 @@ const addCustomer = async (customerData) => {
 
 // Auto-pay invoices after top-up (called from handleTopUp in CustomerDetail)
 // This is the same logic as payAllUnpaidInvoices, just with a different name for clarity
-const autoPayInvoicesAfterTopUp = async (customerId) => {
-    return await payAllUnpaidInvoices(customerId);
+const autoPayInvoicesAfterTopUp = async (customerId, topUpValue) => {
+    return await payAllUnpaidInvoices(customerId, topUpValue);
 }
 
 export {
