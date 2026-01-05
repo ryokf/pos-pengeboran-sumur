@@ -70,26 +70,34 @@ const getCustomerInvoices = async (customerId) => {
 }
 
 // Add top up (payment transaction)
+// Frontend handles balance update - no database trigger needed
 const addTopUp = async (customerId, amount, description = 'Top Up Saldo') => {
+    // 1. Get current customer balance
     const { data: customer, error: customerError } = await supabase
         .from('customers')
-        .select('*')
+        .select('current_balance')
         .eq('id', customerId)
         .single();
 
     if (customerError) {
-        throw new Error(customerError.message);
+        throw new Error('Failed to get customer balance: ' + customerError.message);
     }
-    const currentBalance = customer.current_balance;
+
+    // 2. Calculate new balance (add top-up amount)
+    const currentBalance = customer.current_balance || 0;
     const newBalance = currentBalance + amount;
 
-    await supabase
+    // 3. Update customer balance FIRST
+    const { error: updateError } = await supabase
         .from('customers')
-        .update({
-            current_balance: newBalance
-        })
+        .update({ current_balance: newBalance })
         .eq('id', customerId);
 
+    if (updateError) {
+        throw new Error('Failed to update customer balance: ' + updateError.message);
+    }
+
+    // 4. Then create transaction record
     const { data, error } = await supabase
         .from('transactions')
         .insert([
@@ -105,15 +113,49 @@ const addTopUp = async (customerId, amount, description = 'Top Up Saldo') => {
         .select();
 
     if (error) {
+        // Rollback balance if transaction insert fails
+        await supabase
+            .from('customers')
+            .update({ current_balance: currentBalance })
+            .eq('id', customerId);
         throw new Error(error.message);
     }
+
     return data;
 }
 
 // Add adjustment (can be positive or negative)
+// Frontend handles balance update - no database trigger needed
 const addAdjustment = async (customerId, amount, type, description = 'Penyesuaian Saldo') => {
     const transactionType = type === 'add' ? 'IN' : 'OUT';
 
+    // 1. Get current customer balance
+    const { data: customer, error: customerError } = await supabase
+        .from('customers')
+        .select('current_balance')
+        .eq('id', customerId)
+        .single();
+
+    if (customerError) {
+        throw new Error('Failed to get customer balance: ' + customerError.message);
+    }
+
+    // 2. Calculate new balance (add or subtract based on type)
+    const currentBalance = customer.current_balance || 0;
+    const adjustmentAmount = type === 'add' ? Math.abs(amount) : -Math.abs(amount);
+    const newBalance = currentBalance + adjustmentAmount;
+
+    // 3. Update customer balance FIRST
+    const { error: updateError } = await supabase
+        .from('customers')
+        .update({ current_balance: newBalance })
+        .eq('id', customerId);
+
+    if (updateError) {
+        throw new Error('Failed to update customer balance: ' + updateError.message);
+    }
+
+    // 4. Then create transaction record
     const { data, error } = await supabase
         .from('transactions')
         .insert([
@@ -129,20 +171,36 @@ const addAdjustment = async (customerId, amount, type, description = 'Penyesuaia
         .select();
 
     if (error) {
+        // Rollback balance if transaction insert fails
+        await supabase
+            .from('customers')
+            .update({ current_balance: currentBalance })
+            .eq('id', customerId);
         throw new Error(error.message);
     }
+
     return data;
 }
 
 // Pay all unpaid invoices for a customer (Pure Frontend Logic)
+// Uses topUpValue as source of funds - balance already updated by addTopUp
 const payAllUnpaidInvoices = async (customerId, topUpValue) => {
     try {
-        // NOTE: We don't return early if balance is negative (customer has debt)
-        // After top-up, balance might still be negative but there's cash available to pay
-        // Example: balance = -32500, top-up 20000 → balance = -12500
-        // We should still try to pay invoices with available funds
+        // Use topUpValue as available funds for payment
+        let remainingFunds = topUpValue;
 
-        // 2. Get unpaid invoices (oldest first)
+        // If no funds available, cannot pay
+        if (remainingFunds <= 0) {
+            return {
+                success: true,
+                message: 'Tidak ada dana untuk membayar tagihan',
+                invoices_paid: 0,
+                total_amount_paid: 0,
+                remaining_funds: remainingFunds
+            };
+        }
+
+        // Get unpaid invoices (oldest first)
         const { data: invoices, error: invoicesError } = await supabase
             .from('invoices')
             .select('*')
@@ -160,7 +218,7 @@ const payAllUnpaidInvoices = async (customerId, topUpValue) => {
                 message: 'Tidak ada tagihan yang perlu dibayar',
                 invoices_paid: 0,
                 total_amount_paid: 0,
-                new_balance: topUpValue
+                remaining_funds: remainingFunds
             };
         }
 
@@ -169,12 +227,13 @@ const payAllUnpaidInvoices = async (customerId, topUpValue) => {
 
         // Log invoices to be processed
         console.log(`Processing ${ invoices.length } unpaid invoices for customer ${ customerId }`);
+        console.log('Available funds:', remainingFunds);
         console.log('Invoices:', invoices.map(inv => ({ id: inv.id, period: inv.period, amount: inv.total_amount })));
 
-        // 3. Loop and pay each invoice
+        // Loop and pay each invoice
         for (const invoice of invoices) {
-            // Stop if no more positive balance available to pay
-            if (topUpValue <= 0) break;
+            // Stop if no more funds available to pay
+            if (remainingFunds <= 0) break;
 
             // Get existing payments for this invoice
             const { data: payments, error: paymentsError } = await supabase
@@ -193,14 +252,13 @@ const payAllUnpaidInvoices = async (customerId, topUpValue) => {
 
             if (remainingDebt <= 0) continue; // Already paid
 
-            // Determine payment amount - use Math.max to ensure never negative
-            // This is crucial when balance might be negative (customer in debt)
-            const paymentAmount = Math.max(0, Math.min(topUpValue, remainingDebt));
+            // Determine payment amount from available funds
+            const paymentAmount = Math.max(0, Math.min(remainingFunds, remainingDebt));
 
-            // Skip if no payment can be made (balance not sufficient)
+            // Skip if no payment can be made
             if (paymentAmount <= 0) continue;
 
-            // Create payment transaction
+            // Create payment transaction (balance already deducted when invoice was created)
             const { data: transactionData, error: transactionError } = await supabase
                 .from('transactions')
                 .insert({
@@ -236,12 +294,13 @@ const payAllUnpaidInvoices = async (customerId, topUpValue) => {
                 invoicesPaid++;
             }
 
-            topUpValue -= paymentAmount;
+            // Deduct from available funds
+            remainingFunds -= paymentAmount;
             totalPaid += paymentAmount;
         }
 
-        // Get updated balance from database (trigger will have updated it)
-        const { data: updatedCustomer } = await supabase
+        // Get final customer balance
+        const { data: finalCustomer } = await supabase
             .from('customers')
             .select('current_balance')
             .eq('id', customerId)
@@ -252,7 +311,7 @@ const payAllUnpaidInvoices = async (customerId, topUpValue) => {
             message: `Paid ${ invoicesPaid } invoice(s)`,
             invoices_paid: invoicesPaid,
             total_amount_paid: totalPaid,
-            new_balance: updatedCustomer?.current_balance
+            new_balance: finalCustomer?.current_balance || 0
         };
 
     } catch (error) {
@@ -262,12 +321,35 @@ const payAllUnpaidInvoices = async (customerId, topUpValue) => {
 }
 
 // Add meter reading and auto-generate invoice
-// Database trigger will automatically calculate previous_value and current_value
+// Frontend handles all calculations and balance updates - no database trigger needed
 const addMeterReading = async (meterReadingData) => {
-    // 1. Insert meter reading - database trigger will handle previous_value and current_value calculation
+    // 1. Get previous meter reading to calculate previous_value
+    const { data: previousReadings, error: previousError } = await supabase
+        .from('meter_readings')
+        .select('current_value')
+        .eq('customer_id', meterReadingData.customer_id)
+        .order('reading_date', { ascending: false })
+        .limit(1);
+
+    if (previousError) {
+        throw new Error('Failed to get previous reading: ' + previousError.message);
+    }
+
+    // 2. Calculate previous_value and current_value
+    const previous_value = previousReadings && previousReadings.length > 0
+        ? previousReadings[0].current_value
+        : 0;
+
+    const current_value = previous_value + meterReadingData.usage_amount;
+
+    // 3. Insert meter reading with calculated values
     const { data: meterData, error: meterError } = await supabase
         .from('meter_readings')
-        .insert([meterReadingData])
+        .insert([{
+            ...meterReadingData,
+            previous_value,
+            current_value
+        }])
         .select()
         .single();
 
@@ -275,10 +357,10 @@ const addMeterReading = async (meterReadingData) => {
         throw new Error(meterError.message);
     }
 
-    // 2. Get the calculated usage from the inserted record
+    // 4. Get the usage amount
     const usage = meterData.usage_amount;
 
-    // 4. Get pricing tiers from database
+    // 5. Get pricing tiers from database
     const { data: pricingTiers, error: pricingError } = await supabase
         .from('pricing_tiers')
         .select('*')
@@ -288,7 +370,7 @@ const addMeterReading = async (meterReadingData) => {
         throw new Error('Failed to get pricing tiers: ' + pricingError.message);
     }
 
-    // 5. Calculate water cost based on usage and pricing tiers
+    // 6. Calculate water cost based on usage and pricing tiers
     let waterCost = 0;
 
     if (usage > 0 && pricingTiers && pricingTiers.length > 0) {
@@ -311,7 +393,7 @@ const addMeterReading = async (meterReadingData) => {
         waterCost = usage * applicableTier.price_per_m3;
     }
 
-    // 6. Get admin fee from app settings
+    // 7. Get admin fee from app settings
     const { data: settings, error: settingsError } = await supabase
         .from('app_settings')
         .select('admin_fee')
@@ -324,7 +406,7 @@ const addMeterReading = async (meterReadingData) => {
     const adminFee = settings?.admin_fee || 0;
     const totalAmount = waterCost + adminFee;
 
-    // 7. Generate invoice number
+    // 8. Generate invoice number
     const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
         'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     const period = `${ monthNames[meterData.period_month - 1] } ${ meterData.period_year }`;
@@ -337,7 +419,7 @@ const addMeterReading = async (meterReadingData) => {
 
     const invoiceNumber = `INV/${ meterData.period_year }/${ String(meterData.period_month).padStart(2, '0') }/${ String((count || 0) + 1).padStart(3, '0') }`;
 
-    // 7. Create invoice
+    // 9. Create invoice
     const dueDate = new Date(meterData.period_year, meterData.period_month, 10); // Due on 10th of next month
     const dueDateStr = dueDate.toISOString().split('T')[0];
 
@@ -362,6 +444,27 @@ const addMeterReading = async (meterReadingData) => {
         // If invoice creation fails, we should still return the meter reading
         console.error('Failed to create invoice:', invoiceError);
         throw new Error('Meter reading saved but failed to create invoice: ' + invoiceError.message);
+    }
+
+    // 10. Deduct invoice amount from customer balance (replaces database trigger)
+    const { data: customer, error: customerError } = await supabase
+        .from('customers')
+        .select('current_balance')
+        .eq('id', meterData.customer_id)
+        .single();
+
+    if (customerError) {
+        console.error('Failed to get customer balance:', customerError);
+    } else {
+        const newBalance = (customer.current_balance || 0) - totalAmount;
+        const { error: updateError } = await supabase
+            .from('customers')
+            .update({ current_balance: newBalance })
+            .eq('id', meterData.customer_id);
+
+        if (updateError) {
+            console.error('Failed to update customer balance:', updateError);
+        }
     }
 
     return {

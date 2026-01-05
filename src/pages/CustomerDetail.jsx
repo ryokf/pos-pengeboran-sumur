@@ -87,7 +87,7 @@ export default function CustomerDetail() {
       // 1. Add top-up transaction
       await addTopUp(customerId, topUpValue);
 
-      // 2. Auto-pay unpaid invoices
+      // 2. Auto-pay unpaid invoices using top-up amount
       const paymentResult = await autoPayInvoicesAfterTopUp(customerId, topUpValue);
 
       // 3. Wait a moment to ensure all database transactions are committed
