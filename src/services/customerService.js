@@ -33,7 +33,8 @@ const getCustomerMeterReadings = async (customerId) => {
         .select('*')
         .eq('customer_id', customerId)
         .order('period_year', { ascending: false })
-        .order('period_month', { ascending: false });
+        .order('period_month', { ascending: false })
+        .order('created_at', { ascending: false });
 
     if (error) {
         throw new Error(error.message);

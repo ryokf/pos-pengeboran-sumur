@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader, FilterBar, MeterReadingModal } from '../components';
-import { formatDate, matchesSearch } from '../utils';
+import { matchesSearch } from '../utils';
 import {
     getCustomers,
     getCustomerMeterReadings,
@@ -51,6 +51,14 @@ export default function MeterReadings() {
     const filteredCustomers = customers.filter(customer =>
         matchesSearch(searchTerm, customer.name, customer.phone, customer.email)
     );
+
+    // Helper function to format period
+    const formatPeriod = (reading) => {
+        if (!reading) return null;
+        const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        return `${ monthNames[reading.period_month - 1] } ${ reading.period_year }`;
+    };
 
     // Get latest meter reading for a customer
     const getLatestReading = (customerId) => {
@@ -160,7 +168,7 @@ export default function MeterReadings() {
                                         <td className="py-4 px-6 text-center">
                                             {previousReading ? (
                                                 <div>
-                                                    <p className="text-sm text-gray-600">{formatDate(previousReading.reading_date)}</p>
+                                                    <p className="text-sm text-gray-600">{formatPeriod(previousReading)}</p>
                                                     <p className="font-semibold text-gray-800">{previousReading.current_value} m³</p>
                                                 </div>
                                             ) : (
@@ -170,7 +178,7 @@ export default function MeterReadings() {
                                         <td className="py-4 px-6 text-center">
                                             {latestReading ? (
                                                 <div>
-                                                    <p className="text-sm text-gray-600">{formatDate(latestReading.reading_date)}</p>
+                                                    <p className="text-sm text-gray-600">{formatPeriod(latestReading)}</p>
                                                     <p className="font-semibold text-blue-600">{latestReading.current_value} m³</p>
                                                 </div>
                                             ) : (
