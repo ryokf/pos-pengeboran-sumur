@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { formatCurrency } from '../utils';
-import { getCustomers, getCustomerMeterReadings, getCustomerInvoices } from '../services/customerService';
+import { getCustomers, getCustomerMeterReadings, getCustomerInvoices, getCustomerTransactions } from '../services/customerService';
 
 export default function BillingPrint() {
     const [loading, setLoading] = useState(true);
@@ -30,6 +30,9 @@ export default function BillingPrint() {
                             // Get invoices for this customer
                             const invoices = await getCustomerInvoices(customer.id);
 
+                            // Get transactions for this customer
+                            const transactions = await getCustomerTransactions(customer.id);
+
                             // Get the latest reading (first in the sorted array)
                             const latestReading = readings.length > 0 ? readings[0] : null;
 
@@ -44,7 +47,16 @@ export default function BillingPrint() {
 
                             // Get the latest invoice
                             const latestInvoice = invoices.length > 0 ? invoices[0] : null;
-                            const monthlyCharge = latestInvoice ? latestInvoice.total_amount : 0;
+
+                            // Calculate remaining amount after payments
+                            let monthlyCharge = 0;
+                            if (latestInvoice) {
+                                const invoicePayments = transactions.filter(
+                                    t => t.invoice_id === latestInvoice.id && t.type === 'OUT'
+                                );
+                                const totalPayments = invoicePayments.reduce((sum, t) => sum + (t.amount || 0), 0);
+                                monthlyCharge = Math.max(0, latestInvoice.total_amount - totalPayments);
+                            }
 
                             return {
                                 id: customer.id,
