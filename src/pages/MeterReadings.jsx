@@ -188,7 +188,7 @@ export default function MeterReadings() {
                                         <td className="py-4 px-6 text-center">
                                             {usage > 0 ? (
                                                 <div className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full">
-                                                    <span className="font-bold">{usage.toFixed(1)} m³</span>
+                                                    <span className="font-bold">{latestReading.current_value} m³</span>
                                                 </div>
                                             ) : (
                                                 <span className="text-sm text-gray-400">-</span>

@@ -125,6 +125,7 @@ const addTopUp = async (customerId, amount, description = 'Top Up Saldo') => {
     return data;
 }
 
+
 // Add adjustment (can be positive or negative)
 // Frontend handles balance update - no database trigger needed
 const addAdjustment = async (customerId, amount, type, description = 'Penyesuaian Saldo') => {
