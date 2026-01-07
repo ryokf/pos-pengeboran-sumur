@@ -385,11 +385,12 @@ export default function CustomerDetail() {
 
       <PageHeader title={customer.name} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Main Balance Card */}
-        <div className="lg:col-span-2">
-          <div className="bg-linear-to-br from-blue-600 to-blue-800 rounded-lg shadow-lg p-8 text-white">
-            <div className="mb-8">
+      {/* Combined Customer Info & Balance Card */}
+      <div className="bg-white rounded-lg shadow-lg overflow-hidden mb-8">
+        {/* Balance Header with Gradient */}
+        <div className="bg-linear-to-br from-blue-600 to-blue-800 p-6 text-white">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
               <p className="text-blue-100 text-sm font-medium mb-2">Saldo Akun Pelanggan</p>
               <h2 className="text-4xl font-bold mb-2">{balance >= 0 ? '+' : ''}{formatCurrency(Math.abs(balance))}</h2>
               <p className={`text-sm font-medium ${ balance >= 0 ? 'text-green-200' : 'text-red-200' }`}>
@@ -397,62 +398,46 @@ export default function CustomerDetail() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-3">
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setShowTopUpModal(true)}
-                  className="flex-1 bg-white text-blue-600 font-semibold py-3 px-4 rounded-lg hover:bg-blue-50 transition-colors"
-                >
-                  💳 Top Up Saldo
-                </button>
-                <button
-                  onClick={() => setShowAdjustmentModal(true)}
-                  className="flex-1 bg-blue-500 text-white font-semibold py-3 px-4 rounded-lg hover:bg-blue-400 transition-colors"
-                >
-                  ⚙️ Penyesuaian
-                </button>
-              </div>
-
-              {balance > 0 && (
-                <button
-                  onClick={handlePayAllInvoices}
-                  disabled={submitting}
-                  className="w-full bg-green-500 text-white font-semibold py-3 px-4 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  💰 Bayar Semua Hutang
-                </button>
-              )}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowTopUpModal(true)}
+                className="bg-white text-blue-600 font-semibold py-3 px-6 rounded-lg hover:bg-blue-50 transition-colors shadow-md"
+              >
+                💳 Top Up Saldo
+              </button>
+              <button
+                onClick={() => setShowAdjustmentModal(true)}
+                className="bg-blue-500 text-white font-semibold py-3 px-6 rounded-lg hover:bg-blue-400 transition-colors shadow-md"
+              >
+                ⚙️ Penyesuaian
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Customer Info Card */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Informasi Pelanggan</h3>
-          <div className="space-y-4">
+        {/* Customer Information Grid */}
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4 pb-2 border-b border-gray-200">Informasi Pelanggan</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div>
               <p className="text-xs font-medium text-gray-500 mb-1">Email</p>
-              <p className="text-sm text-gray-700">{customer.email || '-'}</p>
+              <p className="text-sm text-gray-800 font-medium">{customer.email || '-'}</p>
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500 mb-1">Telepon</p>
-              <p className="text-sm text-gray-700">{customer.phone || '-'}</p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-1">RT/RW</p>
-              <p className="text-sm text-gray-700">RT {customer.rt || '-'} / RW {customer.rw || '-'}</p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-1">Kota</p>
-              <p className="text-sm text-gray-700">{customer.city || '-'}</p>
-            </div>
-            <div>
-              <p className="text-xs font-medium text-gray-500 mb-1">Alamat</p>
-              <p className="text-sm text-gray-700">{customer.address || '-'}</p>
+              <p className="text-sm text-gray-800 font-medium">{customer.phone || '-'}</p>
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500 mb-1">Nomor Meteran</p>
-              <p className="text-sm text-gray-700">{customer.meter_number || '-'}</p>
+              <p className="text-sm text-gray-800 font-medium">{customer.meter_number || '-'}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-1">RT/RW</p>
+              <p className="text-sm text-gray-800 font-medium">RT {customer.rt || '-'} / RW {customer.rw || '-'}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-1">Kota</p>
+              <p className="text-sm text-gray-800 font-medium">{customer.city || '-'}</p>
             </div>
             <div>
               <p className="text-xs font-medium text-gray-500 mb-1">Status</p>
@@ -460,6 +445,10 @@ export default function CustomerDetail() {
                 }`}>
                 {customer.status === 'active' ? '✓ Aktif' : customer.status}
               </span>
+            </div>
+            <div className="md:col-span-2 lg:col-span-3">
+              <p className="text-xs font-medium text-gray-500 mb-1">Alamat</p>
+              <p className="text-sm text-gray-800 font-medium">{customer.address || '-'}</p>
             </div>
           </div>
         </div>

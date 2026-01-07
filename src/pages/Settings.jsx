@@ -34,9 +34,10 @@ export default function Settings() {
         <p className="text-gray-600 mt-2">Kelola pengaturan aplikasi dan perusahaan</p>
       </div>
 
-      <div className="max-w-2xl">
-        {/* Company Information */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      {/* Main Grid Layout - 2 columns on desktop, 1 on mobile */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Company Information - Full Width */}
+        <div className="bg-white rounded-lg shadow-md p-6 lg:col-span-2">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">🏢 Informasi Perusahaan</h3>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -97,7 +98,7 @@ export default function Settings() {
         </div>
 
         {/* Admin Fee Settings */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">💰 Biaya Admin</h3>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -143,7 +144,7 @@ export default function Settings() {
         </div>
 
         {/* Preferences */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">⚙️ Preferensi</h3>
 
           <div className="space-y-4">
@@ -188,43 +189,64 @@ export default function Settings() {
                 <option value="auto">Otomatis</option>
               </select>
             </div>
+
+            <div className="border-t border-gray-200 pt-4">
+              <button
+                type="button"
+                onClick={() => alert('Pengaturan berhasil disimpan!')}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors"
+              >
+                Simpan Preferensi
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Notifications */}
-        <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="bg-white rounded-lg shadow-md p-6 lg:col-span-2">
           <h3 className="text-xl font-semibold text-gray-800 mb-4">🔔 Notifikasi</h3>
 
-          <div className="space-y-4">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                name="notifications"
-                checked={settings.notifications}
-                onChange={handleChange}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="ml-3 text-gray-700">Aktifkan notifikasi dalam aplikasi</span>
-            </label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <label className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  name="notifications"
+                  checked={settings.notifications}
+                  onChange={handleChange}
+                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="ml-3">
+                  <span className="text-gray-800 font-medium">Notifikasi Aplikasi</span>
+                  <p className="text-xs text-gray-500 mt-1">Aktifkan notifikasi dalam aplikasi</p>
+                </div>
+              </label>
 
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                name="emailNotifications"
-                checked={settings.emailNotifications}
-                onChange={handleChange}
-                className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="ml-3 text-gray-700">Aktifkan notifikasi email</span>
-            </label>
+              <label className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                <input
+                  type="checkbox"
+                  name="emailNotifications"
+                  checked={settings.emailNotifications}
+                  onChange={handleChange}
+                  className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                />
+                <div className="ml-3">
+                  <span className="text-gray-800 font-medium">Notifikasi Email</span>
+                  <p className="text-xs text-gray-500 mt-1">Aktifkan notifikasi email</p>
+                </div>
+              </label>
+            </div>
 
-            <button
-              type="button"
-              onClick={() => alert('Pengaturan berhasil disimpan!')}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-6 rounded-lg transition-colors mt-4"
-            >
-              Simpan Preferensi
-            </button>
+            <div className="flex items-center">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 w-full">
+                <h4 className="font-semibold text-blue-900 mb-2">ℹ️ Tentang Notifikasi</h4>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li>• Notifikasi aplikasi untuk update real-time</li>
+                  <li>• Email untuk tagihan dan pembayaran penting</li>
+                  <li>• Dapat diatur sesuai preferensi Anda</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>
