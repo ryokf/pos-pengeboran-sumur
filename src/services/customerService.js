@@ -448,7 +448,8 @@ const addMeterReading = async (meterReadingData) => {
         throw new Error('Meter reading saved but failed to create invoice: ' + invoiceError.message);
     }
 
-    // 10. Deduct invoice amount from customer balance (replaces database trigger)
+
+    // 10. Get customer balance and handle invoice payment
     const { data: customer, error: customerError } = await supabase
         .from('customers')
         .select('current_balance')
@@ -458,7 +459,11 @@ const addMeterReading = async (meterReadingData) => {
     if (customerError) {
         console.error('Failed to get customer balance:', customerError);
     } else {
-        const newBalance = (customer.current_balance || 0) - totalAmount;
+        const currentBalance = customer.current_balance || 0;
+
+        // Always deduct invoice amount from balance (creates debt if insufficient)
+        const newBalance = currentBalance - totalAmount;
+
         const { error: updateError } = await supabase
             .from('customers')
             .update({ current_balance: newBalance })
@@ -466,6 +471,67 @@ const addMeterReading = async (meterReadingData) => {
 
         if (updateError) {
             console.error('Failed to update customer balance:', updateError);
+        }
+
+        // 11. Handle payment based on available balance
+        if (invoiceData && invoiceData[0]) {
+            const invoice = invoiceData[0];
+
+            if (currentBalance >= totalAmount) {
+                // Case 1: Full payment - customer has sufficient balance
+                const { error: paymentError } = await supabase
+                    .from('transactions')
+                    .insert({
+                        customer_id: meterData.customer_id,
+                        invoice_id: invoice.id,
+                        type: 'OUT',
+                        category: 'Pembayaran Tagihan',
+                        amount: totalAmount,
+                        description: `Pembayaran otomatis untuk ${ invoice.period } (${ invoice.invoice_number })`,
+                        transaction_date: new Date().toISOString().split('T')[0]
+                    })
+                    .select();
+
+                if (paymentError) {
+                    console.error('Failed to create auto-payment transaction:', paymentError);
+                } else {
+                    // Update invoice status to Paid
+                    const { error: invoiceUpdateError } = await supabase
+                        .from('invoices')
+                        .update({ status: 'Paid' })
+                        .eq('id', invoice.id);
+
+                    if (invoiceUpdateError) {
+                        console.error('Failed to update invoice status to Paid:', invoiceUpdateError);
+                    } else {
+                        console.log(`Auto-payment successful: Invoice ${ invoice.invoice_number } paid in full (Balance: Rp ${ currentBalance.toLocaleString('id-ID') } → Rp ${ newBalance.toLocaleString('id-ID') })`);
+                    }
+                }
+            } else if (currentBalance > 0) {
+                // Case 2: Partial payment - customer has some balance but not enough
+                const { error: paymentError } = await supabase
+                    .from('transactions')
+                    .insert({
+                        customer_id: meterData.customer_id,
+                        invoice_id: invoice.id,
+                        type: 'OUT',
+                        category: 'Pembayaran Tagihan',
+                        amount: currentBalance,
+                        description: `Pembayaran parsial untuk ${ invoice.period } (${ invoice.invoice_number })`,
+                        transaction_date: new Date().toISOString().split('T')[0]
+                    })
+                    .select();
+
+                if (paymentError) {
+                    console.error('Failed to create partial payment transaction:', paymentError);
+                } else {
+                    console.log(`Partial payment: Invoice ${ invoice.invoice_number } - Paid Rp ${ currentBalance.toLocaleString('id-ID') } of Rp ${ totalAmount.toLocaleString('id-ID') } (Remaining debt: Rp ${ Math.abs(newBalance).toLocaleString('id-ID') })`);
+                }
+                // Invoice remains "Unpaid" since not fully paid
+            } else {
+                // Case 3: No payment - customer has zero or negative balance
+                console.log(`No payment: Invoice created but not paid (Balance: Rp ${ currentBalance.toLocaleString('id-ID') }, Invoice: Rp ${ totalAmount.toLocaleString('id-ID') })`);
+            }
         }
     }
 
