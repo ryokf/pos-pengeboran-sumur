@@ -184,8 +184,8 @@ const addAdjustment = async (customerId, amount, type, description = 'Penyesuaia
     return data;
 }
 
-// Pay all unpaid invoices for a customer (Pure Frontend Logic)
-// Uses topUpValue as source of funds - balance already updated by addTopUp
+// Pay all unpaid invoices for a customer
+// Note: No transaction records created - money already recorded during top-up
 const payAllUnpaidInvoices = async (customerId, topUpValue) => {
     try {
         // Use topUpValue as available funds for payment
@@ -260,7 +260,7 @@ const payAllUnpaidInvoices = async (customerId, topUpValue) => {
             // Skip if no payment can be made
             if (paymentAmount <= 0) continue;
 
-            // Create payment transaction (balance already deducted when invoice was created)
+            // Create payment transaction
             const { data: transactionData, error: transactionError } = await supabase
                 .from('transactions')
                 .insert({
