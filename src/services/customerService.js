@@ -323,119 +323,54 @@ const payAllUnpaidInvoices = async (customerId, topUpValue) => {
 }
 
 // Add meter reading and auto-generate invoice
-// Frontend handles all calculations and balance updates - no database trigger needed
+// Frontend handles ALL calculations: previous_value, current_value, usage_amount, and billing
+// Backend only: receives data and inserts to database
 const addMeterReading = async (meterReadingData) => {
-    // 1. Get previous meter reading to set previous_value
-    const { data: previousReadings, error: previousError } = await supabase
-        .from('meter_readings')
-        .select('current_value')
-        .eq('customer_id', meterReadingData.customer_id)
-        .order('reading_date', { ascending: false })
-        .limit(1);
+    try {
+        // 1. Insert meter reading with all calculated data from frontend
+        const { data: meterData, error: meterError } = await supabase
+            .from('meter_readings')
+            .insert([{
+                customer_id: meterReadingData.customer_id,
+                reading_date: meterReadingData.reading_date,
+                period_month: meterReadingData.period_month,
+                period_year: meterReadingData.period_year,
+                previous_value: meterReadingData.previous_value,
+                current_value: meterReadingData.current_value,
+                usage_amount: meterReadingData.usage_amount,
+                notes: meterReadingData.notes
+            }])
+            .select()
+            .single();
 
-    if (previousError) {
-        throw new Error('Failed to get previous reading: ' + previousError.message);
-    }
-
-    // 2. Set previous_value from previous reading, or 0 if none exists
-    // current_value dan usage_amount sudah dikirim dari frontend
-    const previous_value = previousReadings && previousReadings.length > 0
-        ? previousReadings[0].current_value
-        : 0;
-
-    const current_value = meterReadingData.current_value;
-    const usage_amount = meterReadingData.usage_amount;
-
-    // 3. Insert meter reading dengan previous_value yang dihitung dari data terakhir
-    const { data: meterData, error: meterError } = await supabase
-        .from('meter_readings')
-        .insert([{
-            customer_id: meterReadingData.customer_id,
-            reading_date: meterReadingData.reading_date,
-            period_month: meterReadingData.period_month,
-            period_year: meterReadingData.period_year,
-            previous_value,
-            current_value,
-            usage_amount,
-            notes: meterReadingData.notes
-        }])
-        .select()
-        .single();
-
-    if (meterError) {
-        throw new Error(meterError.message);
-    }
-
-    // 4. Get the usage amount
-    const usage = meterData.usage_amount;
-
-    // 5. Get pricing tiers from database
-    const { data: pricingTiers, error: pricingError } = await supabase
-        .from('pricing_tiers')
-        .select('*')
-        .order('min_usage', { ascending: true });
-
-    if (pricingError) {
-        throw new Error('Failed to get pricing tiers: ' + pricingError.message);
-    }
-
-    // 6. Calculate water cost based on usage and pricing tiers
-    let waterCost = 0;
-
-    if (usage > 0 && pricingTiers && pricingTiers.length > 0) {
-        // Find the appropriate pricing tier
-        let applicableTier = pricingTiers[0]; // Default to first tier
-
-        for (const tier of pricingTiers) {
-            if (usage >= tier.min_usage) {
-                // Check if usage is within this tier's range
-                if (tier.max_usage === null || usage <= tier.max_usage) {
-                    applicableTier = tier;
-                    break;
-                } else if (usage > tier.max_usage) {
-                    // Continue to next tier
-                    applicableTier = tier;
-                }
-            }
+        if (meterError) {
+            throw new Error(meterError.message);
         }
 
-        waterCost = usage * applicableTier.price_per_m3;
-    }
+        // 2. Use the billing data calculated by frontend
+        const waterCost = meterReadingData.water_cost;
+        const adminFee = meterReadingData.admin_fee;
+        const totalAmount = meterReadingData.total_amount;
 
-    // 7. Get admin fee from app settings
-    const { data: settings, error: settingsError } = await supabase
-        .from('app_settings')
-        .select('admin_fee')
-        .single();
+        // 3. Generate invoice number
+        const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const period = `${ monthNames[meterData.period_month - 1] } ${ meterData.period_year }`;
 
-    if (settingsError) {
-        throw new Error('Failed to get app settings: ' + settingsError.message);
-    }
+        const { count } = await supabase
+            .from('invoices')
+            .select('*', { count: 'exact', head: true })
+            .like('invoice_number', `INV/${ meterData.period_year }/${ String(meterData.period_month).padStart(2, '0') }/%`);
 
-    const adminFee = settings?.admin_fee || 0;
-    const totalAmount = waterCost + adminFee;
+        const invoiceNumber = `INV/${ meterData.period_year }/${ String(meterData.period_month).padStart(2, '0') }/${ String((count || 0) + 1).padStart(3, '0') }`;
 
-    // 8. Generate invoice number
-    const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-    const period = `${ monthNames[meterData.period_month - 1] } ${ meterData.period_year }`;
+        // 4. Create invoice
+        const dueDate = new Date(meterData.period_year, meterData.period_month, 10);
+        const dueDateStr = dueDate.toISOString().split('T')[0];
 
-    // Get count of invoices this month for numbering
-    const { count } = await supabase
-        .from('invoices')
-        .select('*', { count: 'exact', head: true })
-        .like('invoice_number', `INV/${ meterData.period_year }/${ String(meterData.period_month).padStart(2, '0') }/%`);
-
-    const invoiceNumber = `INV/${ meterData.period_year }/${ String(meterData.period_month).padStart(2, '0') }/${ String((count || 0) + 1).padStart(3, '0') }`;
-
-    // 9. Create invoice
-    const dueDate = new Date(meterData.period_year, meterData.period_month, 10); // Due on 10th of next month
-    const dueDateStr = dueDate.toISOString().split('T')[0];
-
-    const { data: invoiceData, error: invoiceError } = await supabase
-        .from('invoices')
-        .insert([
-            {
+        const { data: invoiceData, error: invoiceError } = await supabase
+            .from('invoices')
+            .insert([{
                 customer_id: meterData.customer_id,
                 reading_id: meterData.id,
                 invoice_number: invoiceNumber,
@@ -445,129 +380,22 @@ const addMeterReading = async (meterReadingData) => {
                 total_amount: totalAmount,
                 status: 'Unpaid',
                 due_date: dueDateStr
-            }
-        ])
-        .select();
+            }])
+            .select();
 
-    if (invoiceError) {
-        // If invoice creation fails, we should still return the meter reading
-        console.error('Failed to create invoice:', invoiceError);
-        throw new Error('Meter reading saved but failed to create invoice: ' + invoiceError.message);
-    }
-
-    // 10. Get customer balance and handle invoice payment
-    const { data: customer, error: customerError } = await supabase
-        .from('customers')
-        .select('current_balance')
-        .eq('id', meterData.customer_id)
-        .single();
-
-    if (customerError) {
-        console.error('Failed to get customer balance:', customerError);
-    } else {
-        const currentBalance = customer.current_balance || 0;
-
-        // 11. Handle payment based on available balance
-        if (invoiceData && invoiceData[0]) {
-            const invoice = invoiceData[0];
-
-            if (currentBalance >= totalAmount) {
-                // Case 1: Full payment - customer has sufficient balance
-                // Deduct from balance and create payment transaction
-                const newBalance = currentBalance - totalAmount;
-
-                const { error: balanceError } = await supabase
-                    .from('customers')
-                    .update({ current_balance: newBalance })
-                    .eq('id', meterData.customer_id);
-
-                if (balanceError) {
-                    console.error('Failed to update customer balance:', balanceError);
-                } else {
-                    const { error: paymentError } = await supabase
-                        .from('transactions')
-                        .insert({
-                            customer_id: meterData.customer_id,
-                            invoice_id: invoice.id,
-                            type: 'OUT',
-                            category: 'Pembayaran Tagihan',
-                            amount: totalAmount,
-                            description: `Pembayaran otomatis untuk ${ invoice.period } (${ invoice.invoice_number })`,
-                            transaction_date: new Date().toISOString().split('T')[0]
-                        })
-                        .select();
-
-                    if (paymentError) {
-                        console.error('Failed to create auto-payment transaction:', paymentError);
-                        // Rollback balance update
-                        await supabase
-                            .from('customers')
-                            .update({ current_balance: currentBalance })
-                            .eq('id', meterData.customer_id);
-                    } else {
-                        // Update invoice status to Paid
-                        const { error: invoiceUpdateError } = await supabase
-                            .from('invoices')
-                            .update({ status: 'Paid' })
-                            .eq('id', invoice.id);
-
-                        if (invoiceUpdateError) {
-                            console.error('Failed to update invoice status to Paid:', invoiceUpdateError);
-                        } else {
-                            console.log(`Auto-payment successful: Invoice ${ invoice.invoice_number } paid in full (Balance: Rp ${ currentBalance.toLocaleString('id-ID') } → Rp ${ newBalance.toLocaleString('id-ID') })`);
-                        }
-                    }
-                }
-            } else if (currentBalance > 0) {
-                // Case 2: Partial payment - customer has some balance but not enough
-                // Deduct available balance and create partial payment transaction
-                const newBalance = currentBalance - currentBalance; // Will be 0
-
-                const { error: balanceError } = await supabase
-                    .from('customers')
-                    .update({ current_balance: newBalance })
-                    .eq('id', meterData.customer_id);
-
-                if (balanceError) {
-                    console.error('Failed to update customer balance:', balanceError);
-                } else {
-                    const { error: paymentError } = await supabase
-                        .from('transactions')
-                        .insert({
-                            customer_id: meterData.customer_id,
-                            invoice_id: invoice.id,
-                            type: 'OUT',
-                            category: 'Pembayaran Tagihan',
-                            amount: currentBalance,
-                            description: `Pembayaran parsial untuk ${ invoice.period } (${ invoice.invoice_number })`,
-                            transaction_date: new Date().toISOString().split('T')[0]
-                        })
-                        .select();
-
-                    if (paymentError) {
-                        console.error('Failed to create partial payment transaction:', paymentError);
-                        // Rollback balance update
-                        await supabase
-                            .from('customers')
-                            .update({ current_balance: currentBalance })
-                            .eq('id', meterData.customer_id);
-                    } else {
-                        console.log(`Partial payment: Invoice ${ invoice.invoice_number } - Paid Rp ${ currentBalance.toLocaleString('id-ID') } of Rp ${ totalAmount.toLocaleString('id-ID') } (Remaining debt: Rp ${ (totalAmount - currentBalance).toLocaleString('id-ID') })`);
-                    }
-                }
-                // Invoice remains "Unpaid" since not fully paid
-            } else {
-                // Case 3: No payment - customer has zero or negative balance
-                // Don't update balance, just leave invoice as Unpaid
-                console.log(`No payment: Invoice created but not paid (Balance: Rp ${ currentBalance.toLocaleString('id-ID') }, Invoice: Rp ${ totalAmount.toLocaleString('id-ID') })`);
-            }
+        if (invoiceError) {
+            console.error('Failed to create invoice:', invoiceError);
+            throw new Error('Meter reading saved but failed to create invoice: ' + invoiceError.message);
         }
-    }
 
-    return {
-        meterReading: meterData,
-        invoice: invoiceData[0]
-    };
+        return {
+            meterReading: meterData,
+            invoice: invoiceData[0]
+        };
+    } catch (error) {
+        console.error('Error in addMeterReading:', error);
+        throw error;
+    }
 };
 
 // Add new customer

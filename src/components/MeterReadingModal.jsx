@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatDate } from '../utils';
+import supabase from '../config/supabase';
 
 export default function MeterReadingModal({
     isOpen,
@@ -21,8 +22,47 @@ export default function MeterReadingModal({
     const [totalMeterReading, setTotalMeterReading] = useState('');
     const [notes, setNotes] = useState('');
     const [error, setError] = useState('');
+    const [pricingTiers, setPricingTiers] = useState([]);
+    const [adminFee, setAdminFee] = useState(0);
+
+    // Load pricing tiers dan admin fee saat modal dibuka
+    useEffect(() => {
+        if (isOpen) {
+            loadPricingData();
+        }
+    }, [isOpen]);
+
+    const loadPricingData = async () => {
+        try {
+            const { data: tiers } = await supabase.from('pricing_tiers').select('*').order('min_usage');
+            const { data: settings } = await supabase.from('app_settings').select('admin_fee').single();
+            
+            setPricingTiers(tiers || []);
+            setAdminFee(settings?.admin_fee || 0);
+        } catch (err) {
+            console.error('Failed to load pricing data:', err);
+        }
+    };
 
     if (!isOpen) return null;
+
+    // Hitung biaya air berdasarkan usage dan pricing tier
+    const calculateWaterCost = (usage) => {
+        if (usage <= 0 || pricingTiers.length === 0) return 0;
+
+        let applicableTier = pricingTiers[0];
+        for (const tier of pricingTiers) {
+            if (usage >= tier.min_usage) {
+                if (tier.max_usage === null || usage <= tier.max_usage) {
+                    applicableTier = tier;
+                    break;
+                } else if (usage > tier.max_usage) {
+                    applicableTier = tier;
+                }
+            }
+        }
+        return usage * applicableTier.price_per_m3;
+    };
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -42,18 +82,25 @@ export default function MeterReadingModal({
             return;
         }
 
-        // Hitung usage_amount dari selisih dengan pembacaan sebelumnya
+        // HITUNG SEMUA DI FRONTEND
+        const previous_value = previousValue;
+        const current_value = totalReading;
         const usage_amount = totalReading - previousValue;
+        const water_cost = calculateWaterCost(usage_amount);
+        const total_amount = water_cost + adminFee;
 
-        // DATA YANG DIKIRIM
-        // currentnya adalah total kumulatif, usage_amount adalah selisih dengan sebelumnya
+        // DATA LENGKAP DIKIRIM KE BACKEND
         const newReading = {
             customer_id: customerId,
             reading_date: readingDate,
             period_month: Number.parseInt(periodMonth),
             period_year: Number.parseInt(periodYear),
-            current_value: totalReading, // Input adalah nilai total kumulatif
-            usage_amount: usage_amount, // Calculated dari selisih
+            previous_value: previous_value,           // Dihitung di frontend
+            current_value: current_value,             // Dihitung di frontend
+            usage_amount: usage_amount,               // Dihitung di frontend
+            water_cost: water_cost,                   // Dihitung di frontend (billing)
+            admin_fee: adminFee,                      // Dari database
+            total_amount: total_amount,               // Dihitung di frontend (billing)
             notes: notes || 'Pencatatan meteran'
         };
 
@@ -212,6 +259,26 @@ export default function MeterReadingModal({
                                 <div className="border-t border-blue-200 pt-2 flex justify-between">
                                     <span className="text-xs text-gray-600 font-semibold">Penggunaan Bulan Ini:</span>
                                     <span className="text-lg font-bold text-green-600">{calculateUsageFromTotal().toFixed(1)} m³</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {totalMeterReading && calculateUsageFromTotal() !== null && (
+                        <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                            <p className="text-xs font-semibold text-gray-700 mb-2">📋 Preview Tagihan</p>
+                            <div className="space-y-1 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Biaya Air:</span>
+                                    <span className="font-semibold">Rp {calculateWaterCost(calculateUsageFromTotal()).toLocaleString('id-ID')}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Biaya Admin:</span>
+                                    <span className="font-semibold">Rp {adminFee.toLocaleString('id-ID')}</span>
+                                </div>
+                                <div className="border-t border-green-200 pt-1 flex justify-between font-bold text-green-700">
+                                    <span>Total Tagihan:</span>
+                                    <span>Rp {(calculateWaterCost(calculateUsageFromTotal()) + adminFee).toLocaleString('id-ID')}</span>
                                 </div>
                             </div>
                         </div>
