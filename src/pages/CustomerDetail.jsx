@@ -551,6 +551,88 @@ export default function CustomerDetail() {
         )}
       </div>
 
+      {/* Transaction History Section */}
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <div className="flex justify-between items-center mb-4">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">Riwayat Transaksi</h3>
+            <p className="text-sm text-gray-600 mt-1">
+              {transactions.length > 0 ? `${ transactions.length } transaksi` : 'Belum ada transaksi'}
+            </p>
+          </div>
+        </div>
+
+        {transactions.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 mb-2">Belum ada riwayat transaksi</p>
+            <p className="text-sm text-gray-400">Transaksi top-up dan pembayaran akan muncul di sini</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {transactions
+              .sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date))
+              .map((transaction, idx) => {
+                const isTopUp = transaction.type === 'IN';
+                const date = new Date(transaction.transaction_date);
+                const formattedDate = date.toLocaleDateString('id-ID', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                });
+
+                return (
+                  <div
+                    key={transaction.id || idx}
+                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      {/* Icon */}
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${ isTopUp ? 'bg-green-100' : 'bg-blue-100'
+                        }`}>
+                        {isTopUp ? (
+                          <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                        ) : (
+                          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                        )}
+                      </div>
+
+                      {/* Transaction Details */}
+                      <div>
+                        <p className="font-semibold text-gray-800">
+                          {isTopUp ? '💳 Top Up Saldo' : '💰 Pembayaran'}
+                        </p>
+                        <p className="text-sm text-gray-600">{transaction.category || (isTopUp ? 'Top Up' : 'Pembayaran Tagihan')}</p>
+                        <p className="text-xs text-gray-500 mt-1">{formattedDate}</p>
+                        {transaction.description && (
+                          <p className="text-xs text-gray-500 italic mt-1">{transaction.description}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Amount */}
+                    <div className="text-right">
+                      <p className={`text-lg font-bold ${ isTopUp ? 'text-green-600' : 'text-blue-600'
+                        }`}>
+                        {isTopUp ? '+' : '-'}{formatCurrency(transaction.amount)}
+                      </p>
+                      <span className={`inline-block mt-1 px-2 py-1 rounded-full text-xs font-semibold ${ isTopUp ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                        }`}>
+                        {isTopUp ? 'Masuk' : 'Keluar'}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        )}
+      </div>
+
       {/* Top Up Modal */}
       {showTopUpModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

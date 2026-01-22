@@ -57,11 +57,17 @@ export default function FinancialReport() {
 
     // Calculate financial summary
     const summary = useMemo(() => {
-        const totalIncome = transactions
+        // Filter out payment transactions - they are internal accounting only
+        // Money was already received during top-up
+        const reportTransactions = transactions.filter(t =>
+            t.category !== 'Pembayaran Tagihan'
+        );
+
+        const totalIncome = reportTransactions
             .filter(t => t.type === 'IN')
             .reduce((sum, t) => sum + (t.amount || 0), 0);
 
-        const totalExpenses = transactions
+        const totalExpenses = reportTransactions
             .filter(t => t.type === 'OUT')
             .reduce((sum, t) => sum + (t.amount || 0), 0);
 
@@ -76,7 +82,8 @@ export default function FinancialReport() {
             totalIncome,
             totalExpenses,
             netBalance,
-            outstandingDebts
+            outstandingDebts,
+            reportTransactions // Return filtered transactions for display
         };
     }, [transactions, customers]);
 
@@ -379,7 +386,7 @@ export default function FinancialReport() {
                         Detail Transaksi - {periodLabel}
                     </h2>
                     <p className="text-sm text-gray-600 mt-1">
-                        Total {transactions.length} transaksi
+                        Total {summary.reportTransactions.length} transaksi
                     </p>
                 </div>
 
@@ -397,8 +404,8 @@ export default function FinancialReport() {
                             </tr>
                         </thead>
                         <tbody>
-                            {transactions.length > 0 ? (
-                                transactions.map((transaction, index) => (
+                            {summary.reportTransactions.length > 0 ? (
+                                summary.reportTransactions.map((transaction, index) => (
                                     <tr
                                         key={transaction.id}
                                         className={`border-b border-gray-100 ${ index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
@@ -446,7 +453,7 @@ export default function FinancialReport() {
                 </div>
 
                 {/* Summary Row */}
-                {transactions.length > 0 && (
+                {summary.reportTransactions.length > 0 && (
                     <div className="bg-gray-100 border-t-2 border-gray-300 px-6 py-4">
                         <div className="grid grid-cols-3 gap-4 text-sm font-semibold">
                             <div className="text-green-700">
