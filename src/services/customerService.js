@@ -325,7 +325,7 @@ const payAllUnpaidInvoices = async (customerId, topUpValue) => {
 // Add meter reading and auto-generate invoice
 // Frontend handles all calculations and balance updates - no database trigger needed
 const addMeterReading = async (meterReadingData) => {
-    // 1. Get previous meter reading to calculate previous_value
+    // 1. Get previous meter reading to set previous_value
     const { data: previousReadings, error: previousError } = await supabase
         .from('meter_readings')
         .select('current_value')
@@ -337,20 +337,27 @@ const addMeterReading = async (meterReadingData) => {
         throw new Error('Failed to get previous reading: ' + previousError.message);
     }
 
-    // 2. Calculate previous_value and current_value
+    // 2. Set previous_value from previous reading, or 0 if none exists
+    // current_value dan usage_amount sudah dikirim dari frontend
     const previous_value = previousReadings && previousReadings.length > 0
         ? previousReadings[0].current_value
         : 0;
 
-    const current_value = previous_value + meterReadingData.usage_amount;
+    const current_value = meterReadingData.current_value;
+    const usage_amount = meterReadingData.usage_amount;
 
-    // 3. Insert meter reading with calculated values
+    // 3. Insert meter reading dengan previous_value yang dihitung dari data terakhir
     const { data: meterData, error: meterError } = await supabase
         .from('meter_readings')
         .insert([{
-            ...meterReadingData,
+            customer_id: meterReadingData.customer_id,
+            reading_date: meterReadingData.reading_date,
+            period_month: meterReadingData.period_month,
+            period_year: meterReadingData.period_year,
             previous_value,
-            current_value
+            current_value,
+            usage_amount,
+            notes: meterReadingData.notes
         }])
         .select()
         .single();
@@ -447,7 +454,6 @@ const addMeterReading = async (meterReadingData) => {
         console.error('Failed to create invoice:', invoiceError);
         throw new Error('Meter reading saved but failed to create invoice: ' + invoiceError.message);
     }
-
 
     // 10. Get customer balance and handle invoice payment
     const { data: customer, error: customerError } = await supabase
@@ -562,7 +568,7 @@ const addMeterReading = async (meterReadingData) => {
         meterReading: meterData,
         invoice: invoiceData[0]
     };
-}
+};
 
 // Add new customer
 const addCustomer = async (customerData) => {

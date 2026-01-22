@@ -18,7 +18,7 @@ export default function MeterReadingModal({
     const [readingDate, setReadingDate] = useState(today);
     const [periodMonth, setPeriodMonth] = useState(currentMonth);
     const [periodYear, setPeriodYear] = useState(currentYear);
-    const [usageAmount, setUsageAmount] = useState('');
+    const [totalMeterReading, setTotalMeterReading] = useState('');
     const [notes, setNotes] = useState('');
     const [error, setError] = useState('');
 
@@ -28,20 +28,32 @@ export default function MeterReadingModal({
         e.preventDefault();
         setError('');
 
-        // Validasi simple
-        if (!usageAmount || parseFloat(usageAmount) < 0) {
-            setError('Penggunaan air harus diisi');
+        // Validasi input
+        const totalReading = Number.parseFloat(totalMeterReading);
+        const previousValue = previousReading?.current_value || 0;
+
+        if (!totalMeterReading || totalReading < 0) {
+            setError('Total pembacaan meteran harus diisi');
             return;
         }
 
-        // DATA YANG DIKIRIM JADI SANGAT SEDIKIT
-        // Database Trigger yang akan melengkapi sisanya (previous_value & current_value)
+        if (totalReading < previousValue) {
+            setError(`Total pembacaan tidak boleh kurang dari pembacaan sebelumnya (${previousValue} m³)`);
+            return;
+        }
+
+        // Hitung usage_amount dari selisih dengan pembacaan sebelumnya
+        const usage_amount = totalReading - previousValue;
+
+        // DATA YANG DIKIRIM
+        // currentnya adalah total kumulatif, usage_amount adalah selisih dengan sebelumnya
         const newReading = {
             customer_id: customerId,
             reading_date: readingDate,
-            period_month: parseInt(periodMonth),
-            period_year: parseInt(periodYear),
-            usage_amount: parseFloat(usageAmount), // Cukup kirim ini saja!
+            period_month: Number.parseInt(periodMonth),
+            period_year: Number.parseInt(periodYear),
+            current_value: totalReading, // Input adalah nilai total kumulatif
+            usage_amount: usage_amount, // Calculated dari selisih
             notes: notes || 'Pencatatan meteran'
         };
 
@@ -51,7 +63,7 @@ export default function MeterReadingModal({
         setReadingDate(today);
         setPeriodMonth(currentMonth);
         setPeriodYear(currentYear);
-        setUsageAmount('');
+        setTotalMeterReading('');
         setNotes('');
         setError('');
     };
@@ -60,16 +72,18 @@ export default function MeterReadingModal({
         setReadingDate(today);
         setPeriodMonth(currentMonth);
         setPeriodYear(currentYear);
-        setUsageAmount('');
+        setTotalMeterReading('');
         setNotes('');
         setError('');
         onClose();
     };
 
-    const calculateCumulativeMeter = () => {
-        if (!usageAmount) return null;
+    const calculateUsageFromTotal = () => {
+        if (!totalMeterReading) return null;
         const previousValue = previousReading?.current_value || 0;
-        return previousValue + parseFloat(usageAmount);
+        const total = Number.parseFloat(totalMeterReading);
+        const usage = total - previousValue;
+        return usage >= 0 ? usage : null;
     };
 
     // Generate month options
@@ -167,26 +181,39 @@ export default function MeterReadingModal({
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Penggunaan Bulan Ini (m³)
+                            Total Pembacaan Meteran (m³) <span className="text-red-500">*</span>
                         </label>
+                        <p className="text-xs text-gray-600 mb-2">
+                            Masukkan total kumulatif meteran dari awal, bukan hanya penggunaan bulan ini
+                        </p>
                         <input
                             type="number"
                             step="0.1"
-                            value={usageAmount}
-                            onChange={(e) => setUsageAmount(e.target.value)}
-                            placeholder="Masukkan penggunaan air (m³)"
+                            value={totalMeterReading}
+                            onChange={(e) => setTotalMeterReading(e.target.value)}
+                            placeholder="Contoh: 15 (jika bulan lalu 10, sekarang 5 lebih, masuk 15)"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                             required
                             disabled={submitting}
                         />
                     </div>
 
-                    {usageAmount && calculateCumulativeMeter() !== null && (
+                    {totalMeterReading && calculateUsageFromTotal() !== null && (
                         <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-                            <p className="text-xs text-gray-600 mb-1">Nilai Meteran Akan Menjadi</p>
-                            <p className="text-lg font-bold text-blue-600">
-                                {calculateCumulativeMeter().toFixed(1)} m³
-                            </p>
+                            <div className="space-y-2">
+                                <div className="flex justify-between">
+                                    <span className="text-xs text-gray-600">Pembacaan Sebelumnya:</span>
+                                    <span className="text-sm font-semibold text-gray-700">{(previousReading?.current_value || 0).toFixed(1)} m³</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-xs text-gray-600">Pembacaan Baru:</span>
+                                    <span className="text-sm font-semibold text-blue-600">{Number.parseFloat(totalMeterReading).toFixed(1)} m³</span>
+                                </div>
+                                <div className="border-t border-blue-200 pt-2 flex justify-between">
+                                    <span className="text-xs text-gray-600 font-semibold">Penggunaan Bulan Ini:</span>
+                                    <span className="text-lg font-bold text-green-600">{calculateUsageFromTotal().toFixed(1)} m³</span>
+                                </div>
+                            </div>
                         </div>
                     )}
 
