@@ -282,6 +282,29 @@ const payAllUnpaidInvoices = async (customerId, topUpValue) => {
             // Log successful payment creation
             console.log(`Payment created: Invoice ${ invoice.invoice_number }, Amount: ${ paymentAmount }, Transaction ID: ${ transactionData?.[0]?.id }`);
 
+            // ⚠️ IMPORTANT: Manually update customer balance (no trigger anymore)
+            // Get current balance, then deduct payment amount
+            const { data: currentCustomer, error: getBalanceError } = await supabase
+                .from('customers')
+                .select('current_balance')
+                .eq('id', customerId)
+                .single();
+
+            if (!getBalanceError && currentCustomer) {
+                const newBalance = (currentCustomer.current_balance || 0) - paymentAmount;
+
+                const { error: balanceUpdateError } = await supabase
+                    .from('customers')
+                    .update({ current_balance: newBalance })
+                    .eq('id', customerId);
+
+                if (balanceUpdateError) {
+                    console.error('Failed to update customer balance:', balanceUpdateError);
+                }
+            } else {
+                console.error('Failed to get customer balance:', getBalanceError);
+            }
+
             // Update invoice status if fully paid
             if (paymentAmount >= remainingDebt) {
                 const { error: updateError } = await supabase
