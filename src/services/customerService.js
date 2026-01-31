@@ -279,31 +279,9 @@ const payAllUnpaidInvoices = async (customerId, topUpValue) => {
                 continue;
             }
 
+
             // Log successful payment creation
             console.log(`Payment created: Invoice ${ invoice.invoice_number }, Amount: ${ paymentAmount }, Transaction ID: ${ transactionData?.[0]?.id }`);
-
-            // ⚠️ IMPORTANT: Manually update customer balance (no trigger anymore)
-            // Get current balance, then deduct payment amount
-            const { data: currentCustomer, error: getBalanceError } = await supabase
-                .from('customers')
-                .select('current_balance')
-                .eq('id', customerId)
-                .single();
-
-            if (!getBalanceError && currentCustomer) {
-                const newBalance = (currentCustomer.current_balance || 0) - paymentAmount;
-
-                const { error: balanceUpdateError } = await supabase
-                    .from('customers')
-                    .update({ current_balance: newBalance })
-                    .eq('id', customerId);
-
-                if (balanceUpdateError) {
-                    console.error('Failed to update customer balance:', balanceUpdateError);
-                }
-            } else {
-                console.error('Failed to get customer balance:', getBalanceError);
-            }
 
             // Update invoice status if fully paid
             if (paymentAmount >= remainingDebt) {
@@ -409,6 +387,73 @@ const addMeterReading = async (meterReadingData) => {
         if (invoiceError) {
             console.error('Failed to create invoice:', invoiceError);
             throw new Error('Meter reading saved but failed to create invoice: ' + invoiceError.message);
+        }
+
+        // 5. Auto-pay invoice using available balance (if any)
+        const { data: currentCustomer, error: getBalanceError } = await supabase
+            .from('customers')
+            .select('current_balance')
+            .eq('id', meterData.customer_id)
+            .single();
+
+        if (!getBalanceError && currentCustomer) {
+            const currentBalance = currentCustomer.current_balance || 0;
+            let paymentAmount = 0;
+
+            // If customer has positive balance, use it to pay invoice
+            if (currentBalance > 0) {
+                // Determine payment amount (min of balance and invoice amount)
+                paymentAmount = Math.min(currentBalance, totalAmount);
+
+                console.log(`Auto-paying new invoice: Balance=${ currentBalance }, Invoice=${ totalAmount }, Payment=${ paymentAmount }`);
+
+                // Create payment transaction
+                const { error: paymentError } = await supabase
+                    .from('transactions')
+                    .insert({
+                        customer_id: meterData.customer_id,
+                        invoice_id: invoiceData[0].id,
+                        type: 'OUT',
+                        category: 'Pembayaran Tagihan',
+                        amount: paymentAmount,
+                        description: `Pembayaran otomatis untuk ${ period } (${ invoiceNumber })`,
+                        transaction_date: new Date().toISOString().split('T')[0]
+                    })
+                    .select();
+
+                if (!paymentError) {
+                    console.log(`Payment transaction created: ${ paymentAmount }`);
+
+                    // Update invoice status if fully paid
+                    if (paymentAmount >= totalAmount) {
+                        await supabase
+                            .from('invoices')
+                            .update({ status: 'Paid' })
+                            .eq('id', invoiceData[0].id);
+                        console.log(`Invoice ${ invoiceNumber } marked as Paid`);
+                    }
+                } else {
+                    console.error('Failed to create payment transaction:', paymentError);
+                }
+            }
+
+
+            // Deduct full invoice amount from balance
+            // Math: (balance - payment) - (invoice - payment) = balance - invoice
+            const newBalance = currentBalance - totalAmount;
+
+            const { error: balanceUpdateError } = await supabase
+                .from('customers')
+                .update({ current_balance: newBalance })
+                .eq('id', meterData.customer_id);
+
+            if (balanceUpdateError) {
+                console.error('Failed to update customer balance:', balanceUpdateError);
+            } else {
+                console.log(`Balance updated: ${ currentBalance } - ${ totalAmount } = ${ newBalance }`);
+            }
+        } else {
+            console.error('Failed to get customer balance:', getBalanceError);
         }
 
         return {

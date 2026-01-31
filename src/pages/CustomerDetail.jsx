@@ -214,6 +214,9 @@ export default function CustomerDetail() {
 
       alert(`Pencatatan meteran berhasil disimpan!\n\nPeriode: ${ periodName }\nTagihan otomatis dibuat:\n- Penggunaan: ${ result.meterReading.usage_amount } m³\n- Total Tagihan: Rp ${ result.invoice.total_amount.toLocaleString('id-ID') }`);
       setShowMeterModal(false);
+
+      // Reload page to ensure all data is fresh (including auto-payment transactions)
+      window.location.reload();
     } catch (err) {
       console.error('Error saving meter reading:', err);
       alert('Gagal menyimpan pencatatan meteran: ' + err.message);
