@@ -144,17 +144,17 @@ export default function BillingPrint() {
                                 {pageReceipts.map((customer) => {
 
                                     return (
-                                        <div key={customer.id} className="border-2 border-gray-800 p-4 bg-white" style={{ fontSize: '11px' }}>
+                                        <div key={customer.id} className="receipt-item border-2 border-gray-800 p-4 bg-white" style={{ fontSize: '12px' }}>
                                             {/* Header */}
 
                                             {/* Receipt Title */}
-                                            <div className="text-center mb-2">
-                                                <h2 className="text-sm font-bold">KUITANSI</h2>
-                                                <p className="text-xs text-gray-600">Periode: {currentMonth}</p>
+                                            <div className=" mb-2">
+                                                {/* <h2 className="font-bold">KUITANSI</h2> */}
+                                                <p className="text-gray-600">Periode: {currentMonth}</p>
                                             </div>
 
                                             {/* Customer Info */}
-                                            <div className="space-y-1 mb-3 text-xs">
+                                            <div className="space-y-1 mb-3">
                                                 <div className="flex justify-between">
                                                     <span className="font-semibold">Pelanggan :</span>
                                                     <span className="text-right">{customer.name}</span>
@@ -163,15 +163,12 @@ export default function BillingPrint() {
                                                     <span className="font-semibold">Alamat :</span>
                                                     <span className="text-right">{customer.address}</span>
                                                 </div>
-                                                <div className="flex justify-between">
-                                                    <span className="font-semibold">Telepon :</span>
-                                                    <span>{customer.phone}</span>
-                                                </div>
                                             </div>
 
                                             {/* Water Usage */}
-                                            <div className="bg-blue-50 border border-blue-300 p-2 rounded mb-3 text-xs">
-                                                <p className="font-semibold text-gray-800 mb-1 text-center">Penggunaan Air</p>
+                                            <div className="mb-3">
+                                                <p className="font-semibold text-gray-800 mb-1">Penggunaan Air</p>
+
                                                 <div className="flex justify-between mb-1">
                                                     <span className="text-gray-700">Sebelum:</span>
                                                     <span className="font-semibold">{customer.totalUsageBeforeThisMonth.toFixed(2)} m³</span>
@@ -179,25 +176,26 @@ export default function BillingPrint() {
                                                 <div className="flex justify-between">
                                                     <span className="text-gray-700">Bulan Ini:</span>
                                                     <span className="font-semibold text-blue-600">{customer.currentMonthUsage.toFixed(2)} m³</span>
+
                                                 </div>
                                             </div>
 
                                             {/* Amount */}
                                             <div className="bg-gray-100 border-2 border-gray-800 p-2 mb-3 text-center">
-                                                <p className="text-xs text-gray-600 mb-1">Jumlah Uang</p>
-                                                <p className="text-lg font-bold text-gray-800">{formatCurrency(customer.monthlyCharge)}</p>
+                                                <p className="text-gray-600 mb-1">Jumlah Uang</p>
+                                                <p className="font-bold text-gray-800">{formatCurrency(customer.monthlyCharge)}</p>
                                             </div>
 
                                             {/* Debt Status */}
                                             <div className="border border-gray-800 p-2 text-center">
                                                 {customer.saldo >= 0 ? (
                                                     <div className="bg-green-100 border border-green-500 rounded p-2">
-                                                        <p className="font-bold text-green-700 text-sm">✓ LUNAS</p>
+                                                        <p className="font-bold text-green-700">✓ LUNAS</p>
                                                     </div>
                                                 ) : (
                                                     <div className="bg-red-100 border border-red-500 rounded p-2">
-                                                        <p className="font-bold text-red-700 text-xs mb-1">HUTANG</p>
-                                                        <p className="font-bold text-red-700 text-sm">{formatCurrency(Math.abs(customer.saldo))}</p>
+                                                        <p className="font-bold text-red-700 mb-1">HUTANG</p>
+                                                        <p className="font-bold text-red-700">{formatCurrency(Math.abs(customer.saldo))}</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -234,6 +232,11 @@ export default function BillingPrint() {
           
           .page-break {
             page-break-after: always;
+          }
+          
+          .receipt-item {
+            page-break-inside: avoid;
+            break-inside: avoid;
           }
         }
       `}</style>
