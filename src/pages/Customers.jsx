@@ -13,6 +13,8 @@ export default function Customers() {
   const [submitting, setSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [sortField, setSortField] = useState('name');
+  const [sortDirection, setSortDirection] = useState('asc');
 
   const fetchCustomers = async () => {
     const data = await getCustomers()
@@ -40,6 +42,18 @@ export default function Customers() {
     }
   };
 
+  // Handle sorting
+  const handleSort = (field) => {
+    if (sortField === field) {
+      // Toggle direction
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New field, default to ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
   // Get unique RT values from customers
   const rtOptions = ['All', ...new Set(customerData.map(c => c.rt).filter(rt => rt))].sort((a, b) => {
     if (a === 'All') return -1;
@@ -54,16 +68,36 @@ export default function Customers() {
     return matchesSearchTerm && matchesRT;
   });
 
+  // Sort customers
+  const sortedCustomers = [...filteredCustomers].sort((a, b) => {
+    let aValue = a[sortField];
+    let bValue = b[sortField];
+
+    // Handle string comparison (case-insensitive)
+    if (typeof aValue === 'string') {
+      aValue = aValue.toLowerCase();
+      bValue = bValue?.toLowerCase() || '';
+    }
+
+    // Handle null/undefined
+    if (aValue == null) aValue = sortDirection === 'asc' ? Infinity : -Infinity;
+    if (bValue == null) bValue = sortDirection === 'asc' ? Infinity : -Infinity;
+
+    if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+    if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
   // Pagination calculations
-  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedCustomers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedCustomers = filteredCustomers.slice(startIndex, endIndex);
+  const paginatedCustomers = sortedCustomers.slice(startIndex, endIndex);
 
-  // Reset to page 1 when filters or items per page change
+  // Reset to page 1 when filters, items per page, or sorting change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedRT, itemsPerPage]);
+  }, [searchTerm, selectedRT, itemsPerPage, sortField, sortDirection]);
 
   return (
     <div className="p-8">
@@ -98,7 +132,7 @@ export default function Customers() {
           </select>
         </div>
         <span className="text-sm text-gray-600">
-          ({filteredCustomers.length} pelanggan)
+          ({sortedCustomers.length} pelanggan)
         </span>
       </div>
 
@@ -108,12 +142,60 @@ export default function Customers() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">Nama Pelanggan</th>
+                <th
+                  className="text-left py-4 px-6 font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                  onClick={() => handleSort('name')}
+                >
+                  <div className="flex items-center gap-2">
+                    Nama Pelanggan
+                    {sortField === 'name' && (
+                      <span className="text-blue-600">
+                        {sortDirection === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </div>
+                </th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Telepon</th>
-                <th className="text-left py-4 px-6 font-semibold text-gray-700">RT</th>
+                <th
+                  className="text-left py-4 px-6 font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                  onClick={() => handleSort('rt')}
+                >
+                  <div className="flex items-center gap-2">
+                    RT
+                    {sortField === 'rt' && (
+                      <span className="text-blue-600">
+                        {sortDirection === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </div>
+                </th>
                 <th className="text-left py-4 px-6 font-semibold text-gray-700">Alamat</th>
-                <th className="text-center py-4 px-6 font-semibold text-gray-700">Total Penggunaan Air</th>
-                <th className="text-right py-4 px-6 font-semibold text-gray-700">Saldo</th>
+                <th
+                  className="text-center py-4 px-6 font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                  onClick={() => handleSort('total_usage_m3')}
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    Total Penggunaan Air
+                    {sortField === 'total_usage_m3' && (
+                      <span className="text-blue-600">
+                        {sortDirection === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </div>
+                </th>
+                <th
+                  className="text-right py-4 px-6 font-semibold text-gray-700 cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                  onClick={() => handleSort('current_balance')}
+                >
+                  <div className="flex items-center justify-end gap-2">
+                    Saldo
+                    {sortField === 'current_balance' && (
+                      <span className="text-blue-600">
+                        {sortDirection === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </div>
+                </th>
                 <th className="text-center py-4 px-6 font-semibold text-gray-700">Aksi</th>
               </tr>
             </thead>
@@ -165,7 +247,7 @@ export default function Customers() {
           <div className="px-6 py-4 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-4">
             {/* Showing info */}
             <div className="text-sm text-gray-600">
-              Menampilkan <span className="font-semibold">{startIndex + 1}</span> - <span className="font-semibold">{Math.min(endIndex, filteredCustomers.length)}</span> dari <span className="font-semibold">{filteredCustomers.length}</span> pelanggan
+              Menampilkan <span className="font-semibold">{startIndex + 1}</span> - <span className="font-semibold">{Math.min(endIndex, sortedCustomers.length)}</span> dari <span className="font-semibold">{sortedCustomers.length}</span> pelanggan
             </div>
 
             <div className="flex items-center gap-4">
@@ -219,8 +301,8 @@ export default function Customers() {
                         key={page}
                         onClick={() => setCurrentPage(page)}
                         className={`px-3 py-1 rounded-lg text-sm font-medium ${ currentPage === page
-                            ? 'bg-blue-600 text-white'
-                            : 'border border-gray-300 hover:bg-gray-50'
+                          ? 'bg-blue-600 text-white'
+                          : 'border border-gray-300 hover:bg-gray-50'
                           }`}
                       >
                         {page}
@@ -242,7 +324,7 @@ export default function Customers() {
         )}
       </div>
 
-      {filteredCustomers.length === 0 && (
+      {sortedCustomers.length === 0 && (
         <EmptyState message="Tidak ada pelanggan ditemukan" />
       )}
 
