@@ -28,7 +28,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-gray-800">Pengaturan</h2>
         <p className="text-gray-600 mt-2">Kelola pengaturan aplikasi dan perusahaan</p>

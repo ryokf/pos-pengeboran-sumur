@@ -4,6 +4,17 @@ import { formatCurrency } from '../utils';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { getDashboardStats, updatePumpStatus } from '../services/dashboardService';
 
+const defaultStats = {
+  totalCustomerBalance: 0,
+  masjidCashBalance: 0,
+  complaintsTodayCount: 0,
+  totalWaterUsageThisMonth: 0,
+  topDebtors: [],
+  monthlyIncome: [],
+  complaints: [],
+  pumpStatus: 'Mati',
+};
+
 export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
@@ -20,7 +31,8 @@ export default function Dashboard() {
         setPumpStatus(dashboardData.pumpStatus);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        alert('Gagal memuat data dashboard: ' + error.message);
+        // Jika data kosong atau gagal, tampilkan dashboard dengan data default
+        setStats(defaultStats);
       } finally {
         setLoading(false);
       }
@@ -49,7 +61,7 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -62,7 +74,7 @@ export default function Dashboard() {
 
   if (!stats) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <div className="text-center py-12">
           <p className="text-gray-500">Gagal memuat data dashboard</p>
         </div>
@@ -71,7 +83,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <PageHeader
         title="Dasbor"
         description="Ringkasan kondisi bisnis Sistem Kelola Tagihan Air"

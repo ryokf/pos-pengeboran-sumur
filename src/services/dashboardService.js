@@ -20,18 +20,18 @@ const getDashboardStats = async () => {
                 .eq('reported_at', new Date().toISOString().split('T')[0]),
 
             // Get app settings
-            supabase.from('app_settings').select('*').single()
+            supabase.from('app_settings').select('*').maybeSingle()
         ]);
 
         if (customersData.error) throw customersData.error;
         if (transactionsData.error) throw transactionsData.error;
         if (complaintsData.error) throw complaintsData.error;
-        if (appSettingsData.error) throw appSettingsData.error;
+        if (appSettingsData.error && appSettingsData.error.code !== 'PGRST116') throw appSettingsData.error;
 
         const customers = customersData.data || [];
         const transactions = transactionsData.data || [];
         const complaints = complaintsData.data || [];
-        const appSettings = appSettingsData.data;
+        const appSettings = appSettingsData.data || null;
 
         // Calculate total customer balance
         const totalCustomerBalance = customers.reduce((sum, c) => sum + (c.current_balance || 0), 0);
@@ -120,9 +120,9 @@ const getPumpStatus = async () => {
     const { data, error } = await supabase
         .from('app_settings')
         .select('current_pump_status')
-        .single();
+        .maybeSingle();
 
-    if (error) throw new Error(error.message);
+    if (error && error.code !== 'PGRST116') throw new Error(error.message);
     return data?.current_pump_status || 'Mati';
 };
 

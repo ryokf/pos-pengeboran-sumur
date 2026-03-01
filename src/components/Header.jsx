@@ -40,7 +40,10 @@ export default function Header({ setSidebarOpen, sidebarOpen }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <h1 className="text-lg md:text-2xl font-bold text-gray-800">Sistem Kelola Tagihan Air</h1>
+        <h1 className="text-lg md:text-2xl font-bold text-gray-800">
+          <span className="md:hidden">POS BOR</span>
+          <span className="hidden md:inline">Sistem Kelola Tagihan Air</span>
+        </h1>
       </div>
 
       <div className="flex items-center gap-6">
@@ -70,7 +73,7 @@ export default function Header({ setSidebarOpen, sidebarOpen }) {
 
           {/* Dropdown Menu */}
           {showNotifications && (
-            <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 z-50">
+            <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] md:w-80 max-w-sm bg-white rounded-lg shadow-2xl border border-gray-200 z-50">
               <div className="p-4 border-b border-gray-100">
                 <h3 className="font-semibold text-gray-800">Notifikasi Terbaru</h3>
               </div>
@@ -138,7 +141,7 @@ export default function Header({ setSidebarOpen, sidebarOpen }) {
 
           {/* User Dropdown Menu */}
           {showUserMenu && (
-            <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-2xl border border-gray-200 z-50">
+            <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] md:w-64 max-w-xs bg-white rounded-lg shadow-2xl border border-gray-200 z-50">
               <div className="p-4 border-b border-gray-100">
                 <p className="font-semibold text-gray-800">{profile?.full_name || 'User'}</p>
                 <p className="text-sm text-gray-500">@{profile?.username || 'username'}</p>

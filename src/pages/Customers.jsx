@@ -100,7 +100,7 @@ export default function Customers() {
   }, [searchTerm, selectedRT, itemsPerPage, sortField, sortDirection]);
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <PageHeader
         title="Pelanggan"
         description="Kelola informasi dan hubungan pelanggan"

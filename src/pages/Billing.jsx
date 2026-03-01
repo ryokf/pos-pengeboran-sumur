@@ -94,7 +94,7 @@ export default function Billing() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -106,7 +106,7 @@ export default function Billing() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-800 mb-2">Tagihan Bulanan</h1>
@@ -261,9 +261,9 @@ export default function Billing() {
                       </p>
                     </div>
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${ invoice.status === 'Paid' || remainingAmount === 0 ? 'bg-green-100 text-green-800' :
-                        isPartiallyPaid ? 'bg-orange-100 text-orange-800' :
-                          invoice.status === 'Unpaid' ? 'bg-red-100 text-red-800' :
-                            'bg-gray-100 text-gray-800'
+                      isPartiallyPaid ? 'bg-orange-100 text-orange-800' :
+                        invoice.status === 'Unpaid' ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
                       }`}>
                       {invoice.status === 'Paid' || remainingAmount === 0 ? '✓ Lunas' :
                         isPartiallyPaid ? '◐ Sebagian' :

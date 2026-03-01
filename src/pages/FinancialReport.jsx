@@ -203,7 +203,7 @@ export default function FinancialReport() {
 
     if (loading) {
         return (
-            <div className="p-8">
+            <div className="p-4 md:p-8">
                 <div className="flex items-center justify-center h-64">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -215,7 +215,7 @@ export default function FinancialReport() {
     }
 
     return (
-        <div className="p-8">
+        <div className="p-4 md:p-8">
             <div className="no-print">
                 <PageHeader
                     title="Laporan Keuangan"
@@ -455,7 +455,7 @@ export default function FinancialReport() {
                 {/* Summary Row */}
                 {summary.reportTransactions.length > 0 && (
                     <div className="bg-gray-100 border-t-2 border-gray-300 px-6 py-4">
-                        <div className="grid grid-cols-3 gap-4 text-sm font-semibold">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm font-semibold">
                             <div className="text-green-700">
                                 Total Pemasukan: {formatCurrency(summary.totalIncome)}
                             </div>

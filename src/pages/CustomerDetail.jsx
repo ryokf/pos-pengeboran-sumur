@@ -228,7 +228,7 @@ export default function CustomerDetail() {
   // Loading state
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -242,7 +242,7 @@ export default function CustomerDetail() {
   // Error state
   if (error) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <PageHeader title="Error" />
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 mt-4">
           <p className="text-red-800">Terjadi kesalahan: {error}</p>
@@ -260,7 +260,7 @@ export default function CustomerDetail() {
   // Customer not found
   if (!customer) {
     return (
-      <div className="p-8">
+      <div className="p-4 md:p-8">
         <PageHeader title="Pelanggan Tidak Ditemukan" />
         <button
           onClick={() => navigate('/customers')}
@@ -378,7 +378,7 @@ export default function CustomerDetail() {
   const monthlyData = buildMonthlyData();
 
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <button
         onClick={() => navigate('/customers')}
         className="mb-6 flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
