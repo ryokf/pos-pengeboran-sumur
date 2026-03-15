@@ -9,12 +9,9 @@ export default function AddCustomerModal({
     const [formData, setFormData] = useState({
         name: '',
         phone: '',
-        email: '',
         address: '',
-        city: '',
         rt: '',
         rw: '',
-        meter_number: '',
         status: 'active'
     });
     const [error, setError] = useState('');
@@ -47,12 +44,9 @@ export default function AddCustomerModal({
         setFormData({
             name: '',
             phone: '',
-            email: '',
             address: '',
-            city: '',
             rt: '',
             rw: '',
-            meter_number: '',
             status: 'active'
         });
         setError('');
@@ -101,40 +95,21 @@ export default function AddCustomerModal({
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Phone */}
-                                <div>
-                                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Nomor Telepon
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        id="phone"
-                                        name="phone"
-                                        value={formData.phone}
-                                        onChange={handleChange}
-                                        disabled={submitting}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                                        placeholder="08xxxxxxxxxx"
-                                    />
-                                </div>
-
-                                {/* Email */}
-                                <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Email
-                                    </label>
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        disabled={submitting}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                                        placeholder="email@example.com"
-                                    />
-                                </div>
+                            {/* Phone */}
+                            <div>
+                                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                                    Nomor Telepon
+                                </label>
+                                <input
+                                    type="tel"
+                                    id="phone"
+                                    name="phone"
+                                    value={formData.phone}
+                                    onChange={handleChange}
+                                    disabled={submitting}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                                    placeholder="08xxxxxxxxxx"
+                                />
                             </div>
                         </div>
                     </div>
@@ -163,24 +138,7 @@ export default function AddCustomerModal({
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                {/* City */}
-                                <div>
-                                    <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
-                                        Kota/Kabupaten
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="city"
-                                        name="city"
-                                        value={formData.city}
-                                        onChange={handleChange}
-                                        disabled={submitting}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                                        placeholder="Nama kota"
-                                    />
-                                </div>
-
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {/* RT */}
                                 <div>
                                     <label htmlFor="rt" className="block text-sm font-medium text-gray-700 mb-2">
@@ -214,51 +172,6 @@ export default function AddCustomerModal({
                                         placeholder="001"
                                     />
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Meter Information Section */}
-                    <div className="mb-6">
-                        <h4 className="text-base font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-200">
-                            Informasi Meteran
-                        </h4>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {/* Meter Number */}
-                            <div>
-                                <label htmlFor="meter_number" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Nomor Meteran
-                                </label>
-                                <input
-                                    type="text"
-                                    id="meter_number"
-                                    name="meter_number"
-                                    value={formData.meter_number}
-                                    onChange={handleChange}
-                                    disabled={submitting}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                                    placeholder="Nomor meteran air"
-                                />
-                            </div>
-
-                            {/* Status */}
-                            <div>
-                                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-                                    Status
-                                </label>
-                                <select
-                                    id="status"
-                                    name="status"
-                                    value={formData.status}
-                                    onChange={handleChange}
-                                    disabled={submitting}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                                >
-                                    <option value="active">Aktif</option>
-                                    <option value="inactive">Tidak Aktif</option>
-                                    <option value="suspended">Ditangguhkan</option>
-                                </select>
                             </div>
                         </div>
                     </div>
