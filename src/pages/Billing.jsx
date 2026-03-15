@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency } from '../utils';
 import { getCustomers, getCustomerTransactions } from '../services/customerService';
-import { getInvoices, getAppSettings, getPricingTiers } from '../services/billingService';
+import { getInvoices, getAppSettings } from '../services/billingService';
 
 export default function Billing() {
   const navigate = useNavigate();
@@ -11,7 +11,6 @@ export default function Billing() {
   const [invoices, setInvoices] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [appSettings, setAppSettings] = useState(null);
-  const [pricingTiers, setPricingTiers] = useState([]);
 
   // Fetch data
   useEffect(() => {
@@ -20,17 +19,15 @@ export default function Billing() {
         setLoading(true);
 
         // Fetch all data in parallel
-        const [customersData, invoicesData, settingsData, tiersData] = await Promise.all([
+        const [customersData, invoicesData, settingsData] = await Promise.all([
           getCustomers(),
           getInvoices(),
-          getAppSettings(),
-          getPricingTiers()
+          getAppSettings()
         ]);
 
         setCustomers(customersData);
         setInvoices(invoicesData);
         setAppSettings(settingsData);
-        setPricingTiers(tiersData);
 
         // Fetch all transactions for all customers
         const allTransactions = [];
@@ -200,15 +197,14 @@ export default function Billing() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h3 className="text-lg font-bold text-blue-900 mb-4">💰 Informasi Tarif</h3>
           <div className="space-y-2 text-sm text-blue-800">
-            {pricingTiers.map((tier, index) => (
-              <div key={tier.id} className="flex items-start">
-                <span className="font-bold mr-2">{index + 1}.</span>
-                <span>
-                  {tier.name}: {tier.min_usage}-{tier.max_usage || '∞'} m³ =
-                  Rp {tier.price_per_m3.toLocaleString('id-ID')}/m³
-                </span>
-              </div>
-            ))}
+            <div className="flex items-start">
+              <span className="font-bold mr-2">1.</span>
+              <span>Pemakaian 0 - 5 m³ = Flat Rp 15.000</span>
+            </div>
+            <div className="flex items-start">
+              <span className="font-bold mr-2">2.</span>
+              <span>Pemakaian &gt; 5 m³ = Rp 3.000 / m³</span>
+            </div>
             {appSettings && (
               <div className="flex items-start pt-2 border-t border-blue-200">
                 <span className="font-bold mr-2">•</span>

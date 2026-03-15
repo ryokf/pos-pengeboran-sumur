@@ -22,46 +22,35 @@ export default function MeterReadingModal({
     const [totalMeterReading, setTotalMeterReading] = useState('');
     const [notes, setNotes] = useState('');
     const [error, setError] = useState('');
-    const [pricingTiers, setPricingTiers] = useState([]);
     const [adminFee, setAdminFee] = useState(0);
 
-    // Load pricing tiers dan admin fee saat modal dibuka
+    // Load admin fee saat modal dibuka
     useEffect(() => {
+        const loadPricingData = async () => {
+            try {
+                const { data: settings } = await supabase.from('app_settings').select('admin_fee').single();
+                setAdminFee(settings?.admin_fee || 0);
+            } catch (err) {
+                console.error('Failed to load pricing data:', err);
+            }
+        };
+
         if (isOpen) {
             loadPricingData();
         }
     }, [isOpen]);
 
-    const loadPricingData = async () => {
-        try {
-            const { data: tiers } = await supabase.from('pricing_tiers').select('*').order('min_usage');
-            const { data: settings } = await supabase.from('app_settings').select('admin_fee').single();
-            
-            setPricingTiers(tiers || []);
-            setAdminFee(settings?.admin_fee || 0);
-        } catch (err) {
-            console.error('Failed to load pricing data:', err);
-        }
-    };
-
     if (!isOpen) return null;
 
-    // Hitung biaya air berdasarkan usage dan pricing tier
+    // Hitung biaya air berdasarkan usage (Flat 15k untuk <= 5m3, sisanya 3k/m3)
     const calculateWaterCost = (usage) => {
-        if (usage <= 0 || pricingTiers.length === 0) return 0;
+        if (usage <= 0) return 0;
 
-        let applicableTier = pricingTiers[0];
-        for (const tier of pricingTiers) {
-            if (usage >= tier.min_usage) {
-                if (tier.max_usage === null || usage <= tier.max_usage) {
-                    applicableTier = tier;
-                    break;
-                } else if (usage > tier.max_usage) {
-                    applicableTier = tier;
-                }
-            }
+        if (usage <= 5) {
+            return 15000; // Tagihan flat 15rb jika di bawah atau sama dengan 5m3
+        } else {
+            return usage * 3000; // Tagihan 3rb per m3 jika di atas 5m3
         }
-        return usage * applicableTier.price_per_m3;
     };
 
     const handleSubmit = (e) => {
