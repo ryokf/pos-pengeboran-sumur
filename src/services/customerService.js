@@ -494,6 +494,51 @@ const addCustomer = async (customerData) => {
     return data;
 }
 
+// Delete customer and all related data
+const deleteCustomer = async (id) => {
+    // 1. Delete all transactions related to this customer
+    const { error: txError } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('customer_id', id);
+        
+    if (txError) {
+        throw new Error('Gagal menghapus riwayat transaksi: ' + txError.message);
+    }
+    
+    // 2. Delete all invoices related to this customer
+    const { error: invError } = await supabase
+        .from('invoices')
+        .delete()
+        .eq('customer_id', id);
+        
+    if (invError) {
+        throw new Error('Gagal menghapus data tagihan: ' + invError.message);
+    }
+    
+    // 3. Delete all meter readings related to this customer
+    const { error: meterError } = await supabase
+        .from('meter_readings')
+        .delete()
+        .eq('customer_id', id);
+        
+    if (meterError) {
+        throw new Error('Gagal menghapus rekaman meteran: ' + meterError.message);
+    }
+
+    // 4. Finally, delete the customer record
+    const { error } = await supabase
+        .from('customers')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        throw new Error('Gagal menghapus profil pelanggan: ' + error.message);
+    }
+    
+    return true;
+}
+
 // Auto-pay invoices after top-up (called from handleTopUp in CustomerDetail)
 // This is the same logic as payAllUnpaidInvoices, just with a different name for clarity
 const autoPayInvoicesAfterTopUp = async (customerId, topUpValue) => {
@@ -510,6 +555,7 @@ export {
     addAdjustment,
     addMeterReading,
     addCustomer,
+    deleteCustomer,
     payAllUnpaidInvoices,
     autoPayInvoicesAfterTopUp
 };

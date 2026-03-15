@@ -13,7 +13,8 @@ import {
   addAdjustment,
   addMeterReading,
   payAllUnpaidInvoices,
-  autoPayInvoicesAfterTopUp
+  autoPayInvoicesAfterTopUp,
+  deleteCustomer
 } from '../services/customerService';
 
 export default function CustomerDetail() {
@@ -225,6 +226,22 @@ export default function CustomerDetail() {
     }
   };
 
+  const handleDelete = async () => {
+    if (window.confirm(`Apakah Anda yakin ingin menghapus pelanggan "${customer.name}"?\nTindakan ini tidak dapat dibatalkan.`)) {
+      try {
+        setSubmitting(true);
+        await deleteCustomer(customerId);
+        alert('Pelanggan berhasil dihapus!');
+        navigate('/customers');
+      } catch (err) {
+        console.error('Error deleting customer:', err);
+        alert('Gagal menghapus pelanggan: ' + err.message);
+      } finally {
+        setSubmitting(false);
+      }
+    }
+  };
+
   // Loading state
   if (loading) {
     return (
@@ -379,12 +396,21 @@ export default function CustomerDetail() {
 
   return (
     <div className="p-8">
-      <button
-        onClick={() => navigate('/customers')}
-        className="mb-6 flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
-      >
-        ← Kembali ke Daftar Pelanggan
-      </button>
+      <div className="flex justify-between items-center mb-6">
+        <button
+          onClick={() => navigate('/customers')}
+          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
+        >
+          ← Kembali ke Daftar Pelanggan
+        </button>
+        <button
+          onClick={handleDelete}
+          disabled={submitting}
+          className="px-4 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 font-medium transition-colors"
+        >
+          Hapus Pelanggan
+        </button>
+      </div>
 
       <PageHeader title={customer.name} />
 

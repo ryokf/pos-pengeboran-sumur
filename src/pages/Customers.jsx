@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FilterBar, PageHeader, EmptyState, AddCustomerModal } from '../components';
 import { matchesSearch, formatCurrency, getInitials } from '../utils';
-import { getCustomers, addCustomer } from '../services/customerService';
+import { getCustomers, addCustomer, deleteCustomer } from '../services/customerService';
 
 export default function Customers() {
   const navigate = useNavigate();
@@ -39,6 +39,19 @@ export default function Customers() {
       console.error('Error adding customer:', error);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDeleteCustomer = async (id, name) => {
+    if (window.confirm(`Apakah Anda yakin ingin menghapus pelanggan "${name}"?\nTindakan ini tidak dapat dibatalkan.`)) {
+      try {
+        await deleteCustomer(id);
+        alert('Pelanggan berhasil dihapus!');
+        fetchCustomers();
+      } catch (error) {
+        alert('Gagal menghapus pelanggan: ' + error.message);
+        console.error('Error deleting customer:', error);
+      }
     }
   };
 
@@ -228,12 +241,20 @@ export default function Customers() {
                       {customer.current_balance >= 0 ? '+' : '-'}{formatCurrency(Math.abs(customer.current_balance))}
                     </td>
                     <td className="py-4 px-6 text-center">
-                      <button
-                        onClick={() => navigate(`/customers/${ customer.id }`)}
-                        className="text-gray-600 hover:text-gray-800 font-medium text-sm"
-                      >
-                        Lihat
-                      </button>
+                      <div className="flex items-center justify-center gap-3">
+                        <button
+                          onClick={() => navigate(`/customers/${ customer.id }`)}
+                          className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                        >
+                          Lihat
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCustomer(customer.id, customer.name)}
+                          className="text-red-600 hover:text-red-800 font-medium text-sm"
+                        >
+                          Hapus
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
