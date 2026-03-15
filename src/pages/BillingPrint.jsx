@@ -63,6 +63,8 @@ export default function BillingPrint() {
                                 name: customer.name,
                                 address: customer.address || '-',
                                 phone: customer.phone || '-',
+                                rt: customer.rt || '-',
+                                rw: customer.rw || '-',
                                 saldo: customer.current_balance || 0,
                                 monthlyCharge,
                                 invoiceAmount: latestInvoice ? latestInvoice.total_amount : 0,
@@ -78,6 +80,8 @@ export default function BillingPrint() {
                                 name: customer.name,
                                 address: customer.address || '-',
                                 phone: customer.phone || '-',
+                                rt: customer.rt || '-',
+                                rw: customer.rw || '-',
                                 saldo: customer.current_balance || 0,
                                 monthlyCharge: 0,
                                 invoiceAmount: 0,
@@ -160,6 +164,10 @@ export default function BillingPrint() {
                                                 <div className="flex justify-between">
                                                     <span className="font-semibold">Pelanggan :</span>
                                                     <span className="text-right">{customer.name}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="font-semibold">RT :</span>
+                                                    <span className="text-right">{customer.rt}</span>
                                                 </div>
                                                 <div className="flex justify-between">
                                                     <span className="font-semibold">Alamat :</span>
