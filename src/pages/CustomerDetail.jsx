@@ -764,6 +764,7 @@ export default function CustomerDetail() {
         customerId={customer.id}
         customerName={customer.name}
         previousReading={meterReadings.length > 0 ? meterReadings[0] : null}
+        existingReadings={meterReadings}
         onSubmit={handleMeterReading}
       />
     </div>

@@ -232,6 +232,7 @@ export default function MeterReadings() {
                     customerId={selectedCustomer.id}
                     customerName={selectedCustomer.name}
                     previousReading={getLatestReading(selectedCustomer.id)}
+                    existingReadings={meterReadingsMap[selectedCustomer.id] || []}
                     onSubmit={handleSubmitReading}
                     submitting={submitting}
                 />

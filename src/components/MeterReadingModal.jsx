@@ -8,6 +8,7 @@ export default function MeterReadingModal({
     customerId,
     customerName,
     previousReading,
+    existingReadings = [],
     onSubmit,
     submitting = false
 }) {
@@ -53,6 +54,12 @@ export default function MeterReadingModal({
         }
     };
 
+    const isMonthRecorded = (month, year) => {
+        return existingReadings.some(
+            reading => reading.period_month === month && reading.period_year === Number(year)
+        );
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         setError('');
@@ -60,6 +67,12 @@ export default function MeterReadingModal({
         // Validasi input
         const totalReading = Number.parseFloat(totalMeterReading);
         const previousValue = previousReading?.current_value || 0;
+
+        if (isMonthRecorded(Number.parseInt(periodMonth), periodYear)) {
+            const monthName = monthNames[Number.parseInt(periodMonth) - 1];
+            setError(`Pencatatan untuk periode bulan ${monthName} ${periodYear} sudah ada.`);
+            return;
+        }
 
         if (!totalMeterReading || totalReading < 0) {
             setError('Total pembacaan meteran harus diisi');
@@ -187,11 +200,19 @@ export default function MeterReadingModal({
                                 required
                                 disabled={submitting}
                             >
-                                {monthNames.map((name, index) => (
-                                    <option key={index + 1} value={index + 1}>
-                                        {name}
-                                    </option>
-                                ))}
+                                {monthNames.map((name, index) => {
+                                    const monthValue = index + 1;
+                                    const isRecorded = isMonthRecorded(monthValue, periodYear);
+                                    return (
+                                        <option 
+                                            key={monthValue} 
+                                            value={monthValue}
+                                            disabled={isRecorded}
+                                        >
+                                            {name} {isRecorded ? '(Sudah Dicatat)' : ''}
+                                        </option>
+                                    );
+                                })}
                             </select>
                         </div>
 
