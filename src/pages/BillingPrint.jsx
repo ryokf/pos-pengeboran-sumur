@@ -58,6 +58,25 @@ export default function BillingPrint() {
                                 monthlyCharge = Math.max(0, latestInvoice.total_amount - totalPayments);
                             }
 
+                            // Calculate usage difference
+                            const usageDifference = currentMonthUsage - totalUsageBeforeThisMonth;
+
+                            // Get admin fee and amount from invoice
+                            const adminFee = latestInvoice ? (latestInvoice.admin_fee || 0) : 0;
+                            const waterChargeAmount = latestInvoice ? (latestInvoice.amount || 0) : 0;
+                            const totalAmount = latestInvoice ? (latestInvoice.total_amount || 0) : 0;
+
+                            // Get reading date
+                            const readingDate = latestReading ? new Date(latestReading.reading_date).toLocaleDateString('id-ID', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            }) : new Date().toLocaleDateString('id-ID', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            });
+
                             return {
                                 id: customer.id,
                                 name: customer.name,
@@ -70,6 +89,11 @@ export default function BillingPrint() {
                                 invoiceAmount: latestInvoice ? latestInvoice.total_amount : 0,
                                 currentMonthUsage,
                                 totalUsageBeforeThisMonth,
+                                usageDifference,
+                                waterChargeAmount,
+                                adminFee,
+                                totalAmount,
+                                readingDate,
                                 latestReading,
                                 previousReading
                             };
@@ -87,6 +111,15 @@ export default function BillingPrint() {
                                 invoiceAmount: 0,
                                 currentMonthUsage: 0,
                                 totalUsageBeforeThisMonth: 0,
+                                usageDifference: 0,
+                                waterChargeAmount: 0,
+                                adminFee: 0,
+                                totalAmount: 0,
+                                readingDate: new Date().toLocaleDateString('id-ID', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                }),
                                 latestReading: null,
                                 previousReading: null
                             };
@@ -154,46 +187,66 @@ export default function BillingPrint() {
                                             {/* Header */}
 
                                             {/* Receipt Title */}
-                                            <div className=" mb-2">
-                                                {/* <h2 className="font-bold">KUITANSI</h2> */}
-                                                <p className="text-gray-600">Periode: {currentMonth}</p>
+                                            <div className="mb-1">
+                                                <p className="text-gray-600 text-xs">Periode: {currentMonth}</p>
+                                                <p className="text-gray-600 text-xs">Tanggal: {customer.readingDate}</p>
                                             </div>
 
                                             {/* Customer Info */}
-                                            <div className="space-y-1 mb-3">
-                                                <div className="flex justify-between">
-                                                    <span className="font-semibold">Pelanggan :</span>
+                                            <div className="space-y-0 mb-2">
+                                                <div className="flex justify-between text-xs">
+                                                    <span className="font-semibold">Nama :</span>
                                                     <span className="text-right">{customer.name}</span>
                                                 </div>
-                                                <div className="flex justify-between">
-                                                    <span className="font-semibold">RT :</span>
-                                                    <span className="text-right">{customer.rt}</span>
-                                                </div>
-                                                <div className="flex justify-between">
+                                                <div className="flex justify-between text-xs">
                                                     <span className="font-semibold">Alamat :</span>
                                                     <span className="text-right">{customer.address}</span>
                                                 </div>
                                             </div>
 
+                                            {/* Divider */}
+                                            <div className="border-t border-gray-400 my-1"></div>
+
                                             {/* Water Usage */}
-                                            <div className="mb-3">
-                                                <p className="font-semibold text-gray-800 mb-1">Penggunaan Air</p>
+                                            <div className="mb-2">
+                                                <p className="font-semibold text-gray-800 text-xs mb-0">Penggunaan Air (m³)</p>
 
-                                                <div className="flex justify-between mb-1">
-                                                    <span className="text-gray-700">Sebelum:</span>
-                                                    <span className="font-semibold">{customer.totalUsageBeforeThisMonth.toFixed(2)} m³</span>
+                                                <div className="flex justify-between mb-0 text-xs">
+                                                    <span className="text-gray-700">Bulan Lalu :</span>
+                                                    <span className="font-semibold">{customer.totalUsageBeforeThisMonth.toFixed(2)}</span>
                                                 </div>
-                                                <div className="flex justify-between">
-                                                    <span className="text-gray-700">Bulan Ini:</span>
-                                                    <span className="font-semibold text-blue-600">{customer.currentMonthUsage.toFixed(2)} m³</span>
-
+                                                <div className="flex justify-between mb-0 text-xs">
+                                                    <span className="text-gray-700">Bulan Ini :</span>
+                                                    <span className="font-semibold text-blue-600">{customer.currentMonthUsage.toFixed(2)}</span>
+                                                </div>
+                                                <div className="flex justify-between border-t border-gray-300 pt-0 text-xs">
+                                                    <span className="text-gray-700 font-semibold">Selisih :</span>
+                                                    <span className="font-semibold text-green-600">{customer.usageDifference.toFixed(2)}</span>
                                                 </div>
                                             </div>
 
-                                            {/* Amount */}
-                                            <div className="bg-gray-100 border-2 border-gray-800 p-2 mb-3 text-center">
-                                                <p className="text-gray-600 mb-1">Total Tagihan</p>
-                                                <p className="font-bold text-gray-800">{formatCurrency(customer.invoiceAmount)}</p>
+                                            {/* Divider */}
+                                            <div className="border-t border-gray-400 my-1"></div>
+
+                                            {/* Billing Details */}
+                                            <div className="space-y-0 mb-2">
+                                                <div className="flex justify-between text-xs">
+                                                    <span className="text-gray-700">Biaya Air :</span>
+                                                    <span className="font-semibold">{formatCurrency(customer.waterChargeAmount)}</span>
+                                                </div>
+                                                <div className="flex justify-between text-xs">
+                                                    <span className="text-gray-700">Biaya Admin :</span>
+                                                    <span className="font-semibold">{formatCurrency(customer.adminFee)}</span>
+                                                </div>
+                                            </div>
+
+                                            {/* Divider */}
+                                            <div className="border-t-2 border-gray-800 my-1"></div>
+
+                                            {/* Total Amount */}
+                                            <div className="bg-gray-100 border-2 border-gray-800 p-1 text-center">
+                                                <p className="text-gray-600 text-xs mb-0">Total Dibayar</p>
+                                                <p className="font-bold text-sm text-gray-800">{formatCurrency(customer.totalAmount)}</p>
                                             </div>
                                         </div>
                                     );

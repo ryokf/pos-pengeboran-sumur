@@ -192,8 +192,8 @@ export default function CustomerDetail() {
       setSubmitting(true);
 
       // Use period from the form (not current month/year)
-      const periodMonth = newReading.periodMonth;
-      const periodYear = newReading.periodYear;
+      const periodMonth = newReading.period_month;
+      const periodYear = newReading.period_year;
 
       // Submit to database - pass the complete object
       // Database trigger will handle previous_value and current_value calculation

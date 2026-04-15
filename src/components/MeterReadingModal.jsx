@@ -148,8 +148,8 @@ export default function MeterReadingModal({
     }
 
     return (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
                 <h3 className="text-xl font-semibold text-gray-800 mb-4">📊 Catat Meteran Baru</h3>
 
                 <div className="mb-4 p-4 bg-blue-50 rounded-lg">
