@@ -6,10 +6,12 @@ export default function BillingPrint() {
     const [loading, setLoading] = useState(true);
     const [receiptList, setReceiptList] = useState([]);
 
-    const currentMonth = new Date().toLocaleDateString('id-ID', {
-        month: 'long',
-        year: 'numeric'
-    });
+    // Helper function to add 1 month to a date
+    const addOneMonth = (dateString) => {
+        const date = new Date(dateString);
+        date.setMonth(date.getMonth() + 1);
+        return date;
+    };
 
     // Fetch all customers and their billing data
     useEffect(() => {
@@ -39,8 +41,8 @@ export default function BillingPrint() {
                             // Get the previous reading (second in the sorted array)
                             const previousReading = readings.length > 1 ? readings[1] : null;
 
-                            // Calculate current month usage
-                            const currentMonthUsage = latestReading ? latestReading.usage_amount : 0;
+                            // Calculate current month usage - using current_value from readings
+                            const currentMonthUsage = latestReading ? latestReading.current_value : 0;
 
                             // Calculate total usage before this month
                             const totalUsageBeforeThisMonth = previousReading ? previousReading.current_value : 0;
@@ -58,7 +60,7 @@ export default function BillingPrint() {
                                 monthlyCharge = Math.max(0, latestInvoice.total_amount - totalPayments);
                             }
 
-                            // Calculate usage difference
+                            // Calculate usage difference (selisih penggunaan air)
                             const usageDifference = currentMonthUsage - totalUsageBeforeThisMonth;
 
                             // Get admin fee and amount from invoice
@@ -182,14 +184,23 @@ export default function BillingPrint() {
                             <div className="p-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', padding: '20px' }}>
                                 {pageReceipts.map((customer) => {
 
+                                    const periodMonth = customer.latestReading 
+                                        ? addOneMonth(customer.latestReading.reading_date).toLocaleDateString('id-ID', {
+                                            month: 'long',
+                                            year: 'numeric'
+                                          })
+                                        : new Date().toLocaleDateString('id-ID', {
+                                            month: 'long',
+                                            year: 'numeric'
+                                          });
+
                                     return (
                                         <div key={customer.id} className="receipt-item border-2 border-gray-800 p-4 bg-white" style={{ fontSize: '12px' }}>
                                             {/* Header */}
 
                                             {/* Receipt Title */}
                                             <div className="mb-1">
-                                                <p className="text-gray-600 text-xs">Periode: {currentMonth}</p>
-                                                <p className="text-gray-600 text-xs">Tanggal: {customer.readingDate}</p>
+                                                <p className="text-gray-600 text-xs">Periode: {periodMonth}</p>
                                             </div>
 
                                             {/* Customer Info */}
