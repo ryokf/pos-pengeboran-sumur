@@ -12,6 +12,7 @@ import {
   addTopUp,
   addAdjustment,
   addMeterReading,
+  addMeterReadingOnly,
   payAllUnpaidInvoices,
   autoPayInvoicesAfterTopUp,
   deleteCustomer
@@ -191,33 +192,50 @@ export default function CustomerDetail() {
     try {
       setSubmitting(true);
 
-      // Use period from the form (not current month/year)
-      const periodMonth = newReading.period_month;
-      const periodYear = newReading.period_year;
+      const isDataOnly = newReading._dataOnly === true;
 
-      // Submit to database - pass the complete object
-      // Database trigger will handle previous_value and current_value calculation
-      const result = await addMeterReading(newReading);
+      if (isDataOnly) {
+        // Mode Data Awal: hanya simpan data meteran, tanpa invoice & perubahan saldo
+        await addMeterReadingOnly(newReading);
 
-      // Refresh all data (meter readings, invoices, and customer balance)
-      const updatedReadings = await getCustomerMeterReadings(customerId);
-      setMeterReadings(updatedReadings);
+        const updatedReadings = await getCustomerMeterReadings(customerId);
+        setMeterReadings(updatedReadings);
 
-      const updatedInvoices = await getCustomerInvoices(customerId);
-      setInvoices(updatedInvoices);
+        const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+          'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const periodName = `${ monthNames[newReading.period_month - 1] } ${ newReading.period_year }`;
 
-      const updatedCustomer = await getCustomerById(customerId);
-      setCustomer(updatedCustomer);
+        alert(`Data awal meteran berhasil disimpan!\n\nPeriode: ${ periodName }\nPembacaan: ${ newReading.current_value } m³\nPenggunaan: ${ newReading.usage_amount } m³\n\n⚠️ Tidak ada tagihan yang dibuat.`);
+        setShowMeterModal(false);
 
-      const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
-        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-      const periodName = `${ monthNames[periodMonth - 1] } ${ periodYear }`;
+      } else {
+        // Mode Normal: simpan meteran + buat invoice + auto-pay
+        const periodMonth = newReading.period_month;
+        const periodYear = newReading.period_year;
 
-      alert(`Pencatatan meteran berhasil disimpan!\n\nPeriode: ${ periodName }\nTagihan otomatis dibuat:\n- Penggunaan: ${ result.meterReading.usage_amount } m³\n- Total Tagihan: Rp ${ result.invoice.total_amount.toLocaleString('id-ID') }`);
-      setShowMeterModal(false);
+        const result = await addMeterReading(newReading);
 
-      // Reload page to ensure all data is fresh (including auto-payment transactions)
-      window.location.reload();
+        // Refresh all data (meter readings, invoices, and customer balance)
+        const updatedReadings = await getCustomerMeterReadings(customerId);
+        setMeterReadings(updatedReadings);
+
+        const updatedInvoices = await getCustomerInvoices(customerId);
+        setInvoices(updatedInvoices);
+
+        const updatedCustomer = await getCustomerById(customerId);
+        setCustomer(updatedCustomer);
+
+        const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+          'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const periodName = `${ monthNames[periodMonth - 1] } ${ periodYear }`;
+
+        alert(`Pencatatan meteran berhasil disimpan!\n\nPeriode: ${ periodName }\nTagihan otomatis dibuat:\n- Penggunaan: ${ result.meterReading.usage_amount } m³\n- Total Tagihan: Rp ${ result.invoice.total_amount.toLocaleString('id-ID') }`);
+        setShowMeterModal(false);
+
+        // Reload page to ensure all data is fresh (including auto-payment transactions)
+        window.location.reload();
+      }
+
     } catch (err) {
       console.error('Error saving meter reading:', err);
       alert('Gagal menyimpan pencatatan meteran: ' + err.message);

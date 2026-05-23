@@ -545,6 +545,36 @@ const autoPayInvoicesAfterTopUp = async (customerId, topUpValue) => {
     return await payAllUnpaidInvoices(customerId, topUpValue);
 }
 
+// Add meter reading ONLY (tanpa invoice, tanpa perubahan saldo)
+// Digunakan untuk memasukkan data awal / data historis
+const addMeterReadingOnly = async (meterReadingData) => {
+    try {
+        const { data: meterData, error: meterError } = await supabase
+            .from('meter_readings')
+            .insert([{
+                customer_id: meterReadingData.customer_id,
+                reading_date: meterReadingData.reading_date,
+                period_month: meterReadingData.period_month,
+                period_year: meterReadingData.period_year,
+                previous_value: meterReadingData.previous_value,
+                current_value: meterReadingData.current_value,
+                usage_amount: meterReadingData.usage_amount,
+                notes: meterReadingData.notes || 'Data awal'
+            }])
+            .select()
+            .single();
+
+        if (meterError) {
+            throw new Error(meterError.message);
+        }
+
+        return { meterReading: meterData };
+    } catch (error) {
+        console.error('Error in addMeterReadingOnly:', error);
+        throw error;
+    }
+};
+
 export {
     getCustomers,
     getCustomerById,
@@ -554,6 +584,7 @@ export {
     addTopUp,
     addAdjustment,
     addMeterReading,
+    addMeterReadingOnly,
     addCustomer,
     deleteCustomer,
     payAllUnpaidInvoices,

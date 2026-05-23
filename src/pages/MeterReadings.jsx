@@ -5,7 +5,8 @@ import { matchesSearch } from '../utils';
 import {
     getCustomers,
     getCustomerMeterReadings,
-    addMeterReading
+    addMeterReading,
+    addMeterReadingOnly
 } from '../services/customerService';
 
 export default function MeterReadings() {
@@ -89,9 +90,15 @@ export default function MeterReadings() {
         try {
             setSubmitting(true);
 
-            // Submit to database - pass the complete object
-            // Database trigger will handle previous_value and current_value calculation
-            await addMeterReading(newReading);
+            const isDataOnly = newReading._dataOnly === true;
+
+            if (isDataOnly) {
+                // Mode Data Awal: simpan hanya data meteran tanpa tagihan
+                await addMeterReadingOnly(newReading);
+            } else {
+                // Mode Normal: simpan meteran + buat tagihan otomatis
+                await addMeterReading(newReading);
+            }
 
             // Refresh meter readings for this customer
             const updatedReadings = await getCustomerMeterReadings(selectedCustomer.id);
@@ -100,7 +107,10 @@ export default function MeterReadings() {
                 [selectedCustomer.id]: updatedReadings
             }));
 
-            alert(`Pencatatan meteran untuk ${ selectedCustomer.name } berhasil disimpan!`);
+            const successMsg = isDataOnly
+                ? `Data awal meteran untuk ${ selectedCustomer.name } berhasil disimpan! (tanpa tagihan)`
+                : `Pencatatan meteran untuk ${ selectedCustomer.name } berhasil disimpan!`;
+            alert(successMsg);
             setShowModal(false);
             setSelectedCustomer(null);
 

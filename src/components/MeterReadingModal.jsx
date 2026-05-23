@@ -10,7 +10,8 @@ export default function MeterReadingModal({
     previousReading,
     existingReadings = [],
     onSubmit,
-    submitting = false
+    submitting = false,
+    defaultDataOnly = false
 }) {
     const today = new Date().toISOString().split('T')[0];
     const currentDate = new Date();
@@ -24,6 +25,7 @@ export default function MeterReadingModal({
     const [notes, setNotes] = useState('');
     const [error, setError] = useState('');
     const [adminFee, setAdminFee] = useState(0);
+    const [dataOnlyMode, setDataOnlyMode] = useState(defaultDataOnly);
 
     // Load admin fee saat modal dibuka
     useEffect(() => {
@@ -88,23 +90,40 @@ export default function MeterReadingModal({
         const previous_value = previousValue;
         const current_value = totalReading;
         const usage_amount = totalReading - previousValue;
-        const water_cost = calculateWaterCost(usage_amount);
-        const total_amount = water_cost + adminFee;
 
-        // DATA LENGKAP DIKIRIM KE BACKEND
-        const newReading = {
-            customer_id: customerId,
-            reading_date: readingDate,
-            period_month: Number.parseInt(periodMonth),
-            period_year: Number.parseInt(periodYear),
-            previous_value: previous_value,           // Dihitung di frontend
-            current_value: current_value,             // Dihitung di frontend
-            usage_amount: usage_amount,               // Dihitung di frontend
-            water_cost: water_cost,                   // Dihitung di frontend (billing)
-            admin_fee: adminFee,                      // Dari database
-            total_amount: total_amount,               // Dihitung di frontend (billing)
-            notes: notes || 'Pencatatan meteran'
-        };
+        let newReading;
+        if (dataOnlyMode) {
+            // Mode Data Awal: hanya kirim data meteran, tanpa billing
+            newReading = {
+                customer_id: customerId,
+                reading_date: readingDate,
+                period_month: Number.parseInt(periodMonth),
+                period_year: Number.parseInt(periodYear),
+                previous_value: previous_value,
+                current_value: current_value,
+                usage_amount: usage_amount,
+                notes: notes || 'Data awal',
+                _dataOnly: true  // Flag untuk memberitahu parent
+            };
+        } else {
+            // Mode Normal: kirim data lengkap dengan billing
+            const water_cost = calculateWaterCost(usage_amount);
+            const total_amount = water_cost + adminFee;
+            newReading = {
+                customer_id: customerId,
+                reading_date: readingDate,
+                period_month: Number.parseInt(periodMonth),
+                period_year: Number.parseInt(periodYear),
+                previous_value: previous_value,
+                current_value: current_value,
+                usage_amount: usage_amount,
+                water_cost: water_cost,
+                admin_fee: adminFee,
+                total_amount: total_amount,
+                notes: notes || 'Pencatatan meteran',
+                _dataOnly: false
+            };
+        }
 
         onSubmit(newReading);
 
@@ -124,6 +143,7 @@ export default function MeterReadingModal({
         setTotalMeterReading('');
         setNotes('');
         setError('');
+        setDataOnlyMode(defaultDataOnly);
         onClose();
     };
 
@@ -150,7 +170,39 @@ export default function MeterReadingModal({
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full max-h-[90vh] overflow-y-auto">
-                <h3 className="text-xl font-semibold text-gray-800 mb-4">📊 Catat Meteran Baru</h3>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">📊 Catat Meteran Baru</h3>
+
+                {/* Mode Toggle */}
+                <div className="mb-4 p-3 rounded-lg border-2 transition-all duration-200"
+                    style={{ borderColor: dataOnlyMode ? '#f59e0b' : '#3b82f6', backgroundColor: dataOnlyMode ? '#fffbeb' : '#eff6ff' }}
+                >
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-semibold" style={{ color: dataOnlyMode ? '#92400e' : '#1e40af' }}>
+                                {dataOnlyMode ? '📝 Mode Data Awal' : '📊 Mode Normal'}
+                            </p>
+                            <p className="text-xs mt-0.5" style={{ color: dataOnlyMode ? '#b45309' : '#3b82f6' }}>
+                                {dataOnlyMode
+                                    ? 'Hanya simpan data meteran, tanpa tagihan & saldo'
+                                    : 'Simpan meteran + buat tagihan otomatis'
+                                }
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setDataOnlyMode(!dataOnlyMode)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                                dataOnlyMode ? 'bg-amber-400' : 'bg-blue-600'
+                            }`}
+                        >
+                            <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                    dataOnlyMode ? 'translate-x-6' : 'translate-x-1'
+                                }`}
+                            />
+                        </button>
+                    </div>
+                </div>
 
                 <div className="mb-4 p-4 bg-blue-50 rounded-lg">
                     <p className="text-sm font-medium text-gray-700 mb-1">Pelanggan</p>
@@ -274,7 +326,7 @@ export default function MeterReadingModal({
                         </div>
                     )}
 
-                    {totalMeterReading && calculateUsageFromTotal() !== null && (
+                    {totalMeterReading && calculateUsageFromTotal() !== null && !dataOnlyMode && (
                         <div className="p-3 bg-green-50 rounded-lg border border-green-200">
                             <p className="text-xs font-semibold text-gray-700 mb-2">📋 Preview Tagihan</p>
                             <div className="space-y-1 text-sm">
@@ -291,6 +343,13 @@ export default function MeterReadingModal({
                                     <span>Rp {(calculateWaterCost(calculateUsageFromTotal()) + adminFee).toLocaleString('id-ID')}</span>
                                 </div>
                             </div>
+                        </div>
+                    )}
+
+                    {totalMeterReading && calculateUsageFromTotal() !== null && dataOnlyMode && (
+                        <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                            <p className="text-xs font-semibold text-amber-800 mb-1">📝 Mode Data Awal Aktif</p>
+                            <p className="text-xs text-amber-700">Data meteran akan disimpan tanpa membuat tagihan dan tanpa mengubah saldo pelanggan.</p>
                         </div>
                     )}
 
@@ -326,9 +385,13 @@ export default function MeterReadingModal({
                         <button
                             type="submit"
                             disabled={submitting}
-                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className={`flex-1 px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                                dataOnlyMode
+                                    ? 'bg-amber-500 hover:bg-amber-600'
+                                    : 'bg-blue-600 hover:bg-blue-700'
+                            }`}
                         >
-                            {submitting ? 'Menyimpan...' : 'Simpan'}
+                            {submitting ? 'Menyimpan...' : dataOnlyMode ? 'Simpan Data Awal' : 'Simpan'}
                         </button>
                     </div>
                 </form>
