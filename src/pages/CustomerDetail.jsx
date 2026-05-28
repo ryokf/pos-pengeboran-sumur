@@ -15,7 +15,8 @@ import {
   addMeterReadingOnly,
   payAllUnpaidInvoices,
   autoPayInvoicesAfterTopUp,
-  deleteCustomer
+  deleteCustomer,
+  deleteInvoice
 } from '../services/customerService';
 
 export default function CustomerDetail() {
@@ -260,6 +261,30 @@ export default function CustomerDetail() {
     }
   };
 
+  const handleDeleteInvoice = async (invoiceId, monthYear) => {
+    if (!window.confirm(`Hapus tagihan bulan ${monthYear}?\n\nSaldo pelanggan akan dikembalikan sesuai jumlah tagihan yang dihapus.\nTindakan ini tidak dapat dibatalkan.`)) return;
+    try {
+      setSubmitting(true);
+      await deleteInvoice(invoiceId, customerId);
+      // Refresh data
+      const [updatedInvoices, updatedTransactions, updatedCustomer] = await Promise.all([
+        getCustomerInvoices(customerId),
+        getCustomerTransactions(customerId),
+        getCustomerById(customerId),
+      ]);
+      setInvoices(updatedInvoices);
+      setTransactions(updatedTransactions);
+      setCustomer(updatedCustomer);
+      alert(`Tagihan bulan ${monthYear} berhasil dihapus.`);
+    } catch (err) {
+      console.error('Error deleting invoice:', err);
+      alert('Gagal menghapus tagihan: ' + err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+
   // Loading state
   if (loading) {
     return (
@@ -401,7 +426,9 @@ export default function CustomerDetail() {
           monthlyCharge,
           totalPayment,
           monthlyDebt: Math.max(0, monthlyDebt),
-          status
+          status,
+          invoiceId: invoice ? invoice.id : null,
+          readingId: reading ? reading.id : null
         });
       }
     }
@@ -553,6 +580,7 @@ export default function CustomerDetail() {
                   <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Pembayaran</th>
                   <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Hutang</th>
                   <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Status</th>
+                  <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -589,6 +617,20 @@ export default function CustomerDetail() {
                           data.status === 'Hutang' ? '⚠️ Hutang' :
                             data.status}
                       </span>
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      {data.invoiceId ? (
+                        <button
+                          onClick={() => handleDeleteInvoice(data.invoiceId, data.monthYear)}
+                          disabled={submitting}
+                          className="text-xs text-red-500 hover:text-red-700 hover:bg-red-50 px-2 py-1 rounded transition-colors disabled:opacity-50"
+                          title="Hapus tagihan ini"
+                        >
+                          🗑 Hapus
+                        </button>
+                      ) : (
+                        <span className="text-gray-300 text-xs">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}

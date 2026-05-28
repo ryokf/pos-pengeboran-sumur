@@ -25,7 +25,10 @@ export default function MeterReadingModal({
     const [notes, setNotes] = useState('');
     const [error, setError] = useState('');
     const [adminFee, setAdminFee] = useState(0);
-    const [dataOnlyMode, setDataOnlyMode] = useState(defaultDataOnly);
+
+    // Jika tidak ada pembacaan sebelumnya, otomatis gunakan Mode Data Awal
+    const hasNoPreviousReading = !previousReading;
+    const [dataOnlyMode, setDataOnlyMode] = useState(defaultDataOnly || hasNoPreviousReading);
 
     // Load admin fee saat modal dibuka
     useEffect(() => {
@@ -191,9 +194,10 @@ export default function MeterReadingModal({
                         <button
                             type="button"
                             onClick={() => setDataOnlyMode(!dataOnlyMode)}
+                            disabled={hasNoPreviousReading}
                             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
                                 dataOnlyMode ? 'bg-amber-400' : 'bg-blue-600'
-                            }`}
+                            } ${hasNoPreviousReading ? 'opacity-60 cursor-not-allowed' : ''}`}
                         >
                             <span
                                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -202,6 +206,16 @@ export default function MeterReadingModal({
                             />
                         </button>
                     </div>
+
+                    {/* Peringatan jika belum ada data sebelumnya */}
+                    {hasNoPreviousReading && (
+                        <div className="mt-2 pt-2 border-t border-amber-300">
+                            <p className="text-xs text-amber-800 font-semibold">⚠️ Tidak ada data pembacaan sebelumnya</p>
+                            <p className="text-xs text-amber-700 mt-0.5">
+                                Mode Data Awal diaktifkan otomatis. Data ini akan menjadi titik awal perhitungan selisih untuk bulan berikutnya. Tidak ada tagihan yang dibuat.
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 <div className="mb-4 p-4 bg-blue-50 rounded-lg">

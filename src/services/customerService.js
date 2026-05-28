@@ -575,6 +575,75 @@ const addMeterReadingOnly = async (meterReadingData) => {
     }
 };
 
+// Hapus invoice dan kembalikan saldo pelanggan
+const deleteInvoice = async (invoiceId, customerId) => {
+    try {
+        // 1. Ambil data invoice
+        const { data: invoice, error: invFetchError } = await supabase
+            .from('invoices')
+            .select('*')
+            .eq('id', invoiceId)
+            .single();
+
+        if (invFetchError) throw new Error(invFetchError.message);
+
+        // 2. Ambil semua transaksi pembayaran terkait invoice ini
+        const { data: payments, error: payFetchError } = await supabase
+            .from('transactions')
+            .select('*')
+            .eq('invoice_id', invoiceId)
+            .eq('type', 'OUT');
+
+        if (payFetchError) throw new Error(payFetchError.message);
+
+        const totalPaid = (payments || []).reduce((sum, p) => sum + (p.amount || 0), 0);
+
+        // 3. Hapus transaksi pembayaran terkait invoice
+        if (payments && payments.length > 0) {
+            const { error: delPayError } = await supabase
+                .from('transactions')
+                .delete()
+                .eq('invoice_id', invoiceId)
+                .eq('type', 'OUT');
+
+            if (delPayError) throw new Error('Gagal hapus transaksi: ' + delPayError.message);
+        }
+
+        // 4. Hapus invoice
+        const { error: delInvError } = await supabase
+            .from('invoices')
+            .delete()
+            .eq('id', invoiceId);
+
+        if (delInvError) throw new Error('Gagal hapus invoice: ' + delInvError.message);
+
+        // 5. Kembalikan saldo pelanggan:
+        //    Saldo dikurangi sebesar invoice saat dibuat, jadi kembalikan invoice.total_amount
+        //    Tapi pembayaran (totalPaid) sudah dikeluarkan dari saldo, jadi tambahkan kembali
+        const { data: currentCustomer } = await supabase
+            .from('customers')
+            .select('current_balance')
+            .eq('id', customerId)
+            .single();
+
+        const currentBalance = currentCustomer?.current_balance || 0;
+        // Kembalikan: saldo sebelum penagihan = saldo sekarang + invoice.total_amount
+        const restoredBalance = currentBalance + invoice.total_amount;
+
+        const { error: balUpdateError } = await supabase
+            .from('customers')
+            .update({ current_balance: restoredBalance })
+            .eq('id', customerId);
+
+        if (balUpdateError) throw new Error('Gagal update saldo: ' + balUpdateError.message);
+
+        return { success: true, restoredBalance };
+    } catch (error) {
+        console.error('Error in deleteInvoice:', error);
+        throw error;
+    }
+};
+
 export {
     getCustomers,
     getCustomerById,
@@ -587,6 +656,7 @@ export {
     addMeterReadingOnly,
     addCustomer,
     deleteCustomer,
+    deleteInvoice,
     payAllUnpaidInvoices,
     autoPayInvoicesAfterTopUp
 };

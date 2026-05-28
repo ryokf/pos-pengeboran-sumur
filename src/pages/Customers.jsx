@@ -74,6 +74,13 @@ export default function Customers() {
     return a.localeCompare(b);
   });
 
+  // Format label RT — PuKar tidak diberi awalan "RT"
+  const formatRT = (rt) => {
+    if (rt === 'All') return 'Semua RT';
+    if (rt === 'PuKar') return 'PuKar';
+    return `RT ${ rt }`;
+  };
+
   // Filter customers based on search term and RT
   const filteredCustomers = customerData.filter(customer => {
     const matchesSearchTerm = matchesSearch(searchTerm, customer.name, customer.email, customer.phone);
@@ -139,7 +146,7 @@ export default function Customers() {
           >
             {rtOptions.map(rt => (
               <option key={rt} value={rt}>
-                {rt === 'All' ? 'Semua RT' : `RT ${ rt }`}
+                {formatRT(rt)}
               </option>
             ))}
           </select>
@@ -229,7 +236,7 @@ export default function Customers() {
                     <td className="py-4 px-6 text-sm text-gray-600">{customer.phone ? customer.phone : "-"}</td>
                     <td className="py-4 px-6">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800">
-                        RT {customer.rt}
+                        {formatRT(customer.rt)}
                       </span>
                     </td>
                     <td className="py-4 px-6 text-sm text-gray-600">{customer.address}</td>
