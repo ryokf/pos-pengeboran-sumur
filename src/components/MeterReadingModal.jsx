@@ -48,12 +48,12 @@ export default function MeterReadingModal({
 
     if (!isOpen) return null;
 
-    // Hitung biaya air berdasarkan usage (Flat 15k untuk <= 5m3, sisanya 3k/m3)
+    // Hitung biaya air berdasarkan usage (Flat 15k untuk 0-5m3, sisanya 3k/m3)
     const calculateWaterCost = (usage) => {
-        if (usage <= 0) return 0;
+        if (usage < 0) return 0;
 
         if (usage <= 5) {
-            return 15000; // Tagihan flat 15rb jika di bawah atau sama dengan 5m3
+            return 15000; // Tagihan flat 15rb jika penggunaan 0 sampai 5m3
         } else {
             return usage * 3000; // Tagihan 3rb per m3 jika di atas 5m3
         }
