@@ -19,6 +19,7 @@ import Billing from './pages/Billing';
 import BillingPrint from './pages/BillingPrint';
 import BillingSummary from './pages/BillingSummary';
 import FinancialReport from './pages/FinancialReport';
+import FinancialReportPrint from './pages/FinancialReportPrint';
 import MeterReadings from './pages/MeterReadings';
 
 const router = createBrowserRouter([
@@ -90,6 +91,10 @@ const router = createBrowserRouter([
       {
         path: 'finance/billing/summary',
         element: <BillingSummary />
+      },
+      {
+        path: 'finance/report/print',
+        element: <FinancialReportPrint />
       }
     ]
   }

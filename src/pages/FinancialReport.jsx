@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components';
 import { formatCurrency } from '../utils';
 import { getTransactionsByPeriod, addTransaction } from '../services/transactionService';
 import { getCustomers } from '../services/customerService';
 
 export default function FinancialReport() {
+    const navigate = useNavigate();
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth() + 1;
@@ -119,6 +121,15 @@ export default function FinancialReport() {
 
     const handlePrint = () => {
         globalThis.print();
+    };
+
+    const handlePrintReport = () => {
+        const params = new URLSearchParams({
+            period,
+            year: selectedYear,
+            month: selectedMonth
+        });
+        navigate(`/finance/report/print?${params.toString()}`);
     };
 
     // Handle add income
@@ -293,8 +304,8 @@ export default function FinancialReport() {
                     </div>
                 </div>
 
-                {/* Add Income/Expense Buttons */}
-                <div className="mt-4 flex gap-3">
+                {/* Add Income/Expense Buttons + Print Report */}
+                <div className="mt-4 flex gap-3 flex-wrap">
                     <button
                         onClick={() => setShowIncomeModal(true)}
                         className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2"
@@ -306,6 +317,12 @@ export default function FinancialReport() {
                         className="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center justify-center gap-2"
                     >
                         💸 Tambah Pengeluaran
+                    </button>
+                    <button
+                        onClick={handlePrintReport}
+                        className="flex-1 bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors font-medium flex items-center justify-center gap-2"
+                    >
+                        📄 Cetak Laporan Keuangan
                     </button>
                 </div>
             </div>
