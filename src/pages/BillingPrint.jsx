@@ -181,11 +181,17 @@ export default function BillingPrint() {
                             <div className="p-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', padding: '20px' }}>
                                 {pageReceipts.map((customer) => {
 
-                                    const periodMonth = customer.latestReading 
-                                        ? addOneMonth(customer.latestReading.reading_date).toLocaleDateString('id-ID', {
-                                            month: 'long',
-                                            year: 'numeric'
-                                          })
+                                    const monthNamesLocal = [
+                                        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                                        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                                    ];
+                                    const periodMonth = customer.latestReading
+                                        ? (() => {
+                                            let m = customer.latestReading.period_month + 1;
+                                            let y = customer.latestReading.period_year;
+                                            if (m > 12) { m = 1; y += 1; }
+                                            return `${monthNamesLocal[m - 1]} ${y}`;
+                                          })()
                                         : new Date().toLocaleDateString('id-ID', {
                                             month: 'long',
                                             year: 'numeric'

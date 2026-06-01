@@ -5,9 +5,13 @@ import { getTransactionsByPeriod } from '../services/transactionService';
 
 export default function FinancialReportPrint() {
     const [searchParams] = useSearchParams();
-    const period = searchParams.get('period') || 'monthly';
-    const selectedYear = parseInt(searchParams.get('year')) || new Date().getFullYear();
-    const selectedMonth = parseInt(searchParams.get('month')) || (new Date().getMonth() + 1);
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1;
+
+    const [period, setPeriod] = useState(searchParams.get('period') || 'monthly');
+    const [selectedYear, setSelectedYear] = useState(parseInt(searchParams.get('year')) || currentYear);
+    const [selectedMonth, setSelectedMonth] = useState(parseInt(searchParams.get('month')) || currentMonth);
 
     const [loading, setLoading] = useState(true);
     const [transactions, setTransactions] = useState([]);
@@ -16,6 +20,15 @@ export default function FinancialReportPrint() {
         'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
         'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
+
+    // Generate year options (current year ± 5 years)
+    const yearOptions = useMemo(() => {
+        const years = [];
+        for (let y = currentYear + 1; y >= currentYear - 5; y--) {
+            years.push(y);
+        }
+        return years;
+    }, [currentYear]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -104,6 +117,26 @@ export default function FinancialReportPrint() {
         globalThis.print();
     };
 
+    const selectStyle = {
+        padding: '8px 12px',
+        borderRadius: '6px',
+        border: '1px solid #d1d5db',
+        fontSize: '14px',
+        fontWeight: 500,
+        background: '#fff',
+        color: '#374151',
+        cursor: 'pointer',
+        outline: 'none'
+    };
+
+    const labelStyle = {
+        fontSize: '12px',
+        fontWeight: 600,
+        color: '#6b7280',
+        marginBottom: '4px',
+        display: 'block'
+    };
+
     if (loading) {
         return (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: '#fff' }}>
@@ -116,40 +149,94 @@ export default function FinancialReportPrint() {
 
     return (
         <div style={{ minHeight: '100vh', background: '#fff' }}>
-            {/* Print Button */}
-            <div className="no-print" style={{ position: 'fixed', top: '16px', right: '16px', zIndex: 50, display: 'flex', gap: '8px' }}>
-                <button
-                    onClick={() => window.history.back()}
-                    style={{
-                        background: '#6b7280',
-                        color: '#fff',
-                        padding: '12px 24px',
-                        borderRadius: '8px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontWeight: 600,
-                        fontSize: '14px',
-                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                    }}
-                >
-                    ← Kembali
-                </button>
-                <button
-                    onClick={handlePrint}
-                    style={{
-                        background: '#2563eb',
-                        color: '#fff',
-                        padding: '12px 24px',
-                        borderRadius: '8px',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontWeight: 600,
-                        fontSize: '14px',
-                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                    }}
-                >
-                    🖨️ Cetak Laporan
-                </button>
+            {/* Toolbar - Hidden when printing */}
+            <div className="no-print" style={{
+                position: 'sticky',
+                top: 0,
+                zIndex: 50,
+                background: '#f9fafb',
+                borderBottom: '1px solid #e5e7eb',
+                padding: '12px 24px',
+                display: 'flex',
+                alignItems: 'flex-end',
+                justifyContent: 'space-between',
+                gap: '16px',
+                flexWrap: 'wrap'
+            }}>
+                {/* Period Controls */}
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                    <div>
+                        <label style={labelStyle}>Tipe Periode</label>
+                        <select
+                            value={period}
+                            onChange={(e) => setPeriod(e.target.value)}
+                            style={selectStyle}
+                        >
+                            <option value="monthly">Bulanan</option>
+                            <option value="annual">Tahunan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style={labelStyle}>Tahun</label>
+                        <select
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(Number(e.target.value))}
+                            style={selectStyle}
+                        >
+                            {yearOptions.map(y => (
+                                <option key={y} value={y}>{y}</option>
+                            ))}
+                        </select>
+                    </div>
+                    {period === 'monthly' && (
+                        <div>
+                            <label style={labelStyle}>Bulan</label>
+                            <select
+                                value={selectedMonth}
+                                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                                style={selectStyle}
+                            >
+                                {monthNames.map((name, idx) => (
+                                    <option key={idx + 1} value={idx + 1}>{name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                        onClick={() => window.history.back()}
+                        style={{
+                            background: '#6b7280',
+                            color: '#fff',
+                            padding: '10px 20px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                            fontSize: '14px'
+                        }}
+                    >
+                        ← Kembali
+                    </button>
+                    <button
+                        onClick={handlePrint}
+                        style={{
+                            background: '#2563eb',
+                            color: '#fff',
+                            padding: '10px 20px',
+                            borderRadius: '8px',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                            fontSize: '14px'
+                        }}
+                    >
+                        🖨️ Cetak Laporan
+                    </button>
+                </div>
             </div>
 
             {/* Printable Content */}
