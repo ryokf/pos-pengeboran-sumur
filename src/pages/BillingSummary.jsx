@@ -8,12 +8,10 @@ export default function BillingSummary() {
     const [totalBilling, setTotalBilling] = useState(0);
     const [totalWaterUsage, setTotalWaterUsage] = useState(0);
 
-    const currentDate = new Date().toLocaleDateString('id-ID', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    const currentDate = (() => {
+        const d = new Date();
+        return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+    })();
 
     const currentMonth = new Date().toLocaleDateString('id-ID', {
         month: 'long',

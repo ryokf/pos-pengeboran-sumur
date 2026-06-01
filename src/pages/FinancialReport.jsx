@@ -333,12 +333,10 @@ export default function FinancialReport() {
                 <p className="text-lg text-gray-600">Laporan Keuangan</p>
                 <p className="text-md text-gray-600 mt-2">Periode: {periodLabel}</p>
                 <p className="text-sm text-gray-500 mt-1">
-                    Dicetak pada: {new Date().toLocaleDateString('id-ID', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    })}
+                    Dicetak pada: {(() => {
+                        const d = new Date();
+                        return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+                    })()}
                 </p>
             </div>
 
@@ -430,7 +428,10 @@ export default function FinancialReport() {
                                     >
                                         <td className="py-4 px-6 text-sm text-gray-600">{index + 1}</td>
                                         <td className="py-4 px-6 text-sm text-gray-600">
-                                            {new Date(transaction.transaction_date).toLocaleDateString('id-ID')}
+                                            {(() => {
+                                                const d = new Date(transaction.transaction_date);
+                                                return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+                                            })()}
                                         </td>
                                         <td className="py-4 px-6">
                                             <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">

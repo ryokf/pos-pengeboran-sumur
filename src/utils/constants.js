@@ -181,14 +181,13 @@ export const getCustomerMeterReadings = (customerId, meterReadings) => {
     .sort((a, b) => new Date(b.readingDate) - new Date(a.readingDate));
 };
 
-// Format date for display in Indonesian format
+// Format date for display in DD/MM/YYYY format
 export const formatDate = (dateString) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('id-ID', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
 };
 
 // Format date for input fields (YYYY-MM-DD)

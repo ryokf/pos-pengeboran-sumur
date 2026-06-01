@@ -69,15 +69,13 @@ export default function BillingPrint() {
                             const totalAmount = latestInvoice ? (latestInvoice.total_amount || 0) : 0;
 
                             // Get reading date
-                            const readingDate = latestReading ? new Date(latestReading.reading_date).toLocaleDateString('id-ID', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                            }) : new Date().toLocaleDateString('id-ID', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric'
-                            });
+                            const readingDate = latestReading ? (() => {
+                                const d = new Date(latestReading.reading_date);
+                                return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+                            })() : (() => {
+                                const d = new Date();
+                                return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+                            })();
 
                             return {
                                 id: customer.id,
@@ -117,11 +115,10 @@ export default function BillingPrint() {
                                 waterChargeAmount: 0,
                                 adminFee: 0,
                                 totalAmount: 0,
-                                readingDate: new Date().toLocaleDateString('id-ID', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric'
-                                }),
+                                readingDate: (() => {
+                                    const d = new Date();
+                                    return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+                                })(),
                                 latestReading: null,
                                 previousReading: null
                             };

@@ -663,13 +663,7 @@ export default function CustomerDetail() {
               .map((transaction, idx) => {
                 const isTopUp = transaction.type === 'IN';
                 const date = new Date(transaction.transaction_date);
-                const formattedDate = date.toLocaleDateString('id-ID', {
-                  day: 'numeric',
-                  month: 'short',
-                  year: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                });
+                const formattedDate = `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 
                 return (
                   <div
