@@ -66,7 +66,7 @@ export default function FinancialReportPrint() {
             income.push({
                 id: 'topup-summary',
                 transaction_date: topUpTransactions[topUpTransactions.length - 1].transaction_date,
-                description: 'Pemasukan Tunai',
+                description: 'Pembayaran Rekening Air',
                 category: 'Top Up',
                 amount: totalTopUp,
                 type: 'IN'
