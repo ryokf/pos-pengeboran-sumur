@@ -24,9 +24,18 @@ export default function FinancialReport() {
     const [incomeAmount, setIncomeAmount] = useState('');
     const [incomeCategory, setIncomeCategory] = useState('Pemasukan Lain');
     const [incomeDescription, setIncomeDescription] = useState('');
+    const [incomeDate, setIncomeDate] = useState('');
     const [expenseAmount, setExpenseAmount] = useState('');
     const [expenseCategory, setExpenseCategory] = useState('Operasional');
     const [expenseDescription, setExpenseDescription] = useState('');
+    const [expenseDate, setExpenseDate] = useState('');
+
+    // Helper to get default date string for modals (1st of selected period)
+    const getDefaultDate = () => {
+        const y = selectedYear;
+        const m = period === 'monthly' ? selectedMonth : currentMonth;
+        return `${y}-${String(m).padStart(2, '0')}-01`;
+    };
 
     // Fetch data when period changes
     useEffect(() => {
@@ -138,31 +147,49 @@ export default function FinancialReport() {
             alert('Masukkan jumlah yang valid');
             return;
         }
+        if (!incomeDate) {
+            alert('Pilih tanggal transaksi');
+            return;
+        }
 
         try {
             setSubmitting(true);
+
+            const transactionDate = incomeDate;
 
             await addTransaction({
                 type: 'IN',
                 category: incomeCategory,
                 amount: parseFloat(incomeAmount),
                 description: incomeDescription || 'Pemasukan',
-                transaction_date: new Date().toISOString().split('T')[0],
+                transaction_date: transactionDate,
                 customer_id: null
             });
 
-            // Refresh transactions
+            // Navigate to the period of the newly added transaction
+            const txDate = new Date(transactionDate);
+            const txYear = txDate.getFullYear();
+            const txMonth = txDate.getMonth() + 1;
+
+            setSelectedYear(txYear);
+            if (period === 'monthly') {
+                setSelectedMonth(txMonth);
+            }
+
+            // Refresh transactions for the target period
             const updatedTransactions = await getTransactionsByPeriod(
-                selectedYear,
-                period === 'monthly' ? selectedMonth : null
+                txYear,
+                period === 'monthly' ? txMonth : null
             );
             setTransactions(updatedTransactions);
 
-            alert(`Pemasukan sebesar ${ formatCurrency(parseFloat(incomeAmount)) } berhasil ditambahkan!`);
+            const txMonthName = monthNames[txMonth - 1];
+            alert(`Pemasukan sebesar ${ formatCurrency(parseFloat(incomeAmount)) } berhasil ditambahkan untuk ${txMonthName} ${txYear}!`);
             setShowIncomeModal(false);
             setIncomeAmount('');
             setIncomeCategory('Pemasukan Lain');
             setIncomeDescription('');
+            setIncomeDate('');
 
         } catch (error) {
             console.error('Error adding income:', error);
@@ -178,31 +205,49 @@ export default function FinancialReport() {
             alert('Masukkan jumlah yang valid');
             return;
         }
+        if (!expenseDate) {
+            alert('Pilih tanggal transaksi');
+            return;
+        }
 
         try {
             setSubmitting(true);
+
+            const transactionDate = expenseDate;
 
             await addTransaction({
                 type: 'OUT',
                 category: expenseCategory,
                 amount: parseFloat(expenseAmount),
                 description: expenseDescription || 'Pengeluaran',
-                transaction_date: new Date().toISOString().split('T')[0],
+                transaction_date: transactionDate,
                 customer_id: null
             });
 
-            // Refresh transactions
+            // Navigate to the period of the newly added transaction
+            const txDate = new Date(transactionDate);
+            const txYear = txDate.getFullYear();
+            const txMonth = txDate.getMonth() + 1;
+
+            setSelectedYear(txYear);
+            if (period === 'monthly') {
+                setSelectedMonth(txMonth);
+            }
+
+            // Refresh transactions for the target period
             const updatedTransactions = await getTransactionsByPeriod(
-                selectedYear,
-                period === 'monthly' ? selectedMonth : null
+                txYear,
+                period === 'monthly' ? txMonth : null
             );
             setTransactions(updatedTransactions);
 
-            alert(`Pengeluaran sebesar ${ formatCurrency(parseFloat(expenseAmount)) } berhasil ditambahkan!`);
+            const txMonthName = monthNames[txMonth - 1];
+            alert(`Pengeluaran sebesar ${ formatCurrency(parseFloat(expenseAmount)) } berhasil ditambahkan untuk ${txMonthName} ${txYear}!`);
             setShowExpenseModal(false);
             setExpenseAmount('');
             setExpenseCategory('Operasional');
             setExpenseDescription('');
+            setExpenseDate('');
 
         } catch (error) {
             console.error('Error adding expense:', error);
@@ -307,13 +352,19 @@ export default function FinancialReport() {
                 {/* Add Income/Expense Buttons + Print Report */}
                 <div className="mt-4 flex gap-3 flex-wrap">
                     <button
-                        onClick={() => setShowIncomeModal(true)}
+                        onClick={() => {
+                            setIncomeDate(getDefaultDate());
+                            setShowIncomeModal(true);
+                        }}
                         className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2"
                     >
                         💰 Tambah Pemasukan
                     </button>
                     <button
-                        onClick={() => setShowExpenseModal(true)}
+                        onClick={() => {
+                            setExpenseDate(getDefaultDate());
+                            setShowExpenseModal(true);
+                        }}
                         className="flex-1 bg-red-600 text-white px-6 py-3 rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center justify-center gap-2"
                     >
                         💸 Tambah Pengeluaran
@@ -497,6 +548,33 @@ export default function FinancialReport() {
                         <h3 className="text-xl font-semibold text-gray-800 mb-4">💰 Tambah Pemasukan</h3>
                         <div className="space-y-4 mb-6">
                             <div>
+                                <label htmlFor="income-date" className="block text-sm font-medium text-gray-700 mb-2">📅 Tanggal Transaksi</label>
+                                <input
+                                    id="income-date"
+                                    type="date"
+                                    value={incomeDate}
+                                    onChange={(e) => setIncomeDate(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    disabled={submitting}
+                                />
+                                {incomeDate && (() => {
+                                    const d = new Date(incomeDate);
+                                    const txMonth = d.getMonth() + 1;
+                                    const txYear = d.getFullYear();
+                                    const isCurrentPeriod = period === 'monthly'
+                                        ? (txMonth === selectedMonth && txYear === selectedYear)
+                                        : (txYear === selectedYear);
+                                    if (!isCurrentPeriod) {
+                                        return (
+                                            <p className="mt-1 text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-md">
+                                                ⚠️ Transaksi akan dicatat di periode <strong>{monthNames[txMonth - 1]} {txYear}</strong>. Setelah disimpan, tampilan akan otomatis berpindah ke periode tersebut.
+                                            </p>
+                                        );
+                                    }
+                                    return null;
+                                })()}
+                            </div>
+                            <div>
                                 <label htmlFor="income-category" className="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
                                 <select
                                     id="income-category"
@@ -542,6 +620,7 @@ export default function FinancialReport() {
                                     setIncomeAmount('');
                                     setIncomeCategory('Pemasukan Lain');
                                     setIncomeDescription('');
+                                    setIncomeDate('');
                                 }}
                                 disabled={submitting}
                                 className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
@@ -566,6 +645,33 @@ export default function FinancialReport() {
                     <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
                         <h3 className="text-xl font-semibold text-gray-800 mb-4">💸 Tambah Pengeluaran</h3>
                         <div className="space-y-4 mb-6">
+                            <div>
+                                <label htmlFor="expense-date" className="block text-sm font-medium text-gray-700 mb-2">📅 Tanggal Transaksi</label>
+                                <input
+                                    id="expense-date"
+                                    type="date"
+                                    value={expenseDate}
+                                    onChange={(e) => setExpenseDate(e.target.value)}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                                    disabled={submitting}
+                                />
+                                {expenseDate && (() => {
+                                    const d = new Date(expenseDate);
+                                    const txMonth = d.getMonth() + 1;
+                                    const txYear = d.getFullYear();
+                                    const isCurrentPeriod = period === 'monthly'
+                                        ? (txMonth === selectedMonth && txYear === selectedYear)
+                                        : (txYear === selectedYear);
+                                    if (!isCurrentPeriod) {
+                                        return (
+                                            <p className="mt-1 text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-md">
+                                                ⚠️ Transaksi akan dicatat di periode <strong>{monthNames[txMonth - 1]} {txYear}</strong>. Setelah disimpan, tampilan akan otomatis berpindah ke periode tersebut.
+                                            </p>
+                                        );
+                                    }
+                                    return null;
+                                })()}
+                            </div>
                             <div>
                                 <label htmlFor="expense-category" className="block text-sm font-medium text-gray-700 mb-2">Kategori</label>
                                 <select
@@ -614,6 +720,7 @@ export default function FinancialReport() {
                                     setExpenseAmount('');
                                     setExpenseCategory('Operasional');
                                     setExpenseDescription('');
+                                    setExpenseDate('');
                                 }}
                                 disabled={submitting}
                                 className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
