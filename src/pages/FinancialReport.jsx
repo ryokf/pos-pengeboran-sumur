@@ -102,7 +102,10 @@ export default function FinancialReport() {
     const availableYears = useMemo(() => {
         if (transactions.length === 0) return [currentYear];
 
-        const years = transactions.map(t => new Date(t.transaction_date).getFullYear());
+        const years = transactions.map(t => {
+            const dateStr = typeof t.transaction_date === 'string' ? t.transaction_date : '';
+            return parseInt(dateStr.split('-')[0], 10) || currentYear;
+        });
         const uniqueYears = [...new Set(years)].sort((a, b) => b - a);
 
         return uniqueYears.length > 0 ? uniqueYears : [currentYear];
@@ -111,8 +114,14 @@ export default function FinancialReport() {
     // Get available months for selected year
     const availableMonths = useMemo(() => {
         const months = transactions
-            .filter(t => new Date(t.transaction_date).getFullYear() === selectedYear)
-            .map(t => new Date(t.transaction_date).getMonth() + 1);
+            .filter(t => {
+                const dateStr = typeof t.transaction_date === 'string' ? t.transaction_date : '';
+                return parseInt(dateStr.split('-')[0], 10) === selectedYear;
+            })
+            .map(t => {
+                const dateStr = typeof t.transaction_date === 'string' ? t.transaction_date : '';
+                return parseInt(dateStr.split('-')[1], 10) || currentMonth;
+            });
 
         const uniqueMonths = [...new Set(months)].sort((a, b) => a - b);
 
@@ -166,10 +175,10 @@ export default function FinancialReport() {
                 customer_id: null
             });
 
-            // Navigate to the period of the newly added transaction
-            const txDate = new Date(transactionDate);
-            const txYear = txDate.getFullYear();
-            const txMonth = txDate.getMonth() + 1;
+            // Parse date string directly to avoid timezone issues
+            const [txYearStr, txMonthStr] = transactionDate.split('-');
+            const txYear = parseInt(txYearStr, 10);
+            const txMonth = parseInt(txMonthStr, 10);
 
             setSelectedYear(txYear);
             if (period === 'monthly') {
@@ -224,10 +233,10 @@ export default function FinancialReport() {
                 customer_id: null
             });
 
-            // Navigate to the period of the newly added transaction
-            const txDate = new Date(transactionDate);
-            const txYear = txDate.getFullYear();
-            const txMonth = txDate.getMonth() + 1;
+            // Parse date string directly to avoid timezone issues
+            const [txYearStr, txMonthStr] = transactionDate.split('-');
+            const txYear = parseInt(txYearStr, 10);
+            const txMonth = parseInt(txMonthStr, 10);
 
             setSelectedYear(txYear);
             if (period === 'monthly') {
@@ -480,8 +489,9 @@ export default function FinancialReport() {
                                         <td className="py-4 px-6 text-sm text-gray-600">{index + 1}</td>
                                         <td className="py-4 px-6 text-sm text-gray-600">
                                             {(() => {
-                                                const d = new Date(transaction.transaction_date);
-                                                return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+                                                const dateStr = typeof transaction.transaction_date === 'string' ? transaction.transaction_date : '';
+                                                const [y, m, d] = dateStr.split('-');
+                                                return `${(d || '').padStart(2, '0')}/${(m || '').padStart(2, '0')}/${y || ''}`;
                                             })()}
                                         </td>
                                         <td className="py-4 px-6">
@@ -558,9 +568,9 @@ export default function FinancialReport() {
                                     disabled={submitting}
                                 />
                                 {incomeDate && (() => {
-                                    const d = new Date(incomeDate);
-                                    const txMonth = d.getMonth() + 1;
-                                    const txYear = d.getFullYear();
+                                    const [yStr, mStr] = incomeDate.split('-');
+                                    const txMonth = parseInt(mStr, 10);
+                                    const txYear = parseInt(yStr, 10);
                                     const isCurrentPeriod = period === 'monthly'
                                         ? (txMonth === selectedMonth && txYear === selectedYear)
                                         : (txYear === selectedYear);
@@ -656,9 +666,9 @@ export default function FinancialReport() {
                                     disabled={submitting}
                                 />
                                 {expenseDate && (() => {
-                                    const d = new Date(expenseDate);
-                                    const txMonth = d.getMonth() + 1;
-                                    const txYear = d.getFullYear();
+                                    const [yStr, mStr] = expenseDate.split('-');
+                                    const txMonth = parseInt(mStr, 10);
+                                    const txYear = parseInt(yStr, 10);
                                     const isCurrentPeriod = period === 'monthly'
                                         ? (txMonth === selectedMonth && txYear === selectedYear)
                                         : (txYear === selectedYear);

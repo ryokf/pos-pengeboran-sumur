@@ -30,16 +30,18 @@ const getTransactionsByPeriod = async (year, month = null) => {
         `);
 
     if (month) {
-        // Monthly filter
-        const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0];
-        const endDate = new Date(year, month, 0).toISOString().split('T')[0];
+        // Monthly filter - construct date strings directly to avoid timezone issues
+        const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+        // Calculate last day of month: create date on day 0 of next month
+        const lastDay = new Date(year, month, 0).getDate();
+        const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
         query = query
             .gte('transaction_date', startDate)
             .lte('transaction_date', endDate);
     } else {
         // Annual filter
-        const startDate = new Date(year, 0, 1).toISOString().split('T')[0];
-        const endDate = new Date(year, 11, 31).toISOString().split('T')[0];
+        const startDate = `${year}-01-01`;
+        const endDate = `${year}-12-31`;
         query = query
             .gte('transaction_date', startDate)
             .lte('transaction_date', endDate);
