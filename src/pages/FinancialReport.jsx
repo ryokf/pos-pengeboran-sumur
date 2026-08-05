@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components';
 import { formatCurrency } from '../utils';
-import { getTransactionsByPeriod, addTransaction } from '../services/transactionService';
+import { getTransactionsByPeriod, addTransaction, deleteTransaction } from '../services/transactionService';
 import { getCustomers } from '../services/customerService';
 
 export default function FinancialReport() {
@@ -21,6 +21,9 @@ export default function FinancialReport() {
 
     const [showIncomeModal, setShowIncomeModal] = useState(false);
     const [showExpenseModal, setShowExpenseModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState(null);
+    const [deleting, setDeleting] = useState(false);
     const [incomeAmount, setIncomeAmount] = useState('');
     const [incomeCategory, setIncomeCategory] = useState('Pemasukan Lain');
     const [incomeDescription, setIncomeDescription] = useState('');
@@ -266,6 +269,32 @@ export default function FinancialReport() {
         }
     };
 
+    // Handle delete transaction
+    const handleDeleteTransaction = async () => {
+        if (!deleteTarget) return;
+
+        try {
+            setDeleting(true);
+            await deleteTransaction(deleteTarget.id);
+
+            // Refresh transactions
+            const updatedTransactions = await getTransactionsByPeriod(
+                selectedYear,
+                period === 'monthly' ? selectedMonth : null
+            );
+            setTransactions(updatedTransactions);
+
+            alert('Transaksi berhasil dihapus!');
+            setShowDeleteModal(false);
+            setDeleteTarget(null);
+        } catch (error) {
+            console.error('Error deleting transaction:', error);
+            alert('Gagal menghapus transaksi: ' + error.message);
+        } finally {
+            setDeleting(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="p-8">
@@ -476,6 +505,7 @@ export default function FinancialReport() {
                                 <th className="text-left py-4 px-6 font-semibold">Sumber/Tujuan</th>
                                 <th className="text-right py-4 px-6 font-semibold">Nominal</th>
                                 <th className="text-center py-4 px-6 font-semibold">Tipe</th>
+                                <th className="no-print text-center py-4 px-6 font-semibold">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -518,11 +548,25 @@ export default function FinancialReport() {
                                                 {transaction.type === 'IN' ? '📥 Masuk' : '📤 Keluar'}
                                             </span>
                                         </td>
+                                        <td className="no-print py-4 px-6 text-center">
+                                            {!transaction.customer_id && (
+                                                <button
+                                                    onClick={() => {
+                                                        setDeleteTarget(transaction);
+                                                        setShowDeleteModal(true);
+                                                    }}
+                                                    className="px-3 py-1.5 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors text-xs font-medium"
+                                                    title="Hapus transaksi"
+                                                >
+                                                    🗑️ Hapus
+                                                </button>
+                                            )}
+                                        </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="7" className="py-8 text-center text-gray-500">
+                                    <td colSpan="8" className="py-8 text-center text-gray-500">
                                         Tidak ada transaksi untuk periode ini
                                     </td>
                                 </tr>
@@ -743,6 +787,50 @@ export default function FinancialReport() {
                                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
                             >
                                 {submitting ? 'Menyimpan...' : 'Simpan'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteModal && deleteTarget && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-lg p-8 max-w-md w-full mx-4">
+                        <h3 className="text-xl font-semibold text-gray-800 mb-4">🗑️ Hapus Transaksi</h3>
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                            <p className="text-sm text-red-800 font-medium mb-2">Apakah Anda yakin ingin menghapus transaksi berikut?</p>
+                            <div className="space-y-1 text-sm text-gray-700">
+                                <p><strong>Tanggal:</strong> {(() => {
+                                    const dateStr = typeof deleteTarget.transaction_date === 'string' ? deleteTarget.transaction_date : '';
+                                    const [y, m, d] = dateStr.split('-');
+                                    return `${(d || '').padStart(2, '0')}/${(m || '').padStart(2, '0')}/${y || ''}`;
+                                })()}</p>
+                                <p><strong>Kategori:</strong> {deleteTarget.category}</p>
+                                <p><strong>Keterangan:</strong> {deleteTarget.description}</p>
+                                <p><strong>Nominal:</strong> <span className={deleteTarget.type === 'IN' ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
+                                    {deleteTarget.type === 'IN' ? '+' : '-'}{formatCurrency(deleteTarget.amount)}
+                                </span></p>
+                            </div>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-4">⚠️ Tindakan ini tidak dapat dibatalkan.</p>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => {
+                                    setShowDeleteModal(false);
+                                    setDeleteTarget(null);
+                                }}
+                                disabled={deleting}
+                                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+                            >
+                                Batal
+                            </button>
+                            <button
+                                onClick={handleDeleteTransaction}
+                                disabled={deleting}
+                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+                            >
+                                {deleting ? 'Menghapus...' : '🗑️ Hapus'}
                             </button>
                         </div>
                     </div>

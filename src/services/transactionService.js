@@ -90,9 +90,23 @@ const getTransactionSummary = async (year, month = null) => {
     };
 }
 
+// Delete a transaction by ID
+const deleteTransaction = async (transactionId) => {
+    const { error } = await supabase
+        .from('transactions')
+        .delete()
+        .eq('id', transactionId);
+
+    if (error) {
+        throw new Error(error.message);
+    }
+    return true;
+}
+
 export {
     getTransactions,
     getTransactionsByPeriod,
     addTransaction,
-    getTransactionSummary
+    getTransactionSummary,
+    deleteTransaction
 };
