@@ -68,8 +68,19 @@ export default function BillingPrint() {
                             const waterChargeAmount = latestInvoice ? (latestInvoice.amount || 0) : 0;
                             const totalAmount = latestInvoice ? (latestInvoice.total_amount || 0) : 0;
 
-                            // Get due date (Hanya Bulan dan Tahun)
-                            const dueDate = latestInvoice?.due_date ? formatDueMonth(latestInvoice.due_date) : null;
+                            // Get due date (Bulan dan Tahun saja, e.g. "November 2026")
+                            const dueDate = latestInvoice?.due_date
+                                ? formatDueMonth(latestInvoice.due_date)
+                                : (latestReading ? (() => {
+                                    let m = latestReading.period_month + 1;
+                                    let y = latestReading.period_year;
+                                    if (m > 12) { m = 1; y += 1; }
+                                    const monthNamesLocal = [
+                                        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                                        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+                                    ];
+                                    return `${monthNamesLocal[m - 1]} ${y}`;
+                                })() : new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }));
 
                             // Get reading date
                             const readingDate = latestReading ? (() => {
@@ -207,11 +218,8 @@ export default function BillingPrint() {
                                             {/* Header */}
 
                                             {/* Receipt Title */}
-                                            <div className="flex justify-between items-center mb-1">
-                                                <p className="text-gray-600 text-xs">Periode: {periodMonth}</p>
-                                                {customer.dueDate && (
-                                                    <p className="text-gray-600 text-xs">Jatuh Tempo: <span className="font-semibold text-red-600">{customer.dueDate}</span></p>
-                                                )}
+                                            <div className="mb-1">
+                                                <p className="text-gray-600 text-xs">Jatuh Tempo: <span className="font-semibold text-gray-800">{customer.dueDate}</span></p>
                                             </div>
 
                                             {/* Customer Info */}
