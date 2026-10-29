@@ -18,13 +18,43 @@ export default function MeterReadingModal({
     const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
 
+    // Helper untuk menghitung default bulan & tahun jatuh tempo (bulan berikutnya)
+    const getDefaultDueMonthAndYear = (month, year) => {
+        let m = Number(month) + 1;
+        let y = Number(year);
+        if (m > 12) {
+            m = 1;
+            y += 1;
+        }
+        return { month: m, year: y };
+    };
+
+    const defaultDue = getDefaultDueMonthAndYear(currentMonth, currentYear);
+
     const [readingDate, setReadingDate] = useState(today);
     const [periodMonth, setPeriodMonth] = useState(currentMonth);
     const [periodYear, setPeriodYear] = useState(currentYear);
+    const [dueMonth, setDueMonth] = useState(defaultDue.month);
+    const [dueYear, setDueYear] = useState(defaultDue.year);
     const [totalMeterReading, setTotalMeterReading] = useState('');
     const [notes, setNotes] = useState('');
     const [error, setError] = useState('');
     const [adminFee, setAdminFee] = useState(0);
+
+    // Handler perubahan periode agar default bulan jatuh tempo otomatis menyesuaikan
+    const handlePeriodMonthChange = (newMonth) => {
+        setPeriodMonth(newMonth);
+        const next = getDefaultDueMonthAndYear(newMonth, periodYear);
+        setDueMonth(next.month);
+        setDueYear(next.year);
+    };
+
+    const handlePeriodYearChange = (newYear) => {
+        setPeriodYear(newYear);
+        const next = getDefaultDueMonthAndYear(periodMonth, newYear);
+        setDueMonth(next.month);
+        setDueYear(next.year);
+    };
 
     // Jika tidak ada pembacaan sebelumnya, otomatis gunakan Mode Data Awal
     const hasNoPreviousReading = !previousReading;
@@ -109,12 +139,15 @@ export default function MeterReadingModal({
                 _dataOnly: true  // Flag untuk memberitahu parent
             };
         } else {
-            // Mode Normal: kirim data lengkap dengan billing
+            // Mode Normal: kirim data lengkap dengan billing dan bulan jatuh tempo
             const water_cost = calculateWaterCost(usage_amount);
             const total_amount = water_cost + adminFee;
+            const dueDateStr = `${dueYear}-${String(dueMonth).padStart(2, '0')}-01`;
+
             newReading = {
                 customer_id: customerId,
                 reading_date: readingDate,
+                due_date: dueDateStr,
                 period_month: Number.parseInt(periodMonth),
                 period_year: Number.parseInt(periodYear),
                 previous_value: previous_value,
@@ -134,6 +167,9 @@ export default function MeterReadingModal({
         setReadingDate(today);
         setPeriodMonth(currentMonth);
         setPeriodYear(currentYear);
+        const resetDue = getDefaultDueMonthAndYear(currentMonth, currentYear);
+        setDueMonth(resetDue.month);
+        setDueYear(resetDue.year);
         setTotalMeterReading('');
         setNotes('');
         setError('');
@@ -143,6 +179,9 @@ export default function MeterReadingModal({
         setReadingDate(today);
         setPeriodMonth(currentMonth);
         setPeriodYear(currentYear);
+        const resetDue = getDefaultDueMonthAndYear(currentMonth, currentYear);
+        setDueMonth(resetDue.month);
+        setDueYear(resetDue.year);
         setTotalMeterReading('');
         setNotes('');
         setError('');
@@ -164,11 +203,8 @@ export default function MeterReadingModal({
         'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
     ];
 
-    // Generate year options (current year and 2 years back)
-    const yearOptions = [];
-    for (let i = 0; i < 3; i++) {
-        yearOptions.push(currentYear - i);
-    }
+    // Generate year options (next year, current year, and 2 years back)
+    const yearOptions = [currentYear + 1, currentYear, currentYear - 1, currentYear - 2];
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -261,7 +297,7 @@ export default function MeterReadingModal({
                             </label>
                             <select
                                 value={periodMonth}
-                                onChange={(e) => setPeriodMonth(e.target.value)}
+                                onChange={(e) => handlePeriodMonthChange(e.target.value)}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 required
                                 disabled={submitting}
@@ -288,7 +324,7 @@ export default function MeterReadingModal({
                             </label>
                             <select
                                 value={periodYear}
-                                onChange={(e) => setPeriodYear(e.target.value)}
+                                onChange={(e) => handlePeriodYearChange(e.target.value)}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 required
                                 disabled={submitting}
@@ -301,6 +337,54 @@ export default function MeterReadingModal({
                             </select>
                         </div>
                     </div>
+
+                    {/* Bulan & Tahun Jatuh Tempo (hanya tampil jika Mode Normal) */}
+                    {!dataOnlyMode && (
+                        <div>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Bulan Jatuh Tempo
+                                    </label>
+                                    <select
+                                        value={dueMonth}
+                                        onChange={(e) => setDueMonth(Number(e.target.value))}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        required={!dataOnlyMode}
+                                        disabled={submitting}
+                                    >
+                                        {monthNames.map((name, index) => (
+                                            <option key={index + 1} value={index + 1}>
+                                                {name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Tahun Jatuh Tempo
+                                    </label>
+                                    <select
+                                        value={dueYear}
+                                        onChange={(e) => setDueYear(Number(e.target.value))}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        required={!dataOnlyMode}
+                                        disabled={submitting}
+                                    >
+                                        {yearOptions.map(year => (
+                                            <option key={year} value={year}>
+                                                {year}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                                Bulan batas pembayaran tagihan warga (otomatis disetel bulan berikutnya)
+                            </p>
+                        </div>
+                    )}
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">

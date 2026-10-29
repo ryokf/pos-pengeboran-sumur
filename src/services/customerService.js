@@ -366,8 +366,10 @@ const addMeterReading = async (meterReadingData) => {
         const invoiceNumber = `INV/${ meterData.period_year }/${ String(meterData.period_month).padStart(2, '0') }/${ String((count || 0) + 1).padStart(3, '0') }`;
 
         // 4. Create invoice
-        const dueDate = new Date(meterData.period_year, meterData.period_month, 10);
-        const dueDateStr = dueDate.toISOString().split('T')[0];
+        const dueDateStr = meterReadingData.due_date || (() => {
+            const dueDate = new Date(meterData.period_year, meterData.period_month, 10);
+            return dueDate.toISOString().split('T')[0];
+        })();
 
         const { data: invoiceData, error: invoiceError } = await supabase
             .from('invoices')

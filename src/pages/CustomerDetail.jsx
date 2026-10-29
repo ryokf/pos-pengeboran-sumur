@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader, MeterReadingModal } from '../components';
 import {
-  formatCurrency
+  formatCurrency,
+  formatDate,
+  formatDueMonth
 } from '../utils';
 import {
   getCustomerById,
@@ -428,6 +430,7 @@ export default function CustomerDetail() {
           monthlyDebt: Math.max(0, monthlyDebt),
           status,
           invoiceId: invoice ? invoice.id : null,
+          dueDate: invoice ? invoice.due_date : null,
           readingId: reading ? reading.id : null
         });
       }
@@ -574,6 +577,7 @@ export default function CustomerDetail() {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700 text-sm">Bulan</th>
+                  <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Jatuh Tempo</th>
                   <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Nilai Meteran</th>
                   <th className="text-center py-3 px-4 font-semibold text-gray-700 text-sm">Penggunaan</th>
                   <th className="text-right py-3 px-4 font-semibold text-gray-700 text-sm">Tagihan</th>
@@ -587,6 +591,9 @@ export default function CustomerDetail() {
                 {monthlyData.map((data, idx) => (
                   <tr key={`billing-${ idx }`} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-3 px-4 text-sm font-medium text-gray-800">{data.monthYear}</td>
+                    <td className="py-3 px-4 text-center text-xs text-gray-500">
+                      {data.dueDate ? formatDueMonth(data.dueDate) : '-'}
+                    </td>
                     <td className="py-3 px-4 text-center text-sm">
                       {typeof data.meterValue === 'number' ? (
                         <span className="font-semibold text-blue-600">{data.meterValue} m³</span>

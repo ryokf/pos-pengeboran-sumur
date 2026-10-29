@@ -198,3 +198,23 @@ export const formatDateForInput = (dateString) => {
   const day = String(date.getDate()).padStart(2, '0');
   return `${ year }-${ month }-${ day }`;
 };
+
+// Format due date / period to Month Year format (e.g. "November 2026")
+export const formatDueMonth = (dateString) => {
+  if (!dateString) return '-';
+  const monthNames = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ];
+  const parts = String(dateString).split('T')[0].split('-');
+  if (parts.length >= 2) {
+    const year = parts[0];
+    const month = parseInt(parts[1], 10);
+    if (month >= 1 && month <= 12) {
+      return `${monthNames[month - 1]} ${year}`;
+    }
+  }
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '-';
+  return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+};

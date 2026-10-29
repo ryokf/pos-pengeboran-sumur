@@ -20,6 +20,7 @@ export {
   calculateUsage,
   getCustomerMeterReadings,
   formatDate,
-  formatDateForInput
+  formatDateForInput,
+  formatDueMonth
 } from './constants';
 

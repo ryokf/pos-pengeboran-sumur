@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { formatCurrency } from '../utils';
+import { formatCurrency, formatDueMonth } from '../utils';
 import { getCustomers, getCustomerMeterReadings, getCustomerInvoices, getCustomerTransactions } from '../services/customerService';
 
 export default function BillingPrint() {
@@ -68,6 +68,9 @@ export default function BillingPrint() {
                             const waterChargeAmount = latestInvoice ? (latestInvoice.amount || 0) : 0;
                             const totalAmount = latestInvoice ? (latestInvoice.total_amount || 0) : 0;
 
+                            // Get due date (Hanya Bulan dan Tahun)
+                            const dueDate = latestInvoice?.due_date ? formatDueMonth(latestInvoice.due_date) : null;
+
                             // Get reading date
                             const readingDate = latestReading ? (() => {
                                 const d = new Date(latestReading.reading_date);
@@ -93,6 +96,7 @@ export default function BillingPrint() {
                                 waterChargeAmount,
                                 adminFee,
                                 totalAmount,
+                                dueDate,
                                 readingDate,
                                 latestReading,
                                 previousReading
@@ -115,6 +119,7 @@ export default function BillingPrint() {
                                 waterChargeAmount: 0,
                                 adminFee: 0,
                                 totalAmount: 0,
+                                dueDate: null,
                                 readingDate: (() => {
                                     const d = new Date();
                                     return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
@@ -202,8 +207,11 @@ export default function BillingPrint() {
                                             {/* Header */}
 
                                             {/* Receipt Title */}
-                                            <div className="mb-1">
+                                            <div className="flex justify-between items-center mb-1">
                                                 <p className="text-gray-600 text-xs">Periode: {periodMonth}</p>
+                                                {customer.dueDate && (
+                                                    <p className="text-gray-600 text-xs">Jatuh Tempo: <span className="font-semibold text-red-600">{customer.dueDate}</span></p>
+                                                )}
                                             </div>
 
                                             {/* Customer Info */}

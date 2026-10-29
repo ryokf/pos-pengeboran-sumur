@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { formatCurrency } from '../utils';
+import { formatCurrency, formatDueMonth } from '../utils';
 import { getCustomers, getCustomerTransactions } from '../services/customerService';
 import { getInvoices, getAppSettings } from '../services/billingService';
 
@@ -255,6 +255,11 @@ export default function Billing() {
                       <p className="text-xs text-gray-500">
                         {invoice.period}
                       </p>
+                      {invoice.due_date && (
+                        <p className="text-xs text-amber-700 font-medium mt-0.5">
+                          Jatuh tempo: {formatDueMonth(invoice.due_date)}
+                        </p>
+                      )}
                     </div>
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold ${ invoice.status === 'Paid' || remainingAmount === 0 ? 'bg-green-100 text-green-800' :
                         isPartiallyPaid ? 'bg-orange-100 text-orange-800' :
