@@ -72,7 +72,7 @@ const getCustomerInvoices = async (customerId) => {
 
 // Add top up (payment transaction)
 // Frontend handles balance update - no database trigger needed
-const addTopUp = async (customerId, amount, description = 'Top Up Saldo') => {
+const addTopUp = async (customerId, amount, description = 'Top Up Saldo', transactionDate = null) => {
     // 1. Get current customer balance
     const { data: customer, error: customerError } = await supabase
         .from('customers')
@@ -108,7 +108,7 @@ const addTopUp = async (customerId, amount, description = 'Top Up Saldo') => {
                 category: 'Top Up',
                 amount: amount,
                 description: description,
-                transaction_date: new Date().toISOString().split('T')[0]
+                transaction_date: transactionDate || new Date().toISOString().split('T')[0]
             }
         ])
         .select();
@@ -186,7 +186,7 @@ const addAdjustment = async (customerId, amount, type, description = 'Penyesuaia
 
 // Pay all unpaid invoices for a customer
 // Note: No transaction records created - money already recorded during top-up
-const payAllUnpaidInvoices = async (customerId, topUpValue) => {
+const payAllUnpaidInvoices = async (customerId, topUpValue, paymentDate = null) => {
     try {
         // Use topUpValue as available funds for payment
         let remainingFunds = topUpValue;
@@ -270,7 +270,7 @@ const payAllUnpaidInvoices = async (customerId, topUpValue) => {
                     category: 'Pembayaran Tagihan',
                     amount: paymentAmount,
                     description: `Pembayaran untuk ${ invoice.period } (${ invoice.invoice_number })`,
-                    transaction_date: new Date().toISOString().split('T')[0]
+                    transaction_date: paymentDate || new Date().toISOString().split('T')[0]
                 })
                 .select();
 
@@ -543,8 +543,8 @@ const deleteCustomer = async (id) => {
 
 // Auto-pay invoices after top-up (called from handleTopUp in CustomerDetail)
 // This is the same logic as payAllUnpaidInvoices, just with a different name for clarity
-const autoPayInvoicesAfterTopUp = async (customerId, topUpValue) => {
-    return await payAllUnpaidInvoices(customerId, topUpValue);
+const autoPayInvoicesAfterTopUp = async (customerId, topUpValue, paymentDate = null) => {
+    return await payAllUnpaidInvoices(customerId, topUpValue, paymentDate);
 }
 
 // Add meter reading ONLY (tanpa invoice, tanpa perubahan saldo)

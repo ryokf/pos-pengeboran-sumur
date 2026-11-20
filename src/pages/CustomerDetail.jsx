@@ -37,6 +37,7 @@ export default function CustomerDetail() {
   const [showAdjustmentModal, setShowAdjustmentModal] = useState(false);
   const [showMeterModal, setShowMeterModal] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState('');
+  const [topUpDate, setTopUpDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [adjustmentAmount, setAdjustmentAmount] = useState('');
   const [adjustmentType, setAdjustmentType] = useState('add');
   const [submitting, setSubmitting] = useState(false);
@@ -80,6 +81,11 @@ export default function CustomerDetail() {
 
   // Handle top up submission
   const handleTopUp = async () => {
+    if (!topUpDate) {
+      alert('Pilih tanggal top up');
+      return;
+    }
+
     if (!topUpAmount || Number.parseFloat(topUpAmount) <= 0) {
       alert('Masukkan jumlah yang valid');
       return;
@@ -89,11 +95,11 @@ export default function CustomerDetail() {
       setSubmitting(true);
       const topUpValue = Number.parseFloat(topUpAmount);
 
-      // 1. Add top-up transaction
-      await addTopUp(customerId, topUpValue);
+      // 1. Add top-up transaction with date
+      await addTopUp(customerId, topUpValue, 'Top Up Saldo', topUpDate);
 
-      // 2. Auto-pay unpaid invoices using top-up amount
-      const paymentResult = await autoPayInvoicesAfterTopUp(customerId, topUpValue);
+      // 2. Auto-pay unpaid invoices using top-up amount and date
+      const paymentResult = await autoPayInvoicesAfterTopUp(customerId, topUpValue, topUpDate);
 
       // 3. Wait a moment to ensure all database transactions are committed
       await new Promise(resolve => setTimeout(resolve, 500));
@@ -114,6 +120,7 @@ export default function CustomerDetail() {
       // 5. Show success message with payment details
       alert(
         `Top up berhasil!\n\n` +
+        `- Tanggal: ${ formatDate(topUpDate) }\n` +
         `- Jumlah top-up: ${ formatCurrency(topUpValue) }\n` +
         `- Tagihan dibayar: ${ paymentResult.invoices_paid }\n` +
         `- Total pembayaran: ${ formatCurrency(paymentResult.total_amount_paid) }\n` +
@@ -122,6 +129,7 @@ export default function CustomerDetail() {
 
       setShowTopUpModal(false);
       setTopUpAmount('');
+      setTopUpDate(new Date().toISOString().split('T')[0]);
     } catch (err) {
       console.error('Error processing top up:', err);
       alert('Gagal memproses top up: ' + err.message);
@@ -730,7 +738,23 @@ export default function CustomerDetail() {
             <h3 className="text-xl font-semibold text-gray-800 mb-4">💳 Top Up Saldo</h3>
             <div className="space-y-4 mb-6">
               <div>
-                <label htmlFor="topup-amount" className="block text-sm font-medium text-gray-700 mb-2">Jumlah Top Up</label>
+                <label htmlFor="topup-date" className="block text-sm font-medium text-gray-700 mb-2">
+                  Tanggal Top Up <span className="text-red-500">*</span>
+                </label>
+                <input
+                  id="topup-date"
+                  type="date"
+                  value={topUpDate}
+                  onChange={(e) => setTopUpDate(e.target.value)}
+                  max={new Date().toISOString().split('T')[0]}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="topup-amount" className="block text-sm font-medium text-gray-700 mb-2">
+                  Jumlah Top Up <span className="text-red-500">*</span>
+                </label>
                 <input
                   id="topup-amount"
                   type="number"
@@ -746,6 +770,7 @@ export default function CustomerDetail() {
                 onClick={() => {
                   setShowTopUpModal(false);
                   setTopUpAmount('');
+                  setTopUpDate(new Date().toISOString().split('T')[0]);
                 }}
                 disabled={submitting}
                 className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50"
